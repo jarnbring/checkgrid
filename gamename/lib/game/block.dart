@@ -1,5 +1,21 @@
-class Block {
-  final bool isActive;
+import 'dart:math';
+import 'package:gamename/game/piecetype.dart';
+import 'package:flutter/material.dart';
 
-  Block({this.isActive = true});
+class Block {
+  bool isActive = false;
+  final PieceType? piece;
+  final Color color;
+
+  Block({required this.isActive, this.piece}) : color = getRandomColor();  
+
+  static Color getRandomColor() {
+    final random = Random();
+    switch (random.nextInt(3)) {
+      case 0:
+        return Colors.blue;
+      default:
+        return Colors.blue;
+    }
+  }
 }
