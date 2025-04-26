@@ -10,24 +10,44 @@ class GamePage extends StatefulWidget {
   State<GamePage> createState() => _GamePageState();
 }
 
-class _GamePageState extends State<GamePage> {
+class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
   // Create a 2D board with nulls (empty cells)
   List<List<Block?>> board = List.generate(8, (_) => List.filled(8, null));
 
-  late List<PieceType>
-  selectedPieces; // This is used for randomizing the users pieces
+  late List<PieceType> selectedPieces; // This is used for randomizing the user's pieces
+  late AnimationController _animationController; // Controller for the animation
+  late Animation<double> _fadeAnimation; // Fade animation for pieces
 
   // Constants
   final double imageWidth = 50;
   final double imageHeight = 50;
-  final int boardWidth = 8; // Mesured in cells
-  final int boardHeight = 8; // Mesured in cells
+  final int boardWidth = 8; // Measured in cells
+  final int boardHeight = 8; // Measured in cells
 
   @override
   void initState() {
     super.initState();
+
+    // Initialize animation controller for fade-in effect
+    _animationController = AnimationController(
+      duration: const Duration(seconds: 1),
+      vsync: this,
+    );
+
+    // Initialize the fade animation after the controller is ready
+    _fadeAnimation = Tween(begin: 0.0, end: 1.0).animate(_animationController);
+
+    // Initialize other elements
     initKillingCells();
+    
+    // Now call setPieces() after the animation controller is ready
     setPieces();
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose(); // Dispose the animation controller
+    super.dispose();
   }
 
   void setPieces() {
@@ -35,6 +55,9 @@ class _GamePageState extends State<GamePage> {
     final allPieces = List<PieceType>.from(PieceType.values)..shuffle();
     // Randomizes the pieces
     selectedPieces = allPieces.take(3).toList();
+
+    // Start the fade-in animation when new pieces are added
+    _animationController.forward(from: 0.0); // Start the animation from 0.0
   }
 
   void initKillingCells() {
@@ -46,26 +69,6 @@ class _GamePageState extends State<GamePage> {
           board[row][col] = Block(isActive: true);
         }
       }
-    }
-  }
-
-  Color getRandomColor() {
-    final random = Random();
-    switch (random.nextInt(6)) {
-      case 0:
-        return Colors.black;
-      case 1:
-        return Colors.red;
-      case 2:
-        return Colors.yellow;
-      case 3:
-        return Colors.deepPurple;
-      case 4:
-        return Colors.orange;
-      case 5:
-        return Colors.indigo;
-      default:
-        return Colors.blue;
     }
   }
 
@@ -151,58 +154,54 @@ class _GamePageState extends State<GamePage> {
                 spacing: 20,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // Om selectedPieces inte är tom, rendera pjäserna
-                  if (selectedPieces.isNotEmpty)
-                    for (var piece in selectedPieces)
-                      Draggable<PieceType>(
-                        data: piece,
-                        feedback: Image.asset(
-                          'assets/images/white_${piece.name}.png',
-                          height: imageHeight,
-                          width: imageWidth,
-                          cacheHeight: (imageHeight * 1.5).toInt(),
-                          cacheWidth: (imageWidth * 1.0).toInt(),
+                  // Using AnimatedBuilder to handle fade transition of pjäser
+                  AnimatedBuilder(
+                    animation: _fadeAnimation,
+                    builder: (context, child) {
+                      return Opacity(
+                        opacity: _fadeAnimation.value,
+                        child: Row(
+                          children: selectedPieces
+                              .map((piece) => Draggable<PieceType>(
+                                    data: piece,
+                                    feedback: Image.asset(
+                                      'assets/images/white_${piece.name}.png',
+                                      height: imageHeight,
+                                      width: imageWidth,
+                                      cacheHeight: (imageHeight * 1.5).toInt(),
+                                      cacheWidth: (imageWidth * 1.0).toInt(),
+                                    ),
+                                    onDragEnd: (details) {
+                                      if (details.wasAccepted) {
+                                        setState(() {
+                                          selectedPieces.remove(piece); // Tar bort pjäsen från selectedPieces om den accepterades
+                                        });
+                                      }
+                                      if (selectedPieces.isEmpty) {
+                                        setState(() {
+                                          setPieces(); // Uppdaterar pjäserna när det inte finns några kvar.
+                                        });
+                                      }
+                                    },
+                                    childWhenDragging: Opacity(
+                                      opacity: 0.2,
+                                      child: Image.asset(
+                                        'assets/images/white_${piece.name}.png',
+                                        height: 50,
+                                        width: 50,
+                                      ),
+                                    ),
+                                    child: Image.asset(
+                                      'assets/images/white_${piece.name}.png',
+                                      height: 50,
+                                      width: 50,
+                                    ),
+                                  ))
+                              .toList(),
                         ),
-                        
-                        onDragEnd: (details) {
-                          
-                          if (details.wasAccepted) {
-                            setState(() {
-                              selectedPieces.remove(
-                                piece,
-                              ); 
-                            });
-                          }
-                          if (selectedPieces.isEmpty) {
-                            setState(() {
-                              setPieces(); // Uppdaterar pjäserna när det inte finns några kvar.
-                           });
-                          }
-                        },
-                        childWhenDragging: Opacity(
-                          opacity: 0.2,
-                          child: Image.asset(
-                            'assets/images/white_${piece.name}.png',
-                            height: 50,
-                            width: 50,
-                          ),
-                        ),
-                        child: Image.asset(
-                          'assets/images/white_${piece.name}.png',
-                          height: 50,
-                          width: 50,
-                        ),
-                      ),
-                  // Om selectedPieces är tom, visa en platshållare
-                  if (selectedPieces.isEmpty)
-                    Text(
-                      'No pieces left', // Ett meddelande för att indikera att det inte finns några pjäser kvar
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
-                      ),
-                    ),
+                      );
+                    },
+                  ),
                 ],
               ),
             ),
