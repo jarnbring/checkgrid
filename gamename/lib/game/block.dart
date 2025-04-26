@@ -3,7 +3,7 @@ import 'package:gamename/game/piecetype.dart';
 import 'package:flutter/material.dart';
 
 class Block {
-  bool isActive = false;
+  bool isActive = false;  // If true, the cell is a killing cell
   final PieceType? piece;
   final Color color;
 
