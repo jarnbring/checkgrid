@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:gamename/game/block.dart';
 import 'package:gamename/game/piecetype.dart';
 
@@ -14,7 +15,8 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
   // Create a 2D board with nulls (empty cells)
   List<List<Block?>> board = List.generate(8, (_) => List.filled(8, null));
 
-  late List<PieceType> selectedPieces; // This is used for randomizing the user's pieces
+  late List<PieceType>
+  selectedPieces; // This is used for randomizing the user's pieces
   late AnimationController _animationController; // Controller for the animation
   late Animation<double> _fadeAnimation; // Fade animation for pieces
 
@@ -23,6 +25,8 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
   final double imageHeight = 50;
   final int boardWidth = 8; // Measured in cells
   final int boardHeight = 8; // Measured in cells
+  int row = 7;
+  int column = 7;
 
   @override
   void initState() {
@@ -39,7 +43,7 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
 
     // Initialize other elements
     initKillingCells();
-    
+
     // Now call setPieces() after the animation controller is ready
     setPieces();
   }
@@ -117,12 +121,19 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
                   final block = board[row][col];
 
                   return DragTarget<PieceType>(
+                    onWillAccept: (data) {
+                      // Tillåt bara om cellen är tom och ingen pjäs finns där
+                      return board[row][col] == null ||
+                          (board[row][col] != null &&
+                              board[row][col]!.piece == null);
+                    },
                     onAcceptWithDetails: (details) {
                       setState(() {
                         board[row][col] = Block(
                           piece: details.data,
                           isActive: false,
-                        ); // Initializes the board
+                        );
+                        selectedPieces.remove(details.data);
                       });
                     },
                     builder: (context, candidateData, rejectedData) {
@@ -161,43 +172,60 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
                       return Opacity(
                         opacity: _fadeAnimation.value,
                         child: Row(
-                          children: selectedPieces
-                              .map((piece) => Draggable<PieceType>(
-                                    data: piece,
-                                    feedback: Image.asset(
-                                      'assets/images/white_${piece.name}.png',
-                                      height: imageHeight,
-                                      width: imageWidth,
-                                      cacheHeight: (imageHeight * 1.5).toInt(),
-                                      cacheWidth: (imageWidth * 1.0).toInt(),
-                                    ),
-                                    onDragEnd: (details) {
-                                      if (details.wasAccepted) {
-                                        setState(() {
-                                          selectedPieces.remove(piece); // Tar bort pjäsen från selectedPieces om den accepterades
-                                        });
-                                      }
-                                      if (selectedPieces.isEmpty) {
-                                        setState(() {
-                                          setPieces(); // Uppdaterar pjäserna när det inte finns några kvar.
-                                        });
-                                      }
-                                    },
-                                    childWhenDragging: Opacity(
-                                      opacity: 0.2,
+                          children:
+                              selectedPieces
+                                  .map(
+                                    (piece) => Draggable<PieceType>(
+                                      data: piece,
+                                      feedback: Image.asset(
+                                        'assets/images/white_${piece.name}.png',
+                                        height: imageHeight,
+                                        width: imageWidth,
+                                        cacheHeight:
+                                            (imageHeight * 1.5).toInt(),
+                                        cacheWidth: (imageWidth * 1.0).toInt(),
+                                      ),
+                                      onDragEnd: (details) {
+                                        if (board[row][column] != null &&
+                                            board[row][column]!.isActive) {
+                                          print("HEJ");
+                                        }
+                                        if (details.wasAccepted) {
+                                          setState(() {
+                                            selectedPieces.remove(
+                                              piece,
+                                            ); // Tar bort pjäsen från selectedPieces om den accepterades
+                                          });
+                                        }
+                                        if (selectedPieces.isEmpty) {
+                                          Future.delayed(
+                                            const Duration(seconds: 2),
+                                            () {
+                                              if (mounted) {
+                                                setState(() {
+                                                  setPieces();
+                                                });
+                                              }
+                                            },
+                                          );
+                                        }
+                                      },
+                                      childWhenDragging: Opacity(
+                                        opacity: 0.2,
+                                        child: Image.asset(
+                                          'assets/images/white_${piece.name}.png',
+                                          height: 50,
+                                          width: 50,
+                                        ),
+                                      ),
                                       child: Image.asset(
                                         'assets/images/white_${piece.name}.png',
                                         height: 50,
                                         width: 50,
                                       ),
                                     ),
-                                    child: Image.asset(
-                                      'assets/images/white_${piece.name}.png',
-                                      height: 50,
-                                      width: 50,
-                                    ),
-                                  ))
-                              .toList(),
+                                  )
+                                  .toList(),
                         ),
                       );
                     },
