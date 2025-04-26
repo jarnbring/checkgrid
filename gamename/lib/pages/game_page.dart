@@ -67,7 +67,7 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
     for (int row = 0; row < 2; row++) {
       for (int col = 0; col < boardWidth; col++) {
         if (random.nextBool()) {
-          board[row][col] = Block(isActive: true);
+          board[row][col] = Block(position: Point(row, col), isActive: true);
         }
       }
     }
@@ -75,13 +75,11 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
 
   Color setCellColor(Block? block) {
     if (block == null) {
-      return Colors.grey; // Empty cell
-    } else if (block.isActive || block.isTargeted) {
-      return Colors.red; // Killcell
-    } else if (block.piece != null) {
-      return Colors.blue; // Piece on the cell
+      return Colors.grey;
+    } else if (block.color != null) {
+      return block.color!;
     }
-    return Colors.green; // Targeted cell
+    return Colors.green;
   }
 
   void showTargetedCells(
@@ -144,12 +142,40 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
   }
 
   void spawnNewRows() {
+    update();
     for (int row = boardHeight - 1; row > 0; row--) {
       board[row] = List<Block?>.from(board[row - 1]);
     }
     board[0] = List<Block?>.filled(boardWidth, null);
-    initKillingCells(); // ev. modifiera så den bara fyller rad 0
+    initKillingCells();
   }
+
+void update() {
+  setState(() {
+    for (int row = 0; row < boardHeight; row++) {
+      for (int col = 0; col < boardWidth; col++) {
+        if (board[row][col] == null) {
+          board[row][col]?.color = Colors.grey;
+        } else if (board[row][col]!.piece != null) {
+          board[row][col]?.color = Colors.blue;
+        } else {
+          // Bestäm färg baserat på rad
+          if (row < 1 && board[row][col] != null && board[row][col]!.isActive) {
+            board[row][col]?.color = Colors.green;
+          } else if (row >= 1 && row < 3 && board[row][col] != null && board[row][col]!.isActive) {
+            board[row][col]?.color = Colors.orange;
+          } else if (row >= 3 && row < 5 && board[row][col] != null && board[row][col]!.isActive) {
+            board[row][col]?.color = Colors.red;
+          } else if (row > 5 && row <= 7 && board[row][col] == null) {
+            board[row][col]?.color = Colors.deepPurple; // Botten blir lila
+          }
+        }
+      }
+    }
+  });
+}
+
+
 
   Widget _buildContinueButton() {
     return GestureDetector(
@@ -214,6 +240,7 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
                     onAcceptWithDetails: (details) {
                       setState(() {
                         board[row][col] = Block(
+                          position: Point(row, col),
                           piece: details.data,
                           isActive: false,
                         );
