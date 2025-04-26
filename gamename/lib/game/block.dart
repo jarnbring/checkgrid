@@ -1,9 +1,20 @@
+import 'dart:math';
+
+import 'package:flutter/widgets.dart';
 import 'package:gamename/game/piecetype.dart';
 
 class Block {
+  Point position;
   bool isActive;
   bool isTargeted;
   PieceType? piece;
-
-  Block({this.isActive = false, this.isTargeted = false, this.piece});
+  Color? color;
+  
+  Block({
+    required this.position,
+    this.isActive = false, 
+    this.isTargeted = false, 
+    this.piece, 
+    this.color
+    });
 }
