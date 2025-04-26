@@ -27,24 +27,21 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
 
   int? y;
   int? x;
+  List<Point> selectedPiecesPositions = [];
 
   @override
   void initState() {
     super.initState();
 
-    // Initialize animation controller for fade-in effect
     _animationController = AnimationController(
       duration: const Duration(seconds: 1),
       vsync: this,
     );
 
-    // Initialize the fade animation after the controller is ready
     _fadeAnimation = Tween(begin: 0.0, end: 1.0).animate(_animationController);
 
-    // Initialize other elements
     initKillingCells();
 
-    // Now call setPieces() after the animation controller is ready
     setPieces();
   }
 
@@ -128,9 +125,35 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
     });
   }
 
+  void setPiecesAndRemoveBlocks() {
+    setState(() {
+      for (int row = 0; row < boardHeight; row++) {
+        for (int col = 0; col < boardWidth; col++) {
+          if (board[row][col]?.isTargeted == true) {
+            board[row][col] = null;
+          }
+          if (selectedPiecesPositions.contains(Point(row, col))) {
+            board[row][col] = null;
+          }
+        }
+      }
+      selectedPiecesPositions.clear();
+      setPieces();
+      spawnNewRows();
+    });
+  }
+
+  void spawnNewRows() {
+    for (int row = boardHeight - 1; row > 0; row--) {
+      board[row] = List<Block?>.from(board[row - 1]);
+    }
+    board[0] = List<Block?>.filled(boardWidth, null);
+    initKillingCells(); // ev. modifiera så den bara fyller rad 0
+  }
+
   Widget _buildContinueButton() {
     return GestureDetector(
-      onTap: setPieces,
+      onTap: setPiecesAndRemoveBlocks,
       child: Container(
         width: 3 * 50 + 2 * 10, // 3 bilder + 2 mellanrum (10px varje)
         height: 50, // samma höjd som bilderna
@@ -155,7 +178,7 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("CheckGrid"),
+        title: const Text("CheckGrid", style: TextStyle(fontSize: 25)),
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -168,7 +191,7 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
         child: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(40, 40, 40, 10),
+              padding: const EdgeInsets.fromLTRB(40, 20, 40, 10),
               child: GridView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
@@ -195,6 +218,7 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
                           isActive: false,
                         );
                         showTargetedCells(details, row, col);
+                        selectedPiecesPositions.add(Point(row, col));
                         selectedPieces.remove(details.data);
                       });
                     },
@@ -224,7 +248,6 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
                 },
               ),
             ),
-            //const SizedBox(height: 20),
             Container(
               decoration: BoxDecoration(
                 color: const Color.fromARGB(255, 57, 159, 255),
