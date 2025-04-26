@@ -41,8 +41,8 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
     _fadeAnimation = Tween(begin: 0.0, end: 1.0).animate(_animationController);
 
     initKillingCells();
-
     setPieces();
+    update();
   }
 
   @override
@@ -67,19 +67,15 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
     for (int row = 0; row < 2; row++) {
       for (int col = 0; col < boardWidth; col++) {
         if (random.nextBool()) {
-          board[row][col] = Block(position: Point(row, col), isActive: true);
+          board[row][col] = Block(
+            position: Point(row, col),
+            isActive: true,
+            color: Colors.green,
+          );
         }
       }
     }
-  }
-
-  Color setCellColor(Block? block) {
-    if (block == null) {
-      return Colors.grey;
-    } else if (block.color != null) {
-      return block.color!;
-    }
-    return Colors.green;
+    update();
   }
 
   void showTargetedCells(
@@ -114,7 +110,7 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
               break;
             } else if (board[newRow][newCol] != null) {
               // Om det finns något hinder men inte aktiv -> stoppa
-              break;
+              continue;
             }
             // Om det är null (tom ruta), fortsätt gå i riktningen
           }
@@ -125,6 +121,7 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
 
   void setPiecesAndRemoveBlocks() {
     setState(() {
+      update();
       for (int row = 0; row < boardHeight; row++) {
         for (int col = 0; col < boardWidth; col++) {
           if (board[row][col]?.isTargeted == true) {
@@ -142,40 +139,54 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
   }
 
   void spawnNewRows() {
-    update();
     for (int row = boardHeight - 1; row > 0; row--) {
       board[row] = List<Block?>.from(board[row - 1]);
     }
     board[0] = List<Block?>.filled(boardWidth, null);
     initKillingCells();
+    update();
   }
 
-void update() {
-  setState(() {
-    for (int row = 0; row < boardHeight; row++) {
-      for (int col = 0; col < boardWidth; col++) {
-        if (board[row][col] == null) {
-          board[row][col]?.color = Colors.grey;
-        } else if (board[row][col]!.piece != null) {
-          board[row][col]?.color = Colors.blue;
-        } else {
-          // Bestäm färg baserat på rad
-          if (row < 1 && board[row][col] != null && board[row][col]!.isActive) {
-            board[row][col]?.color = Colors.green;
-          } else if (row >= 1 && row < 3 && board[row][col] != null && board[row][col]!.isActive) {
-            board[row][col]?.color = Colors.orange;
-          } else if (row >= 3 && row < 5 && board[row][col] != null && board[row][col]!.isActive) {
-            board[row][col]?.color = Colors.red;
-          } else if (row > 5 && row <= 7 && board[row][col] == null) {
-            board[row][col]?.color = Colors.deepPurple; // Botten blir lila
+  void update() {
+    setState(() {
+      for (int row = 0; row < boardHeight; row++) {
+        for (int col = 0; col < boardWidth; col++) {
+          var block = board[row][col];
+
+          if (row == 6 || row == 7) {
+            if (block == null) {
+              board[row][col] = Block(
+                position: Point(row, col),
+                isActive: false,
+                hasPiece: false,
+                color: Colors.blueGrey,
+              );
+            } else {
+              block.color = Colors.blueGrey;
+            }
+          } else if (block != null) {
+            // Kontrollera om blocket har en bit (hasPiece är sant)
+            if (block.hasPiece) {
+              block.color =
+                  Colors.blue; // Sätt färgen till blå om det finns en bit
+            } else if (block.piece != null) {
+              block.color =
+                  Colors
+                      .blue; // Om det finns en bit (stycke), sätt färgen till blå
+            } else if (block.isActive) {
+              if (row == 0 || row == 1) {
+                block.color = Colors.green;
+              } else if (row == 2 || row == 3) {
+                block.color = Colors.orange;
+              } else if (row == 4 || row == 5) {
+                block.color = Colors.red;
+              }
+            }
           }
         }
       }
-    }
-  });
-}
-
-
+    });
+  }
 
   Widget _buildContinueButton() {
     return GestureDetector(
@@ -235,7 +246,9 @@ void update() {
 
                   return DragTarget<PieceType>(
                     onWillAcceptWithDetails: (data) {
-                      return board[row][col] == null;
+                      return (board[row][col] == null ||
+                          (board[row][col]?.hasPiece == false &&
+                              board[row][col]?.isActive == false));
                     },
                     onAcceptWithDetails: (details) {
                       setState(() {
@@ -243,6 +256,7 @@ void update() {
                           position: Point(row, col),
                           piece: details.data,
                           isActive: false,
+                          hasPiece: true,
                         );
                         showTargetedCells(details, row, col);
                         selectedPiecesPositions.add(Point(row, col));
@@ -253,7 +267,17 @@ void update() {
                       return Container(
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(5),
-                          color: setCellColor(board[row][col]),
+                          color:
+                              board[row][col] == null
+                                  ? (row == 6 || row == 7
+                                      ? Colors.blueGrey
+                                      : Colors
+                                          .grey) // Om cellen är null, sätt färgen beroende på rad
+                                  : (board[row][col]?.piece != null
+                                      ? Colors.blue
+                                      : board[row][col]?.color ??
+                                          Colors
+                                              .grey), // Om en pjäs finns, sätt färgen till blå
                         ),
                         child:
                             block != null
