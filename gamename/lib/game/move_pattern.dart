@@ -7,7 +7,7 @@ enum Direction {
   upRight,
   downLeft,
   downRight,
-  knightLShape,  // För hästen
+  knightLShape,
 }
 
 class MovePattern {

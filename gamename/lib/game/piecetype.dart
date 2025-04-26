@@ -1,3 +1,4 @@
+import 'package:flame/image_composition.dart';
 import 'package:gamename/game/move_pattern.dart';
 
 enum PieceType { king, queen, rook, bishop, knight, pawn }
@@ -30,9 +31,41 @@ extension PieceProperties on PieceType {
         );
       case PieceType.pawn:
         return MovePattern(
-          directions: [Direction.up], // Bonden rör sig en ruta framåt
+          directions: [Direction.upLeft, Direction.upRight], // Bonden rör sig en ruta framåt
           canMoveMultipleSquares: false,
         );
     }
   }
 }
+
+extension DirectionMovement on Direction {
+  // Denna metod returnerar en lista av Offset för hästen
+  List<Offset> get offsets {
+    switch (this) {
+      case Direction.up:
+        return [Offset(0, -1)];
+      case Direction.down:
+        return [Offset(0, 1)];
+      case Direction.left:
+        return [Offset(-1, 0)];
+      case Direction.right:
+        return [Offset(1, 0)];
+      case Direction.upLeft:
+        return [Offset(-1, -1)];
+      case Direction.upRight:
+        return [Offset(1, -1)];
+      case Direction.downLeft:
+        return [Offset(-1, 1)];
+      case Direction.downRight:
+        return [Offset(1, 1)];
+      case Direction.knightLShape:
+        return [
+          Offset(2, 1), Offset(2, -1), Offset(-2, 1), Offset(-2, -1), 
+          Offset(1, 2), Offset(1, -2), Offset(-1, 2), Offset(-1, -2)
+        ];
+    }
+  }
+}
+
+
+
