@@ -7,6 +7,7 @@ class Block {
   Point position;
   bool isActive;
   bool isTargeted;
+  bool hasPiece;
   PieceType? piece;
   Color? color;
   
@@ -14,6 +15,7 @@ class Block {
     required this.position,
     this.isActive = false, 
     this.isTargeted = false, 
+    this.hasPiece = false,
     this.piece, 
     this.color
     });
