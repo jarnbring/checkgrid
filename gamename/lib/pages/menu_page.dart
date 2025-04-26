@@ -15,35 +15,68 @@ class _MenuPageState extends State<MenuPage> {
     super.initState();
   }
 
+  Widget menuButton(String title, Widget routePage) {
+      return ElevatedButton(
+               onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => routePage),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                elevation: 20,
+                padding:
+                    EdgeInsets
+                        .zero,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(25), 
+                ),
+                backgroundColor:
+                    Colors
+                        .transparent,
+              ),
+              child: Ink(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(25),
+                  gradient: LinearGradient(
+                    colors: [
+                      Colors.blue,
+                      Colors.purple
+                    ], 
+                    begin: Alignment.topLeft, 
+                    end: Alignment.bottomRight, 
+                  ),
+                ),
+                child: Container(
+                  alignment: Alignment.center,
+                  width: 200,
+                  height: 60,
+                  child: Text(
+                    title,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Text('CheckGrid'),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const GamePage()),
-                );
-              },
-              child: const Text('Play'),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const SettingsPage()),
-                );
-              },
-              child: const Text('Settings'),
-            ),
+            const SizedBox(height: 150),
+            Text('CheckGrid', style: TextStyle(fontSize: 35)),
+            const SizedBox(height: 75),
+            menuButton("Play", GamePage()),
+            const SizedBox(height: 50),
+            menuButton("Settings", SettingsPage()),
             const SizedBox(height: 300),
           ],
         ),
