@@ -1,7 +1,9 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:gamename/components/countdown_loading.dart';
 import 'package:gamename/game/block.dart';
 import 'package:gamename/game/piecetype.dart';
+import 'package:intl/intl.dart';
 
 class GamePage extends StatefulWidget {
   const GamePage({super.key});
@@ -24,10 +26,16 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
   final double imageHeight = 50;
   final int boardWidth = 8; // Measured in cells
   final int boardHeight = 8; // Measured in cells
+  final int comboRequirement = 6;
 
+  // Variables
   int? y;
   int? x;
   List<Point> selectedPiecesPositions = [];
+  List<Block> targetedCells = [];
+  bool isReviveShowing = false;
+  BigInt currentScore = BigInt.zero;
+  BigInt comboCount = BigInt.zero;
 
   @override
   void initState() {
@@ -99,20 +107,16 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
             if (newRow < 0 ||
                 newRow >= boardHeight ||
                 newCol < 0 ||
-                newCol >= boardWidth)
+                newCol >= boardWidth) {
               break;
+            }
 
             if (board[newRow][newCol] != null &&
                 board[newRow][newCol]!.isActive) {
-              // Markera cellen om den är aktiv
               board[newRow][newCol]!.isTargeted = true;
-              // Stanna efter att en aktiv cell träffas
+              targetedCells.add(board[newRow][newCol]!);
               break;
-            } else if (board[newRow][newCol] != null) {
-              // Om det finns något hinder men inte aktiv -> stoppa
-              continue;
             }
-            // Om det är null (tom ruta), fortsätt gå i riktningen
           }
         }
       }
@@ -138,16 +142,42 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
     });
   }
 
+  void addScore() {
+    // Beräkna poängen och kolla om en combo ska triggas
+    int numberOfCells = targetedCells.length;
+
+    if (numberOfCells >= comboRequirement) {
+      comboCount += BigInt.from(1);
+    } else {
+      comboCount = BigInt.zero;
+    }
+
+    BigInt baseScore = BigInt.from(10) * BigInt.from(numberOfCells);
+    BigInt comboMultiplier = comboCount + BigInt.one;
+
+    BigInt totalScore = baseScore * comboMultiplier;
+
+    currentScore += totalScore;
+
+    targetedCells.clear();
+  }
+
   void spawnNewRows() {
+    if (isReviveShowing) return;
+
+    // Spawn new rows
     for (int row = boardHeight - 1; row > 0; row--) {
       board[row] = List<Block?>.from(board[row - 1]);
     }
     board[0] = List<Block?>.filled(boardWidth, null);
+
+    addScore();
     initKillingCells();
     update();
   }
 
   void update() {
+    if (loseCondition()) return;
     setState(() {
       for (int row = 0; row < boardHeight; row++) {
         for (int col = 0; col < boardWidth; col++) {
@@ -188,6 +218,56 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
     });
   }
 
+  bool loseCondition() {
+    for (int row = 0; row < boardHeight; row++) {
+      for (int col = 0; col < boardWidth; col++) {
+        if (board[row][col] != null &&
+            (row == 6 || row == 7) &&
+            board[row][col]?.isActive == true) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  void _restartGame() {
+    setState(() {
+      // Återställ brädet till sin ursprungliga tillstånd
+      board = List.generate(8, (_) => List.filled(8, null));
+
+      // Återställ pjäser och andra variabler
+      selectedPiecesPositions.clear();
+      setPieces(); // Återställ de slumpmässigt valda pjäserna
+      initKillingCells(); // Återställ de aktiva cellerna
+      currentScore = BigInt.zero;
+      comboCount = BigInt.zero;
+      isReviveShowing = false;
+    });
+  }
+
+  void _showLoseDialog(BuildContext context) {
+    if (isReviveShowing) return;
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Colors.transparent,
+          content: CountdownLoading(
+            onRestart: _restartGame,
+            isReviveShowing: isReviveShowing,
+          ), // Inkludera CountdownDialog här
+        );
+      },
+    );
+  }
+
+  void _showLoseDialogSafe() {
+    if (mounted) {
+      _showLoseDialog(context);
+    }
+  }
+
   Widget _buildContinueButton() {
     return GestureDetector(
       onTap: setPiecesAndRemoveBlocks,
@@ -213,9 +293,28 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    if (loseCondition() && !isReviveShowing) {
+      Future.delayed(Duration(milliseconds: 100), () {
+        if (mounted) {
+          _showLoseDialogSafe();
+        }
+      });
+    }
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text("CheckGrid", style: TextStyle(fontSize: 25)),
+        title: Column(
+          children: [
+            const Text(
+              "CheckGrid",
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            Text(
+              NumberFormat("#,###").format(currentScore.toInt()),
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -228,7 +327,7 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
         child: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(40, 20, 40, 10),
+              padding: const EdgeInsets.fromLTRB(40, 20, 40, 0),
               child: GridView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
@@ -299,6 +398,29 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
                 },
               ),
             ),
+            comboCount == BigInt.zero
+                ? AnimatedBuilder(
+                  animation: _fadeAnimation,
+                  builder: (context, child) {
+                    return Opacity(
+                      opacity: _fadeAnimation.value,
+                      child: Text(
+                        "Combo: ${comboCount.toString()}",
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    );
+                  },
+                )
+                : Text(
+                  "Combo: ${comboCount.toString()}",
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+
+            const SizedBox(height: 20),
+
             Container(
               decoration: BoxDecoration(
                 color: const Color.fromARGB(255, 57, 159, 255),
