@@ -4,6 +4,7 @@ import 'package:gamename/components/countdown_loading.dart';
 import 'package:gamename/game/block.dart';
 import 'package:gamename/game/piecetype.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class GamePage extends StatefulWidget {
   const GamePage({super.key});
@@ -34,8 +35,10 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
   List<Point> selectedPiecesPositions = [];
   List<Block> targetedCells = [];
   bool isReviveShowing = false;
+  bool? isFirstLoad;
   BigInt currentScore = BigInt.zero;
   BigInt comboCount = BigInt.zero;
+  BigInt? latestHighScore;
 
   @override
   void initState() {
@@ -48,6 +51,8 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
 
     _fadeAnimation = Tween(begin: 0.0, end: 1.0).animate(_animationController);
 
+    isFirstLoad = true;
+    getHighscore();
     initKillingCells();
     setPieces();
     update();
@@ -55,8 +60,24 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
 
   @override
   void dispose() {
-    _animationController.dispose(); // Dispose the animation controller
+    _animationController.dispose();
     super.dispose();
+  }
+
+  Future<void> saveHighscore(BigInt score) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setString('highscore', score.toString());
+  }
+
+  Future<BigInt> getHighscore() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? highscoreString = prefs.getString('highscore');
+    if (highscoreString != null) {
+      latestHighScore = BigInt.parse(highscoreString);
+      return BigInt.parse(highscoreString);
+    } else {
+      return BigInt.zero;
+    }
   }
 
   void setPieces() {
@@ -142,8 +163,7 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
     });
   }
 
-  void addScore() {
-    // Beräkna poängen och kolla om en combo ska triggas
+  void addScore() async {
     int numberOfCells = targetedCells.length;
 
     if (numberOfCells >= comboRequirement) {
@@ -160,6 +180,11 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
     currentScore += totalScore;
 
     targetedCells.clear();
+
+    BigInt highscore = await getHighscore();
+    if (currentScore > highscore) {
+      await saveHighscore(currentScore);
+    }
   }
 
   void spawnNewRows() {
@@ -233,13 +258,10 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
 
   void _restartGame() {
     setState(() {
-      // Återställ brädet till sin ursprungliga tillstånd
       board = List.generate(8, (_) => List.filled(8, null));
-
-      // Återställ pjäser och andra variabler
       selectedPiecesPositions.clear();
-      setPieces(); // Återställ de slumpmässigt valda pjäserna
-      initKillingCells(); // Återställ de aktiva cellerna
+      setPieces();
+      initKillingCells();
       currentScore = BigInt.zero;
       comboCount = BigInt.zero;
       isReviveShowing = false;
@@ -291,6 +313,56 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
     );
   }
 
+  Widget _buildCombo() {
+    return comboCount == BigInt.zero
+        ? AnimatedBuilder(
+          animation: _fadeAnimation,
+          builder: (context, child) {
+            return Opacity(
+              opacity: _fadeAnimation.value,
+              child: Text(
+                "Combo: ${comboCount.toString()}",
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+            );
+          },
+        )
+        : Text(
+          "Combo: ${comboCount.toString()}",
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+        );
+  }
+
+  Widget _buildScore() {
+    return Text(
+      NumberFormat("#,###").format(currentScore.toInt()),
+      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+    );
+  }
+
+  Widget _buildHighscore() {
+    return FutureBuilder<BigInt>(
+      future: getHighscore(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting &&
+            !isFirstLoad!) {
+          return Text(
+            "Highscore: ${NumberFormat("#,###").format(latestHighScore)}",
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          );
+        } else if (snapshot.hasError) {
+          return Text('Error loading highscore: ${snapshot.error}');
+        } else {
+          BigInt highscore = snapshot.data ?? BigInt.zero;
+          return Text(
+            "Highscore: ${NumberFormat("#,###").format(highscore.toInt())}",
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          );
+        }
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (loseCondition() && !isReviveShowing) {
@@ -303,17 +375,18 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
 
     return Scaffold(
       appBar: AppBar(
-        title: Column(
-          children: [
-            const Text(
-              "CheckGrid",
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            Text(
-              NumberFormat("#,###").format(currentScore.toInt()),
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-          ],
+        title: Container(
+          decoration: BoxDecoration(borderRadius: BorderRadius.circular(25)),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Text(
+                "CheckGrid",
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              _buildScore(),
+            ],
+          ),
         ),
         centerTitle: true,
         leading: IconButton(
@@ -370,13 +443,10 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
                               board[row][col] == null
                                   ? (row == 6 || row == 7
                                       ? Colors.blueGrey
-                                      : Colors
-                                          .grey) // Om cellen är null, sätt färgen beroende på rad
+                                      : Colors.grey)
                                   : (board[row][col]?.piece != null
                                       ? Colors.blue
-                                      : board[row][col]?.color ??
-                                          Colors
-                                              .grey), // Om en pjäs finns, sätt färgen till blå
+                                      : board[row][col]?.color ?? Colors.grey),
                         ),
                         child:
                             block != null
@@ -387,7 +457,7 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
                                     )
                                     : (block.isTargeted
                                         ? Image.asset(
-                                          'assets/images/cross.png', // Lägg till en bild på ett kryss i assets/images
+                                          'assets/images/cross.png',
                                           fit: BoxFit.contain,
                                         )
                                         : null))
@@ -398,26 +468,14 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
                 },
               ),
             ),
-            comboCount == BigInt.zero
-                ? AnimatedBuilder(
-                  animation: _fadeAnimation,
-                  builder: (context, child) {
-                    return Opacity(
-                      opacity: _fadeAnimation.value,
-                      child: Text(
-                        "Combo: ${comboCount.toString()}",
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    );
-                  },
-                )
-                : Text(
-                  "Combo: ${comboCount.toString()}",
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                _buildHighscore(),
+                const SizedBox(width: 50),
+                _buildCombo(),
+              ],
+            ),
 
             const SizedBox(height: 20),
 
