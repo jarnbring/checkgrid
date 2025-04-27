@@ -15,9 +15,8 @@ dependencies:
   soundpool: ^2.4.1
   device_preview: ^1.2.0
   flutter_draggable_gridview: ^0.0.13
-  giffy_dialog: ^2.3.0
   flutter_spinkit: ^5.1.0
-  intl: ^0.17.0
+  shared_preferences: ^2.0.15
 
 dev_dependencies:
   flutter_test:
