@@ -3,35 +3,21 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class ThemeSelectionPage extends StatefulWidget {
   final void Function(ThemeMode themeMode) onThemeChanged;
+  final ThemeMode? themeMode;
 
-  const ThemeSelectionPage({
-    super.key,
-    required this.onThemeChanged,
-  });
+  const ThemeSelectionPage({super.key, required this.onThemeChanged, required this.themeMode});
 
   @override
   ThemeSelectionPageState createState() => ThemeSelectionPageState();
 }
 
 class ThemeSelectionPageState extends State<ThemeSelectionPage> {
-  ThemeMode _selectedTheme = ThemeMode.system;
+  ThemeMode? _selectedTheme;
 
   @override
   void initState() {
     super.initState();
-    _loadThemeMode();
-  }
-
-  Future<void> _loadThemeMode() async {
-    final prefs = await SharedPreferences.getInstance();
-    final themeString = prefs.getString('theme_mode') ?? 'ThemeMode.system';
-    final themeMode = ThemeMode.values.firstWhere(
-      (e) => e.toString() == themeString,
-      orElse: () => ThemeMode.system,
-    );
-    setState(() {
-      _selectedTheme = themeMode;
-    });
+    _selectedTheme = widget.themeMode;
   }
 
   Future<void> _saveThemeMode(ThemeMode themeMode) async {

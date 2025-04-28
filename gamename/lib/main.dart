@@ -2,6 +2,7 @@ import 'package:device_preview/device_preview.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:gamename/pages/menu_page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -32,12 +33,30 @@ class _MyAppState extends State<MyApp> {
   final Color lightmodeBackgroundColor = Colors.white;
   final Color lightmodeTextColor = const Color.fromARGB(255, 39, 39, 39);
 
-  ThemeMode _themeMode = ThemeMode.system;
+  ThemeMode? _themeMode;
+
+    Future<void> _loadThemeMode() async {
+    final prefs = await SharedPreferences.getInstance();
+    final themeString = prefs.getString('theme_mode') ?? 'ThemeMode.system';
+    final themeMode = ThemeMode.values.firstWhere(
+      (e) => e.toString() == themeString,
+      orElse: () => ThemeMode.system,
+    );
+    setState(() {
+      _themeMode = themeMode;
+    });
+  }
 
   void _handleThemeChange(ThemeMode themeMode) {
     setState(() {
       _themeMode = themeMode;
     });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadThemeMode();
   }
 
   @override
@@ -68,7 +87,7 @@ class _MyAppState extends State<MyApp> {
         textTheme: TextTheme(bodyMedium: TextStyle(color: darkmodeTextColor)),
       ),
       themeMode: _themeMode,
-      home: MenuPage(onThemeChanged: _handleThemeChange),
+      home: MenuPage(onThemeChanged: _handleThemeChange, themeMode: _themeMode),
     );
   }
 }
