@@ -3,8 +3,9 @@ import 'package:gamename/pages/theme_seleciton.dart';
 
 class SettingsPage extends StatelessWidget {
   final void Function(ThemeMode themeMode) onThemeChanged;
+  final ThemeMode? themeMode;
 
-  const SettingsPage({super.key, required this.onThemeChanged});
+  const SettingsPage({super.key, required this.onThemeChanged, required this.themeMode});
 
   @override
   Widget build(BuildContext context) {
@@ -38,6 +39,7 @@ class SettingsPage extends StatelessWidget {
                       builder:
                           (context) => ThemeSelectionPage(
                             onThemeChanged: onThemeChanged,
+                            themeMode: themeMode,
                           ),
                     ),
                   );

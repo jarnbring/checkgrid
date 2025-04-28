@@ -6,8 +6,9 @@ import 'package:url_launcher/url_launcher.dart';
 
 class MenuPage extends StatefulWidget {
   final void Function(ThemeMode themeMode) onThemeChanged;
+  final ThemeMode? themeMode;
   
-  const MenuPage({super.key, required this.onThemeChanged}); 
+  const MenuPage({super.key, required this.onThemeChanged, required this.themeMode}); 
 
   @override
   State<MenuPage> createState() => _MenuPageState();
@@ -172,7 +173,7 @@ class _MenuPageState extends State<MenuPage> {
             const SizedBox(height: 75),
             menuButton("Play", GamePage()),
             const SizedBox(height: 50),
-            menuButton("Settings", SettingsPage(onThemeChanged: widget.onThemeChanged)),
+            menuButton("Settings", SettingsPage(onThemeChanged: widget.onThemeChanged, themeMode: widget.themeMode)),
             const SizedBox(height: 50),
             menuButton("Feedback", GamePage()),
             const Spacer(),
