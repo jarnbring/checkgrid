@@ -1,36 +1,52 @@
 import 'package:flutter/material.dart';
+import 'package:gamename/pages/theme_seleciton.dart';
 
-class SettingsPage extends StatefulWidget {
-  const SettingsPage({super.key});
+class SettingsPage extends StatelessWidget {
+  final void Function(ThemeMode themeMode) onThemeChanged;
 
-  @override
-  State<SettingsPage> createState() => _SettingsPageState();
-}
-
-class _SettingsPageState extends State<SettingsPage> {
-  @override
-  void initState() {
-    super.initState();
-  }
+  const SettingsPage({super.key, required this.onThemeChanged});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        centerTitle: true,
+        title: Text(
+          'Settings',
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+        ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            Navigator.pop(context); // Navigerar tillbaka till föregående sida
+            Navigator.pop(context);
           },
         ),
       ),
-        body: Center(
+      body: SingleChildScrollView(
+          padding: const EdgeInsets.all(16.0),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Settings!'),
+              ListTile(
+                title: Text('Appearance'),
+                subtitle: Text("Lightmode, Darkmode"),
+                trailing: Icon(Icons.arrow_forward_ios),
+                onTap: () async {
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder:
+                          (context) => ThemeSelectionPage(
+                            onThemeChanged: onThemeChanged,
+                          ),
+                    ),
+                  );
+                },
+              ),
+              const Divider(),
             ],
-          ) 
           ),
-    );
+        ),
+      );
   }
 }

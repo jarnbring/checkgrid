@@ -26,12 +26,12 @@ extension PieceProperties on PieceType {
         );
       case PieceType.knight:
         return MovePattern(
-          directions: [Direction.knightLShape], // Specifik rörelse för hästen
+          directions: [Direction.knightLShape],
           canMoveMultipleSquares: false,
         );
       case PieceType.pawn:
         return MovePattern(
-          directions: [Direction.upLeft, Direction.upRight], // Bonden rör sig en ruta framåt
+          directions: [Direction.upLeft, Direction.upRight],
           canMoveMultipleSquares: false,
         );
     }
@@ -39,7 +39,6 @@ extension PieceProperties on PieceType {
 }
 
 extension DirectionMovement on Direction {
-  // Denna metod returnerar en lista av Offset för hästen
   List<Offset> get offsets {
     switch (this) {
       case Direction.up:
