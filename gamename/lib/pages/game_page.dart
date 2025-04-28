@@ -334,6 +334,7 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
   }
 
   Widget _buildScore() {
+    // Lägg till att det ökar nummervis, inte bara läggs till (animation?)
     return Text(
       NumberFormat("#,###").format(currentScore.toInt()),
       style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),

@@ -2,6 +2,8 @@ import 'package:device_preview/device_preview.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:gamename/pages/menu_page.dart';
+import 'package:gamename/provider.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() async {
@@ -9,7 +11,11 @@ void main() async {
   runApp(
     DevicePreview(
       enabled: !kReleaseMode,
-      builder: (context) => MyApp(),
+      builder:
+          (context) => ChangeNotifierProvider(
+            create: (_) => SettingsProvider(),
+            child: const MyApp(),
+          ),
     ),
   );
 }
@@ -35,7 +41,7 @@ class _MyAppState extends State<MyApp> {
 
   ThemeMode? _themeMode;
 
-    Future<void> _loadThemeMode() async {
+  Future<void> _loadThemeMode() async {
     final prefs = await SharedPreferences.getInstance();
     final themeString = prefs.getString('theme_mode') ?? 'ThemeMode.system';
     final themeMode = ThemeMode.values.firstWhere(
@@ -69,10 +75,21 @@ class _MyAppState extends State<MyApp> {
           titleTextStyle: TextStyle(color: lightmodeTextColor),
         ),
         listTileTheme: ListTileThemeData(
-          titleTextStyle: TextStyle(color: lightmodeTextColor, fontWeight: FontWeight.bold),
+          titleTextStyle: TextStyle(
+            color: lightmodeTextColor,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         scaffoldBackgroundColor: lightmodeBackgroundColor,
-        textTheme: TextTheme(bodyMedium: TextStyle(color: lightmodeTextColor)),
+        textTheme: TextTheme(
+          bodyMedium: TextStyle(
+            color: lightmodeTextColor,
+            fontWeight:
+                context.watch<SettingsProvider>().isBoldText
+                    ? FontWeight.bold
+                    : FontWeight.normal,
+          ),
+        ),
       ),
       darkTheme: ThemeData(
         appBarTheme: AppBarTheme(
@@ -81,10 +98,21 @@ class _MyAppState extends State<MyApp> {
           titleTextStyle: TextStyle(color: darkmodeTextColor),
         ),
         listTileTheme: ListTileThemeData(
-          titleTextStyle: TextStyle(color: darkmodeTextColor, fontWeight: FontWeight.bold),
+          titleTextStyle: TextStyle(
+            color: darkmodeTextColor,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         scaffoldBackgroundColor: darkmodeBackgroundColor,
-        textTheme: TextTheme(bodyMedium: TextStyle(color: darkmodeTextColor)),
+        textTheme: TextTheme(
+          bodyMedium: TextStyle(
+            color: darkmodeTextColor,
+            fontWeight:
+                context.watch<SettingsProvider>().isBoldText
+                    ? FontWeight.bold
+                    : FontWeight.normal,
+          ),
+        ),
       ),
       themeMode: _themeMode,
       home: MenuPage(onThemeChanged: _handleThemeChange, themeMode: _themeMode),
