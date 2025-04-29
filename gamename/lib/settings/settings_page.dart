@@ -6,23 +6,14 @@ import 'package:gamename/settings/privacy_policy.dart';
 import 'package:provider/provider.dart';
 
 class SettingsPage extends StatefulWidget {
-  final void Function(ThemeMode themeMode) onThemeChanged;
-  final ThemeMode? themeMode;
-
-  const SettingsPage({
-    super.key,
-    required this.onThemeChanged,
-    required this.themeMode,
-  });
+  const SettingsPage({super.key});
 
   @override
   SettingsPageState createState() => SettingsPageState();
 }
 
 class SettingsPageState extends State<SettingsPage> {
-  ThemeMode? currentTheme;
   bool tempDarkmode = false;
-  bool tempBoldText = false;
   bool tempVibration = false;
   bool tempSound = false;
   bool tempNotificationReminder = false;
@@ -31,7 +22,6 @@ class SettingsPageState extends State<SettingsPage> {
   @override
   void initState() {
     super.initState();
-    currentTheme = widget.themeMode;
   }
 
   @override
@@ -78,16 +68,11 @@ class SettingsPageState extends State<SettingsPage> {
   Widget _buildDarkmode() {
     return SwitchListTile(
       title: const Text('Darkmode'),
-      secondary: IconWidget(
-        icon: Icons.dark_mode,
-        color: const Color.fromARGB(255, 255, 255, 255),
-      ),
-      value: tempDarkmode,
+      secondary: IconWidget(icon: Icons.dark_mode),
+      value: context.watch<SettingsProvider>().isDarkMode,
       activeTrackColor: Colors.lightBlue,
       onChanged: (bool value) {
-        setState(() {
-          tempDarkmode = value;
-        });
+        context.read<SettingsProvider>().setDarkMode(value);
       },
     );
   }
@@ -95,10 +80,7 @@ class SettingsPageState extends State<SettingsPage> {
   Widget _buildVibration() {
     return SwitchListTile(
       title: const Text('Vibrations'),
-      secondary: IconWidget(
-        icon: Icons.vibration_rounded,
-        color: const Color.fromARGB(255, 255, 255, 255),
-      ),
+      secondary: IconWidget(icon: Icons.vibration_rounded),
       value: tempVibration,
       activeTrackColor: Colors.lightBlue,
       onChanged: (bool value) {
@@ -112,7 +94,7 @@ class SettingsPageState extends State<SettingsPage> {
   Widget _buildClearCache() {
     return SwitchListTile(
       title: const Text('Clear cache'),
-      secondary: IconWidget(icon: Icons.cached, color: Colors.white),
+      secondary: IconWidget(icon: Icons.cached),
       value: tempClearCache,
       activeTrackColor: Colors.lightBlue,
       onChanged: (bool value) {
@@ -128,10 +110,9 @@ class SettingsPageState extends State<SettingsPage> {
       title: const Text('Privacy Policy'),
       leading: IconWidget(
         icon: Icons.privacy_tip_outlined,
-        color: Colors.white,
       ),
-      trailing: IconWidget(
-        icon: Icons.arrow_forward_ios,
+      trailing: Icon(
+        Icons.arrow_forward_ios,
         color: Colors.transparent,
       ),
       onTap:
@@ -148,7 +129,7 @@ class SettingsPageState extends State<SettingsPage> {
   Widget _buildSound() {
     return SwitchListTile(
       title: const Text('Sound'),
-      secondary: IconWidget(icon: Icons.volume_up, color: Colors.white),
+      secondary: IconWidget(icon: Icons.volume_up),
       value: tempSound,
       activeTrackColor: Colors.lightBlue,
       onChanged: (bool value) {
@@ -161,22 +142,22 @@ class SettingsPageState extends State<SettingsPage> {
 
   // Text
   Widget _buildBoldText() {
-  return SwitchListTile(
-    title: const Text('Bold text'),
-    secondary: IconWidget(icon: Icons.format_bold, color: Colors.white),
-    value: context.watch<SettingsProvider>().isBoldText,
-    activeTrackColor: Colors.lightBlue,
-    onChanged: (bool value) {
-      context.read<SettingsProvider>().setBoldText(value);
-    },
-  );
-}
+    return SwitchListTile(
+      title: const Text('Bold text'),
+      secondary: IconWidget(icon: Icons.format_bold),
+      value: context.watch<SettingsProvider>().isBoldText,
+      activeTrackColor: Colors.lightBlue,
+      onChanged: (bool value) {
+        context.read<SettingsProvider>().setBoldText(value);
+      },
+    );
+  }
 
   // Notifications
   Widget _buildNotificationReminder() {
     return SwitchListTile(
       title: const Text('Reminder'),
-      secondary: IconWidget(icon: Icons.notifications_on, color: Colors.white),
+      secondary: IconWidget(icon: Icons.notifications_on),
       value: tempNotificationReminder,
       activeTrackColor: Colors.lightBlue,
       onChanged: (bool value) {

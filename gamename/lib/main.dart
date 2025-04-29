@@ -4,7 +4,6 @@ import 'package:flutter/foundation.dart';
 import 'package:gamename/pages/menu_page.dart';
 import 'package:gamename/provider.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -29,40 +28,14 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   final Color darkmodeBackgroundColor = const Color.fromARGB(255, 39, 39, 39);
-  final Color darkmodeButtonBackgroundColor = const Color.fromARGB(
-    255,
-    21,
-    21,
-    21,
-  );
   final Color darkmodeTextColor = Colors.white;
   final Color lightmodeBackgroundColor = Colors.white;
   final Color lightmodeTextColor = const Color.fromARGB(255, 39, 39, 39);
 
-  ThemeMode? _themeMode;
-
-  Future<void> _loadThemeMode() async {
-    final prefs = await SharedPreferences.getInstance();
-    final themeString = prefs.getString('theme_mode') ?? 'ThemeMode.system';
-    final themeMode = ThemeMode.values.firstWhere(
-      (e) => e.toString() == themeString,
-      orElse: () => ThemeMode.system,
-    );
-    setState(() {
-      _themeMode = themeMode;
-    });
-  }
-
-  void _handleThemeChange(ThemeMode themeMode) {
-    setState(() {
-      _themeMode = themeMode;
-    });
-  }
-
   @override
   void initState() {
     super.initState();
-    _loadThemeMode();
+
   }
 
   @override
@@ -81,6 +54,9 @@ class _MyAppState extends State<MyApp> {
           ),
         ),
         scaffoldBackgroundColor: lightmodeBackgroundColor,
+        iconTheme: IconThemeData(
+          color: darkmodeBackgroundColor
+        ),
         textTheme: TextTheme(
           bodyMedium: TextStyle(
             color: lightmodeTextColor,
@@ -104,6 +80,10 @@ class _MyAppState extends State<MyApp> {
           ),
         ),
         scaffoldBackgroundColor: darkmodeBackgroundColor,
+        cardColor: darkmodeTextColor,
+        iconTheme: IconThemeData(
+          color: lightmodeBackgroundColor
+        ),
         textTheme: TextTheme(
           bodyMedium: TextStyle(
             color: darkmodeTextColor,
@@ -114,8 +94,8 @@ class _MyAppState extends State<MyApp> {
           ),
         ),
       ),
-      themeMode: _themeMode,
-      home: MenuPage(onThemeChanged: _handleThemeChange, themeMode: _themeMode),
+      themeMode: context.watch<SettingsProvider>().themeMode,
+      home: MenuPage(),
     );
   }
 }
