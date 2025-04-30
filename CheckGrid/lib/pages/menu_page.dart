@@ -1,7 +1,9 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:gamename/pages/game_page.dart';
 import 'package:gamename/settings/settings_page.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class MenuPage extends StatefulWidget {
@@ -16,6 +18,16 @@ class _MenuPageState extends State<MenuPage> {
   double iconSize = 25;
   String appVersion = "Beta 1.0.0";
 
+  // ADS
+  BannerAd? _bannerAd;
+  bool _isLoaded = false;
+  AnchoredAdaptiveBannerAdSize? _adSize;
+
+  // TODO: Replace with your own ad unit ID in production
+  final adUnitId = Platform.isAndroid
+      ? 'ca-app-pub-3940256099942544/9214589741' // Test ID for Android
+      : 'ca-app-pub-3940256099942544/2435281174'; // Test ID for iOS
+
   @override
   void initState() {
     super.initState();
@@ -24,6 +36,67 @@ class _MenuPageState extends State<MenuPage> {
         _showContent = true;
       });
     });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _loadBannerAd();
+  }
+
+  /// Loads a banner ad with proper async handling
+  Future<void> _loadBannerAd() async {
+    // Get anchored adaptive banner ad size
+    _adSize = await AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(
+      MediaQuery.sizeOf(context).width.truncate(),
+    );
+
+    if (_adSize == null) {
+      debugPrint('Failed to get ad size.');
+      return;
+    }
+
+    // Dispose of any existing ad
+    _bannerAd?.dispose();
+
+    // Create a new banner ad
+    _bannerAd = BannerAd(
+      adUnitId: adUnitId,
+      request: const AdRequest(),
+      size: _adSize!,
+      listener: BannerAdListener(
+        onAdLoaded: (ad) {
+          debugPrint('BannerAd loaded.');
+          setState(() {
+            _isLoaded = true;
+          });
+        },
+        onAdFailedToLoad: (ad, err) {
+          debugPrint('BannerAd failed to load: $err');
+          ad.dispose();
+          setState(() {
+            _bannerAd = null;
+            _isLoaded = false;
+          });
+          // Optionally retry loading the ad after a delay
+          Future.delayed(const Duration(seconds: 5), () {
+            if (mounted) _loadBannerAd();
+          });
+        },
+        onAdOpened: (ad) {},
+        onAdClosed: (ad) {},
+        onAdImpression: (ad) {},
+      ),
+    );
+
+    // Load the ad
+    await _bannerAd!.load();
+  }
+
+  @override
+  void dispose() {
+    _bannerAd?.dispose();
+    super.dispose();
   }
 
   Widget menuButton(String title, Widget routePage) {
@@ -61,7 +134,7 @@ class _MenuPageState extends State<MenuPage> {
             height: 60,
             child: Text(
               title,
-              style: TextStyle(color: Colors.white, fontSize: 18),
+              style: const TextStyle(color: Colors.white, fontSize: 18),
             ),
           ),
         ),
@@ -76,11 +149,10 @@ class _MenuPageState extends State<MenuPage> {
       {'icon': FontAwesomeIcons.reddit, 'url': 'https://www.reddit.com/'},
       {'icon': FontAwesomeIcons.snapchat, 'url': 'https://www.snapchat.com/'},
       {'icon': FontAwesomeIcons.youtube, 'url': 'https://www.youtube.com/'},
-      {'icon': FontAwesomeIcons.x, 'url': 'https://www.x.com/'},
+      {'icon': FontAwesomeIcons.xTwitter, 'url': 'https://www.x.com/'},
       {'icon': FontAwesomeIcons.discord, 'url': 'https://www.discord.com/'},
     ];
 
-    // Dela upp socialLinks i två lika delar för två rader
     final firstRowLinks = socialLinks.take(4).toList();
     final secondRowLinks = socialLinks.skip(4).toList();
 
@@ -91,7 +163,6 @@ class _MenuPageState extends State<MenuPage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Första raden med ikoner
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: List.generate(firstRowLinks.length, (index) {
@@ -111,8 +182,7 @@ class _MenuPageState extends State<MenuPage> {
               );
             }),
           ),
-          const SizedBox(height: 20), // Lite mellanrum mellan raderna
-          // Andra raden med ikoner
+          const SizedBox(height: 20),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: List.generate(secondRowLinks.length, (index) {
@@ -142,7 +212,7 @@ class _MenuPageState extends State<MenuPage> {
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     } else {
-      throw Exception('Could not launch $url');
+      debugPrint('Could not launch $url');
     }
   }
 
@@ -158,28 +228,37 @@ class _MenuPageState extends State<MenuPage> {
               opacity: _showContent ? 1.0 : 0.0,
               duration: const Duration(milliseconds: 1000),
               curve: Curves.easeIn,
-              child: Text('CheckGrid', style: TextStyle(fontSize: 35)),
+              child: const Text('CheckGrid', style: TextStyle(fontSize: 35)),
             ),
             const SizedBox(height: 75),
-            menuButton("Play", GamePage()),
+            menuButton("Play", const GamePage()),
             const SizedBox(height: 50),
-            menuButton("Settings", SettingsPage()),
+            menuButton("Settings", const SettingsPage()),
             const SizedBox(height: 50),
-            menuButton("Feedback", GamePage()),
+            menuButton("Feedback", const GamePage()),
             const Spacer(),
-            const SizedBox(height: 100),
             socials(),
             const SizedBox(height: 50),
             AnimatedOpacity(
               opacity: _showContent ? 1.0 : 0.0,
               duration: const Duration(milliseconds: 1000),
               curve: Curves.easeIn,
-              child: Text(appVersion, style: TextStyle()),
+              child: Text(appVersion),
             ),
             const SizedBox(height: 50),
           ],
         ),
       ),
+      bottomNavigationBar: _bannerAd != null && _isLoaded
+          ? SafeArea(
+              child: Container(
+                margin: const EdgeInsets.only(bottom: 12.0),
+                color: Colors.red, // For debugging visibility
+                height: _bannerAd!.size.height.toDouble(),
+                child: AdWidget(ad: _bannerAd!),
+              ),
+            )
+          : null,
     );
   }
 }
