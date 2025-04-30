@@ -1,3 +1,7 @@
+dependencies {
+    implementation("com.google.android.gms:play-services-ads:24.2.0")
+}
+
 plugins {
     id("com.android.application")
     id("kotlin-android")

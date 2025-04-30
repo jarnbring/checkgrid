@@ -8,16 +8,30 @@ import 'package:provider/provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  MobileAds.instance.initialize();
+
+  // Ange test-enhetens ID (för emulator räcker 'EMULATOR')
+  MobileAds.instance.updateRequestConfiguration(
+    RequestConfiguration(testDeviceIds: ['EMULATOR']),
+  );
+
+  await MobileAds.instance.initialize();
+
   runApp(
-  kReleaseMode
-      ? MyApp()
-      : DevicePreview(
-          enabled: false, // sätt till true bara vid UI-testning
-          builder: (context) => MyApp(),
-        ),
-);
+    ChangeNotifierProvider(
+      create: (_) => SettingsProvider(),
+      child: const MyApp(),
+    ),
+  );
 }
+
+
+//  kReleaseMode
+//      ? MyApp()
+//      : DevicePreview(
+//          enabled: true, 
+//          builder: (context) => MyApp(),
+//        ),
+//);
 
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
