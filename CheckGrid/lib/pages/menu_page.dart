@@ -5,7 +5,7 @@ import 'package:gamename/settings/settings_page.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class MenuPage extends StatefulWidget {
-  const MenuPage({super.key}); 
+  const MenuPage({super.key});
 
   @override
   State<MenuPage> createState() => _MenuPageState();
@@ -61,11 +61,7 @@ class _MenuPageState extends State<MenuPage> {
             height: 60,
             child: Text(
               title,
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(color: Colors.white, fontSize: 18),
             ),
           ),
         ),
@@ -162,10 +158,7 @@ class _MenuPageState extends State<MenuPage> {
               opacity: _showContent ? 1.0 : 0.0,
               duration: const Duration(milliseconds: 1000),
               curve: Curves.easeIn,
-              child: Text(
-                'CheckGrid',
-                style: TextStyle(fontSize: 35, fontWeight: FontWeight.bold),
-              ),
+              child: Text('CheckGrid', style: TextStyle(fontSize: 35)),
             ),
             const SizedBox(height: 75),
             menuButton("Play", GamePage()),
@@ -181,7 +174,7 @@ class _MenuPageState extends State<MenuPage> {
               opacity: _showContent ? 1.0 : 0.0,
               duration: const Duration(milliseconds: 1000),
               curve: Curves.easeIn,
-              child: Text(appVersion, style: TextStyle(fontWeight: FontWeight.bold),),
+              child: Text(appVersion, style: TextStyle()),
             ),
             const SizedBox(height: 50),
           ],
@@ -189,5 +182,4 @@ class _MenuPageState extends State<MenuPage> {
       ),
     );
   }
-
 }

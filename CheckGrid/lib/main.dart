@@ -3,20 +3,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:gamename/pages/menu_page.dart';
 import 'package:gamename/provider.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:provider/provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  MobileAds.instance.initialize();
   runApp(
-    DevicePreview(
-      enabled: !kReleaseMode,
-      builder:
-          (context) => ChangeNotifierProvider(
-            create: (_) => SettingsProvider(),
-            child: const MyApp(),
-          ),
-    ),
-  );
+  kReleaseMode
+      ? MyApp()
+      : DevicePreview(
+          enabled: false, // sätt till true bara vid UI-testning
+          builder: (context) => MyApp(),
+        ),
+);
 }
 
 class MyApp extends StatefulWidget {
@@ -35,7 +35,6 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-
   }
 
   @override
@@ -45,18 +44,29 @@ class _MyAppState extends State<MyApp> {
         appBarTheme: AppBarTheme(
           iconTheme: IconThemeData(color: lightmodeTextColor),
           backgroundColor: lightmodeBackgroundColor,
-          titleTextStyle: TextStyle(color: lightmodeTextColor),
+          titleTextStyle: TextStyle(
+            color: lightmodeTextColor,
+            fontWeight:
+                context.watch<SettingsProvider>().isBoldText
+                    ? FontWeight.bold
+                    : FontWeight.normal,
+          ),
         ),
         listTileTheme: ListTileThemeData(
           titleTextStyle: TextStyle(
             color: lightmodeTextColor,
-            fontWeight: FontWeight.bold,
+            fontWeight:
+                context.watch<SettingsProvider>().isBoldText
+                    ? FontWeight.bold
+                    : FontWeight.normal,
           ),
         ),
         scaffoldBackgroundColor: lightmodeBackgroundColor,
-        iconTheme: IconThemeData(
-          color: darkmodeBackgroundColor
-        ),
+        cardColor: lightmodeTextColor,
+        splashColor: Colors.transparent,
+        highlightColor: Colors.transparent,
+        hoverColor: Colors.transparent,
+        iconTheme: IconThemeData(color: darkmodeBackgroundColor),
         textTheme: TextTheme(
           bodyMedium: TextStyle(
             color: lightmodeTextColor,
@@ -71,19 +81,29 @@ class _MyAppState extends State<MyApp> {
         appBarTheme: AppBarTheme(
           iconTheme: IconThemeData(color: darkmodeTextColor),
           backgroundColor: darkmodeBackgroundColor,
-          titleTextStyle: TextStyle(color: darkmodeTextColor),
+          titleTextStyle: TextStyle(
+            color: darkmodeTextColor,
+            fontWeight:
+                context.watch<SettingsProvider>().isBoldText
+                    ? FontWeight.bold
+                    : FontWeight.normal,
+          ),
         ),
         listTileTheme: ListTileThemeData(
           titleTextStyle: TextStyle(
             color: darkmodeTextColor,
-            fontWeight: FontWeight.bold,
+            fontWeight:
+                context.watch<SettingsProvider>().isBoldText
+                    ? FontWeight.bold
+                    : FontWeight.normal,
           ),
         ),
         scaffoldBackgroundColor: darkmodeBackgroundColor,
         cardColor: darkmodeTextColor,
-        iconTheme: IconThemeData(
-          color: lightmodeBackgroundColor
-        ),
+        splashColor: Colors.transparent,
+        highlightColor: Colors.transparent,
+        hoverColor: Colors.transparent,
+        iconTheme: IconThemeData(color: lightmodeBackgroundColor),
         textTheme: TextTheme(
           bodyMedium: TextStyle(
             color: darkmodeTextColor,

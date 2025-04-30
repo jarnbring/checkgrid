@@ -31,7 +31,7 @@ class SettingsPageState extends State<SettingsPage> {
         centerTitle: true,
         title: const Text(
           'Settings',
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          style: TextStyle(fontSize: 20),
         ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -113,7 +113,7 @@ class SettingsPageState extends State<SettingsPage> {
       ),
       trailing: Icon(
         Icons.arrow_forward_ios,
-        color: Colors.transparent,
+        color: Theme.of(context).iconTheme.color?.withAlpha(100),
       ),
       onTap:
           () => {
