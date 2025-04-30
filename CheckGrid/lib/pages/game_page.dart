@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:gamename/components/countdown_loading.dart';
 import 'package:gamename/game/block.dart';
 import 'package:gamename/game/piecetype.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -40,9 +41,15 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
   BigInt comboCount = BigInt.zero;
   BigInt? latestHighScore;
 
+  // Ads
+  late BannerAd _bannerAd;
+  bool _isBannerAdLoaded = false;
+
   @override
   void initState() {
     super.initState();
+
+    _bannerAd = _buildBannerAd();
 
     _animationController = AnimationController(
       duration: const Duration(seconds: 1),
@@ -322,14 +329,14 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
               opacity: _fadeAnimation.value,
               child: Text(
                 "Combo: ${comboCount.toString()}",
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: 20),
               ),
             );
           },
         )
         : Text(
           "Combo: ${comboCount.toString()}",
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          style: TextStyle(fontSize: 20),
         );
   }
 
@@ -337,7 +344,7 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
     // Lägg till att det ökar nummervis, inte bara läggs till (animation?)
     return Text(
       NumberFormat("#,###").format(currentScore.toInt()),
-      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+      style: TextStyle(fontSize: 20),
     );
   }
 
@@ -349,7 +356,7 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
             !isFirstLoad!) {
           return Text(
             "Highscore: ${NumberFormat("#,###").format(latestHighScore)}",
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            style: TextStyle(fontSize: 20),
           );
         } else if (snapshot.hasError) {
           return Text('Error loading highscore: ${snapshot.error}');
@@ -357,11 +364,29 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
           BigInt highscore = snapshot.data ?? BigInt.zero;
           return Text(
             "Highscore: ${NumberFormat("#,###").format(highscore.toInt())}",
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            style: TextStyle(fontSize: 20),
           );
         }
       },
     );
+  }
+
+  BannerAd _buildBannerAd() {
+    return BannerAd(
+    adUnitId: 'your-banner-ad-unit-id',
+    size: AdSize.banner,
+    request: AdRequest(),
+    listener: BannerAdListener(
+      onAdLoaded: (Ad ad) {
+        setState(() {
+          _isBannerAdLoaded = true;
+        });
+      },
+      onAdFailedToLoad: (Ad ad, LoadAdError error) {
+        print('Failed to load a banner ad: $error');
+      },
+    ),
+  );
   }
 
   @override
@@ -383,7 +408,7 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
             children: [
               const Text(
                 "CheckGrid",
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: 20),
               ),
               _buildScore(),
             ],
@@ -553,6 +578,12 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
                 ],
               ),
             ),
+
+            if (_isBannerAdLoaded)
+          Container(
+            height: 50,
+            child: AdWidget(ad: _bannerAd),
+          ),
           ],
         ),
       ),
