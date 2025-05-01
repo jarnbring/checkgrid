@@ -5,7 +5,6 @@ import 'package:gamename/components/countdown_loading.dart';
 import 'package:gamename/game/block.dart';
 import 'package:gamename/game/piecetype.dart';
 import 'package:gamename/providers/general_provider.dart';
-import 'package:gamename/providers/settings_provider.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -18,15 +17,18 @@ class GamePage extends StatefulWidget {
 }
 
 class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
+  // Create a 2D board with nulls (empty cells)
   List<List<Block?>> board = List.generate(8, (_) => List.filled(8, null));
 
-  late List<PieceType> selectedPieces;
-  late AnimationController _animationController;
-  late Animation<double> _fadeAnimation;
+  late List<PieceType> selectedPieces; // Randomizes the user's pieces
+  late AnimationController _animationController; // Controller for animation
+  late Animation<double> _fadeAnimation; // Fade animation for pieces
 
   // Constants
-  final int boardWidth = 8;
-  final int boardHeight = 8;
+  final double imageWidth = 50;
+  final double imageHeight = 50;
+  final int boardWidth = 8; // Measured in cells
+  final int boardHeight = 8; // Measured in cells
   final int comboRequirement = 6;
 
   // Variables
@@ -269,26 +271,22 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
     }
   }
 
-  Widget _buildContinueButton(double cellSize, double fontSize) {
-    final settingsProvider = context.watch<SettingsProvider>();
+  Widget _buildContinueButton() {
     return GestureDetector(
       onTap: setPiecesAndRemoveBlocks,
       child: Container(
-        width: cellSize * 3 + cellSize * 0.4,
-        height: cellSize,
+        width: 3 * 50 + 2 * 10,
+        height: 50,
         decoration: BoxDecoration(
-          color:
-              settingsProvider.isDarkMode
-                  ? Colors.blueGrey[700]
-                  : const Color.fromARGB(255, 57, 159, 255),
-          borderRadius: BorderRadius.circular(cellSize * 0.6),
+          color: const Color.fromARGB(255, 57, 159, 255),
+          borderRadius: BorderRadius.circular(30),
         ),
         alignment: Alignment.center,
-        child: Text(
+        child: const Text(
           "Continue",
           style: TextStyle(
             color: Colors.white,
-            fontSize: fontSize * 0.9,
+            fontSize: 18,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -296,7 +294,7 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildCombo(double fontSize) {
+  Widget _buildCombo() {
     return AnimatedBuilder(
       animation: _fadeAnimation,
       builder: (context, child) {
@@ -304,21 +302,21 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
           opacity: _fadeAnimation.value,
           child: Text(
             "Combo: ${comboCount.toString()}",
-            style: TextStyle(fontSize: fontSize),
+            style: const TextStyle(fontSize: 20),
           ),
         );
       },
     );
   }
 
-  Widget _buildScore(double fontSize) {
+  Widget _buildScore() {
     return Text(
       NumberFormat("#,###").format(currentScore.toInt()),
-      style: TextStyle(fontSize: fontSize),
+      style: const TextStyle(fontSize: 20),
     );
   }
 
-  Widget _buildHighscore(double fontSize) {
+  Widget _buildHighscore() {
     return FutureBuilder<BigInt>(
       future: getHighscore(),
       builder: (context, snapshot) {
@@ -326,7 +324,7 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
             !isFirstLoad) {
           return Text(
             "Highscore: ${NumberFormat("#,###").format(latestHighScore ?? BigInt.zero)}",
-            style: TextStyle(fontSize: fontSize),
+            style: const TextStyle(fontSize: 20),
           );
         } else if (snapshot.hasError) {
           return Text('Error: ${snapshot.error}');
@@ -334,229 +332,229 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
           BigInt highscore = snapshot.data ?? BigInt.zero;
           return Text(
             "Highscore: ${NumberFormat("#,###").format(highscore.toInt())}",
-            style: TextStyle(fontSize: fontSize),
+            style: const TextStyle(fontSize: 20),
           );
         }
       },
     );
   }
 
+  Widget _buildSelectedPieces(bool isLandscape, double gridHorizontalPadding) {
+    double iconSize = 75;
+
+    return Container(
+      padding: isLandscape ? EdgeInsets.all(0) : EdgeInsets.all(5),
+      decoration: BoxDecoration(
+        color: const Color.fromARGB(255, 57, 159, 255),
+        borderRadius: BorderRadius.circular(40),
+      ),
+      child: AnimatedBuilder(
+        animation: _fadeAnimation,
+        builder: (context, child) {
+          return Opacity(
+            opacity: _fadeAnimation.value,
+            child: Padding(
+              padding: const EdgeInsets.all(14),
+              child:
+                  selectedPieces.isEmpty
+                      ? _buildContinueButton()
+                      : Row(
+                        spacing: 15,
+                        mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children:
+                            selectedPieces
+                                .map(
+                                  (piece) => Draggable<PieceType>(
+                                    data: piece,
+                                    feedback: Image.asset(
+                                      'assets/images/white_${piece.name}.png',
+                                      height: imageHeight,
+                                      width: imageWidth,
+                                      cacheHeight: (imageHeight * 1.5).toInt(),
+                                      cacheWidth: (imageWidth * 1.0).toInt(),
+                                    ),
+                                    onDragEnd: (details) {
+                                      if (details.wasAccepted) {
+                                        setState(() {
+                                          selectedPieces.remove(piece);
+                                        });
+                                      }
+                                      if (selectedPieces.isEmpty) {
+                                        _buildContinueButton();
+                                      }
+                                    },
+                                    childWhenDragging: Opacity(
+                                      opacity: 0.2,
+                                      child: Image.asset(
+                                        'assets/images/white_${piece.name}.png',
+                                        height: iconSize,
+                                        width: iconSize,
+                                      ),
+                                    ),
+                                    child: Image.asset(
+                                      'assets/images/white_${piece.name}.png',
+                                      height: iconSize,
+                                      width: iconSize,
+                                    ),
+                                  ),
+                                )
+                                .toList(),
+                      ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildScoreAndCombo() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [_buildHighscore(), const SizedBox(width: 120), _buildCombo()],
+    );
+  }
+
+  Widget _buildPlayArea(
+    bool isTablet,
+    bool isLandscape,
+    double gridHorizontalPadding,
+  ) {
+    return Padding(
+      padding:
+          isLandscape
+              ? EdgeInsets.fromLTRB(
+                gridHorizontalPadding / 10,
+                gridHorizontalPadding / 20,
+                gridHorizontalPadding / 10,
+                0,
+              )
+              : isTablet
+              ? const EdgeInsets.fromLTRB(100, 20, 100, 0)
+              : const EdgeInsets.fromLTRB(40, 20, 40, 0),
+      child: GridView.builder(
+        padding:
+            isLandscape
+                ? EdgeInsets.fromLTRB(
+                  gridHorizontalPadding,
+                  0,
+                  gridHorizontalPadding,
+                  20,
+                )
+                : const EdgeInsets.fromLTRB(0, 0, 0, 20),
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 8,
+          mainAxisSpacing: 3,
+          crossAxisSpacing: 3,
+          childAspectRatio: 1,
+        ),
+        itemCount: 64,
+        itemBuilder: (context, index) {
+          final row = index ~/ 8;
+          final col = index % 8;
+          final block = board[row][col];
+
+          return DragTarget<PieceType>(
+            onWillAcceptWithDetails: (data) {
+              return (block == null ||
+                  (block.hasPiece == false && block.isActive == false));
+            },
+            onAcceptWithDetails: (details) {
+              setState(() {
+                board[row][col] = Block(
+                  position: Point(row, col),
+                  piece: details.data,
+                  isActive: false,
+                  hasPiece: true,
+                );
+                showTargetedCells(details, row, col);
+                selectedPiecesPositions.add(Point(row, col));
+                selectedPieces.remove(details.data);
+              });
+            },
+            builder: (context, candidateData, rejectedData) {
+              return Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(5),
+                  color:
+                      block == null
+                          ? (row == 6 || row == 7
+                              ? Colors.blueGrey
+                              : Colors.grey)
+                          : (block.piece != null
+                              ? Colors.blue
+                              : block.color ?? Colors.grey),
+                ),
+                child:
+                    block != null
+                        ? (block.piece != null
+                            ? Image.asset(
+                              'assets/images/white_${block.piece!.name}.png',
+                              fit: BoxFit.contain,
+                            )
+                            : (block.isTargeted
+                                ? Image.asset(
+                                  'assets/images/cross.png',
+                                  fit: BoxFit.contain,
+                                )
+                                : null))
+                        : null,
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    // Orientation vars
+    final generalProvider = context.watch<GeneralProvider>();
+    double screenWidth = generalProvider.getScreenWidth(context);
+    double paddingPercentage = 0.3125;
+    double gridHorizontalPadding = screenWidth * paddingPercentage;
+    bool isTablet = generalProvider.isTablet(context);
+    bool isLandscape = generalProvider.getLandscapeMode(context);
+
     if (loseCondition() && !isReviveShowing) {
       Future.delayed(const Duration(milliseconds: 100), _showLoseDialogSafe);
     }
 
-    // Hämta båda providers
-    final generalProvider = context.watch<GeneralProvider>();
-    final settingsProvider = context.watch<SettingsProvider>();
-    final cellSize = generalProvider.getResponsiveCellSize(context);
-    final padding = generalProvider.getResponsivePadding(10, context);
-    final fontSize = generalProvider.getResponsiveSize(20, context);
-    final spacing = generalProvider.getResponsiveSize(3, context);
-    final appBarHeight = generalProvider.getResponsiveAppBarHeight(context);
-
     return Scaffold(
       appBar: AppBar(
-        toolbarHeight: appBarHeight,
         title: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(
-              generalProvider.getResponsiveSize(20, context),
-            ),
-          ),
+          decoration: BoxDecoration(borderRadius: BorderRadius.circular(25)),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text("CheckGrid", style: TextStyle(fontSize: fontSize)),
-              _buildScore(fontSize),
+              const Text(
+                "CheckGrid",
+                style: TextStyle(fontSize: 20),
+              ), // KAN ÄNDRAS RESPONSIVT!
+              _buildScore(),
             ],
           ),
         ),
         centerTitle: true,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, size: fontSize),
+          icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
       ),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          return Expanded(
-            child: ConstrainedBox(
-              constraints: BoxConstraints(minHeight: constraints.maxHeight),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: padding * 3,
-                      vertical: padding * 1,
-                    ),
-                      child: GridView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 8,
-                          mainAxisSpacing: spacing,
-                          crossAxisSpacing: spacing,
-                          childAspectRatio: 1,
-                        ),
-                        itemCount: 64,
-                        itemBuilder: (context, index) {
-                          final row = index ~/ 8;
-                          final col = index % 8;
-                          final block = board[row][col];
-
-                          return DragTarget<PieceType>(
-                            onWillAcceptWithDetails: (data) {
-                              return (board[row][col] == null ||
-                                  (board[row][col]!.hasPiece == false &&
-                                      board[row][col]!.isActive == false));
-                            },
-                            onAcceptWithDetails: (details) {
-                              setState(() {
-                                board[row][col] = Block(
-                                  position: Point(row, col),
-                                  piece: details.data,
-                                  isActive: false,
-                                  hasPiece: true,
-                                );
-                                showTargetedCells(details, row, col);
-                                selectedPiecesPositions.add(Point(row, col));
-                                selectedPieces.remove(details.data);
-                              });
-                            },
-                            builder: (context, candidateData, rejectedData) {
-                              return Container(
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(
-                                    cellSize * 0.1,
-                                  ),
-                                  color:
-                                      board[row][col] == null
-                                          ? (row == 6 || row == 7
-                                              ? (settingsProvider.isDarkMode
-                                                  ? Colors.blueGrey[800]
-                                                  : Colors.blueGrey)
-                                              : (settingsProvider.isDarkMode
-                                                  ? Colors.grey[700]
-                                                  : Colors.grey))
-                                          : (board[row][col]!.piece != null
-                                              ? Colors.blue
-                                              : board[row][col]!.color ??
-                                                  Colors.grey),
-                                ),
-                                child:
-                                    block != null
-                                        ? (block.piece != null
-                                            ? Image.asset(
-                                              'assets/images/white_${block.piece!.name}.png',
-                                              fit: BoxFit.contain,
-                                            )
-                                            : (block.isTargeted
-                                                ? Image.asset(
-                                                  'assets/images/cross.png',
-                                                  fit: BoxFit.contain,
-                                                )
-                                                : null))
-                                        : null,
-                              );
-                            },
-                          );
-                        },
-                      ),
-                    ),
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: padding),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        _buildHighscore(fontSize),
-                        const SizedBox(width: 50),
-                        _buildCombo(fontSize),
-                      ],
-                    ),
-                  ),
-                  SizedBox(height: spacing * 5),
-                  Container(
-                    decoration: BoxDecoration(
-                      color:
-                          settingsProvider.isDarkMode
-                              ? Colors.blueGrey[700]
-                              : const Color.fromARGB(255, 57, 159, 255),
-                      borderRadius: BorderRadius.circular(
-                        generalProvider.getResponsiveSize(30, context),
-                      ),
-                    ),
-                    padding: EdgeInsets.all(padding),
-                    child: AnimatedBuilder(
-                      animation: _fadeAnimation,
-                      builder: (context, child) {
-                        return Opacity(
-                          opacity: _fadeAnimation.value,
-                          child:
-                              selectedPieces.isEmpty
-                                  ? _buildContinueButton(cellSize, fontSize)
-                                  : Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children:
-                                        selectedPieces
-                                            .map(
-                                              (piece) => Padding(
-                                                padding: EdgeInsets.symmetric(
-                                                  horizontal: spacing,
-                                                ),
-                                                child: Draggable<PieceType>(
-                                                  data: piece,
-                                                  feedback: Image.asset(
-                                                    'assets/images/white_${piece.name}.png',
-                                                    height: cellSize,
-                                                    width: cellSize,
-                                                    cacheHeight:
-                                                        (cellSize * 1.5)
-                                                            .toInt(),
-                                                    cacheWidth:
-                                                        (cellSize).toInt(),
-                                                  ),
-                                                  onDragEnd: (details) {
-                                                    if (details.wasAccepted) {
-                                                      setState(() {
-                                                        selectedPieces.remove(
-                                                          piece,
-                                                        );
-                                                      });
-                                                    }
-                                                  },
-                                                  childWhenDragging: Opacity(
-                                                    opacity: 0.2,
-                                                    child: Image.asset(
-                                                      'assets/images/white_${piece.name}.png',
-                                                      height: cellSize,
-                                                      width: cellSize,
-                                                    ),
-                                                  ),
-                                                  child: Image.asset(
-                                                    'assets/images/white_${piece.name}.png',
-                                                    height: cellSize,
-                                                    width: cellSize,
-                                                  ),
-                                                ),
-                                              ),
-                                            )
-                                            .toList(),
-                                  ),
-                        );
-                      },
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
+      body: Column(
+        children: [
+          const Spacer(),
+          _buildPlayArea(isTablet, isLandscape, gridHorizontalPadding),
+          _buildScoreAndCombo(),
+          const Spacer(),
+          _buildSelectedPieces(isLandscape, gridHorizontalPadding),
+          const Spacer(),
+        ],
       ),
-      bottomNavigationBar: SafeArea(child: BannerAdWidget()),
+      //bottomNavigationBar: BannerAdWidget(),
     );
   }
 }

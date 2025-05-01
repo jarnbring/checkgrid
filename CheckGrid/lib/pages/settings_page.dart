@@ -49,6 +49,7 @@ class SettingsPageState extends State<SettingsPage> {
                 _buildDarkmode(),
                 _buildVibration(),
                 _buildClearCache(),
+                _buildAlwaysPortraitMode(), // If tablet?
                 _buildPrivacyPolicy(),
               ],
             ),
@@ -102,6 +103,26 @@ class SettingsPageState extends State<SettingsPage> {
           tempClearCache = value;
         });
       },
+    );
+  }
+
+   Widget _buildAlwaysPortraitMode() {
+    return ListTile(
+      title: const Text('Always portraitmode'),
+      leading: IconWidget(
+        icon: Icons.privacy_tip_outlined,
+      ),
+      trailing: Icon(
+        Icons.arrow_forward_ios,
+        color: Theme.of(context).iconTheme.color?.withAlpha(100),
+      ),
+      onTap:
+          () => {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => PrivacyPolicyPage()),
+            ),
+          },
     );
   }
 
