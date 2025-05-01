@@ -1,11 +1,13 @@
-import 'dart:io';
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:gamename/banner_ad.dart';
 import 'package:gamename/components/countdown_loading.dart';
 import 'package:gamename/game/block.dart';
 import 'package:gamename/game/piecetype.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:gamename/providers/general_provider.dart';
+import 'package:gamename/providers/settings_provider.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class GamePage extends StatefulWidget {
@@ -16,18 +18,15 @@ class GamePage extends StatefulWidget {
 }
 
 class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
-  // Create a 2D board with nulls (empty cells)
   List<List<Block?>> board = List.generate(8, (_) => List.filled(8, null));
 
-  late List<PieceType> selectedPieces; // Randomizes the user's pieces
-  late AnimationController _animationController; // Controller for animation
-  late Animation<double> _fadeAnimation; // Fade animation for pieces
+  late List<PieceType> selectedPieces;
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
 
   // Constants
-  final double imageWidth = 50;
-  final double imageHeight = 50;
-  final int boardWidth = 8; // Measured in cells
-  final int boardHeight = 8; // Measured in cells
+  final int boardWidth = 8;
+  final int boardHeight = 8;
   final int comboRequirement = 6;
 
   // Variables
@@ -38,17 +37,6 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
   BigInt currentScore = BigInt.zero;
   BigInt comboCount = BigInt.zero;
   BigInt? latestHighScore;
-
-  // Ads
-  BannerAd? _bannerAd;
-  bool _isBannerAdLoaded = false;
-  AnchoredAdaptiveBannerAdSize? _adSize;
-
-  // TODO: Replace with your own ad unit ID in production
-  final adUnitId =
-      Platform.isAndroid
-          ? 'ca-app-pub-3940256099942544/9214589741' // Test ID for Android
-          : 'ca-app-pub-3940256099942544/2435281174'; // Test ID for iOS
 
   @override
   void initState() {
@@ -66,65 +54,9 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
   }
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _loadBannerAd();
-  }
-
-  @override
   void dispose() {
     _animationController.dispose();
-    _bannerAd?.dispose();
     super.dispose();
-  }
-
-  /// Loads a banner ad with proper async handling
-  Future<void> _loadBannerAd() async {
-    // Get anchored adaptive banner ad size
-    _adSize = await AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(
-      MediaQuery.sizeOf(context).width.truncate(),
-    );
-
-    if (_adSize == null) {
-      debugPrint('Failed to get ad size.');
-      return;
-    }
-
-    // Dispose of any existing ad
-    _bannerAd?.dispose();
-
-    // Create a new banner ad
-    _bannerAd = BannerAd(
-      adUnitId: adUnitId,
-      request: const AdRequest(),
-      size: _adSize!,
-      listener: BannerAdListener(
-        onAdLoaded: (ad) {
-          debugPrint('BannerAd loaded.');
-          setState(() {
-            _isBannerAdLoaded = true;
-          });
-        },
-        onAdFailedToLoad: (ad, err) {
-          debugPrint('BannerAd failed to load: $err');
-          ad.dispose();
-          setState(() {
-            _bannerAd = null;
-            _isBannerAdLoaded = false;
-          });
-          // Retry loading the ad after a delay
-          Future.delayed(const Duration(seconds: 5), () {
-            if (mounted) _loadBannerAd();
-          });
-        },
-        onAdOpened: (ad) {},
-        onAdClosed: (ad) {},
-        onAdImpression: (ad) {},
-      ),
-    );
-
-    // Load the ad
-    await _bannerAd!.load();
   }
 
   Future<void> saveHighscore(BigInt score) async {
@@ -337,22 +269,26 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
     }
   }
 
-  Widget _buildContinueButton() {
+  Widget _buildContinueButton(double cellSize, double fontSize) {
+    final settingsProvider = context.watch<SettingsProvider>();
     return GestureDetector(
       onTap: setPiecesAndRemoveBlocks,
       child: Container(
-        width: 3 * 50 + 2 * 10,
-        height: 50,
+        width: cellSize * 3 + cellSize * 0.4,
+        height: cellSize,
         decoration: BoxDecoration(
-          color: const Color.fromARGB(255, 57, 159, 255),
-          borderRadius: BorderRadius.circular(30),
+          color:
+              settingsProvider.isDarkMode
+                  ? Colors.blueGrey[700]
+                  : const Color.fromARGB(255, 57, 159, 255),
+          borderRadius: BorderRadius.circular(cellSize * 0.6),
         ),
         alignment: Alignment.center,
-        child: const Text(
+        child: Text(
           "Continue",
           style: TextStyle(
             color: Colors.white,
-            fontSize: 18,
+            fontSize: fontSize * 0.9,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -360,7 +296,7 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildCombo() {
+  Widget _buildCombo(double fontSize) {
     return AnimatedBuilder(
       animation: _fadeAnimation,
       builder: (context, child) {
@@ -368,21 +304,21 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
           opacity: _fadeAnimation.value,
           child: Text(
             "Combo: ${comboCount.toString()}",
-            style: const TextStyle(fontSize: 20),
+            style: TextStyle(fontSize: fontSize),
           ),
         );
       },
     );
   }
 
-  Widget _buildScore() {
+  Widget _buildScore(double fontSize) {
     return Text(
       NumberFormat("#,###").format(currentScore.toInt()),
-      style: const TextStyle(fontSize: 20),
+      style: TextStyle(fontSize: fontSize),
     );
   }
 
-  Widget _buildHighscore() {
+  Widget _buildHighscore(double fontSize) {
     return FutureBuilder<BigInt>(
       future: getHighscore(),
       builder: (context, snapshot) {
@@ -390,7 +326,7 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
             !isFirstLoad) {
           return Text(
             "Highscore: ${NumberFormat("#,###").format(latestHighScore ?? BigInt.zero)}",
-            style: const TextStyle(fontSize: 20),
+            style: TextStyle(fontSize: fontSize),
           );
         } else if (snapshot.hasError) {
           return Text('Error: ${snapshot.error}');
@@ -398,7 +334,7 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
           BigInt highscore = snapshot.data ?? BigInt.zero;
           return Text(
             "Highscore: ${NumberFormat("#,###").format(highscore.toInt())}",
-            style: const TextStyle(fontSize: 20),
+            style: TextStyle(fontSize: fontSize),
           );
         }
       },
@@ -411,184 +347,216 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
       Future.delayed(const Duration(milliseconds: 100), _showLoseDialogSafe);
     }
 
+    // Hämta båda providers
+    final generalProvider = context.watch<GeneralProvider>();
+    final settingsProvider = context.watch<SettingsProvider>();
+    final cellSize = generalProvider.getResponsiveCellSize(context);
+    final padding = generalProvider.getResponsivePadding(10, context);
+    final fontSize = generalProvider.getResponsiveSize(20, context);
+    final spacing = generalProvider.getResponsiveSize(3, context);
+    final appBarHeight = generalProvider.getResponsiveAppBarHeight(context);
+
     return Scaffold(
       appBar: AppBar(
+        toolbarHeight: appBarHeight,
         title: Container(
-          decoration: BoxDecoration(borderRadius: BorderRadius.circular(25)),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(
+              generalProvider.getResponsiveSize(20, context),
+            ),
+          ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Text("CheckGrid", style: TextStyle(fontSize: 20)),
-              _buildScore(),
+              Text("CheckGrid", style: TextStyle(fontSize: fontSize)),
+              _buildScore(fontSize),
             ],
           ),
         ),
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: Icon(Icons.arrow_back, size: fontSize),
           onPressed: () => Navigator.pop(context),
         ),
       ),
-      body: Center(
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(40, 20, 40, 0),
-              child: GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 8,
-                  mainAxisSpacing: 3,
-                  crossAxisSpacing: 3,
-                  childAspectRatio: 1,
-                ),
-                itemCount: 64,
-                itemBuilder: (context, index) {
-                  final row = index ~/ 8;
-                  final col = index % 8;
-                  final block = board[row][col];
-
-                  return DragTarget<PieceType>(
-                    onWillAcceptWithDetails: (data) {
-                      return (board[row][col] == null ||
-                          (board[row][col]!.hasPiece == false &&
-                              board[row][col]!.isActive == false));
-                    },
-                    onAcceptWithDetails: (details) {
-                      setState(() {
-                        board[row][col] = Block(
-                          position: Point(row, col),
-                          piece: details.data,
-                          isActive: false,
-                          hasPiece: true,
-                        );
-                        showTargetedCells(details, row, col);
-                        selectedPiecesPositions.add(Point(row, col));
-                        selectedPieces.remove(details.data);
-                      });
-                    },
-                    builder: (context, candidateData, rejectedData) {
-                      return Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(5),
-                          color:
-                              board[row][col] == null
-                                  ? (row == 6 || row == 7
-                                      ? Colors.blueGrey
-                                      : Colors.grey)
-                                  : (board[row][col]!.piece != null
-                                      ? Colors.blue
-                                      : board[row][col]!.color ?? Colors.grey),
-                        ),
-                        child:
-                            block != null
-                                ? (block.piece != null
-                                    ? Image.asset(
-                                      'assets/images/white_${block.piece!.name}.png',
-                                      fit: BoxFit.contain,
-                                    )
-                                    : (block.isTargeted
-                                        ? Image.asset(
-                                          'assets/images/cross.png',
-                                          fit: BoxFit.contain,
-                                        )
-                                        : null))
-                                : null,
-                      );
-                    },
-                  );
-                },
-              ),
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _buildHighscore(),
-                const SizedBox(width: 50),
-                _buildCombo(),
-              ],
-            ),
-            const SizedBox(height: 20),
-            Container(
-              decoration: BoxDecoration(
-                color: const Color.fromARGB(255, 57, 159, 255),
-                borderRadius: BorderRadius.circular(30),
-              ),
-              child: AnimatedBuilder(
-                animation: _fadeAnimation,
-                builder: (context, child) {
-                  return Opacity(
-                    opacity: _fadeAnimation.value,
-                    child: Padding(
-                      padding: const EdgeInsets.all(10),
-                      child:
-                          selectedPieces.isEmpty
-                              ? _buildContinueButton()
-                              : Row(
-                                spacing: 10,
-                                mainAxisSize: MainAxisSize.min,
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children:
-                                    selectedPieces
-                                        .map(
-                                          (piece) => Draggable<PieceType>(
-                                            data: piece,
-                                            feedback: Image.asset(
-                                              'assets/images/white_${piece.name}.png',
-                                              height: imageHeight,
-                                              width: imageWidth,
-                                              cacheHeight:
-                                                  (imageHeight * 1.5).toInt(),
-                                              cacheWidth:
-                                                  (imageWidth * 1.0).toInt(),
-                                            ),
-                                            onDragEnd: (details) {
-                                              if (details.wasAccepted) {
-                                                setState(() {
-                                                  selectedPieces.remove(piece);
-                                                });
-                                              }
-                                              if (selectedPieces.isEmpty) {
-                                                _buildContinueButton();
-                                              }
-                                            },
-                                            childWhenDragging: Opacity(
-                                              opacity: 0.2,
-                                              child: Image.asset(
-                                                'assets/images/white_${piece.name}.png',
-                                                height: 50,
-                                                width: 50,
-                                              ),
-                                            ),
-                                            child: Image.asset(
-                                              'assets/images/white_${piece.name}.png',
-                                              height: 50,
-                                              width: 50,
-                                            ),
-                                          ),
-                                        )
-                                        .toList(),
-                              ),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          return Expanded(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: constraints.maxHeight),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: padding * 3,
+                      vertical: padding * 1,
                     ),
-                  );
-                },
+                      child: GridView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 8,
+                          mainAxisSpacing: spacing,
+                          crossAxisSpacing: spacing,
+                          childAspectRatio: 1,
+                        ),
+                        itemCount: 64,
+                        itemBuilder: (context, index) {
+                          final row = index ~/ 8;
+                          final col = index % 8;
+                          final block = board[row][col];
+
+                          return DragTarget<PieceType>(
+                            onWillAcceptWithDetails: (data) {
+                              return (board[row][col] == null ||
+                                  (board[row][col]!.hasPiece == false &&
+                                      board[row][col]!.isActive == false));
+                            },
+                            onAcceptWithDetails: (details) {
+                              setState(() {
+                                board[row][col] = Block(
+                                  position: Point(row, col),
+                                  piece: details.data,
+                                  isActive: false,
+                                  hasPiece: true,
+                                );
+                                showTargetedCells(details, row, col);
+                                selectedPiecesPositions.add(Point(row, col));
+                                selectedPieces.remove(details.data);
+                              });
+                            },
+                            builder: (context, candidateData, rejectedData) {
+                              return Container(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(
+                                    cellSize * 0.1,
+                                  ),
+                                  color:
+                                      board[row][col] == null
+                                          ? (row == 6 || row == 7
+                                              ? (settingsProvider.isDarkMode
+                                                  ? Colors.blueGrey[800]
+                                                  : Colors.blueGrey)
+                                              : (settingsProvider.isDarkMode
+                                                  ? Colors.grey[700]
+                                                  : Colors.grey))
+                                          : (board[row][col]!.piece != null
+                                              ? Colors.blue
+                                              : board[row][col]!.color ??
+                                                  Colors.grey),
+                                ),
+                                child:
+                                    block != null
+                                        ? (block.piece != null
+                                            ? Image.asset(
+                                              'assets/images/white_${block.piece!.name}.png',
+                                              fit: BoxFit.contain,
+                                            )
+                                            : (block.isTargeted
+                                                ? Image.asset(
+                                                  'assets/images/cross.png',
+                                                  fit: BoxFit.contain,
+                                                )
+                                                : null))
+                                        : null,
+                              );
+                            },
+                          );
+                        },
+                      ),
+                    ),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: padding),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        _buildHighscore(fontSize),
+                        const SizedBox(width: 50),
+                        _buildCombo(fontSize),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: spacing * 5),
+                  Container(
+                    decoration: BoxDecoration(
+                      color:
+                          settingsProvider.isDarkMode
+                              ? Colors.blueGrey[700]
+                              : const Color.fromARGB(255, 57, 159, 255),
+                      borderRadius: BorderRadius.circular(
+                        generalProvider.getResponsiveSize(30, context),
+                      ),
+                    ),
+                    padding: EdgeInsets.all(padding),
+                    child: AnimatedBuilder(
+                      animation: _fadeAnimation,
+                      builder: (context, child) {
+                        return Opacity(
+                          opacity: _fadeAnimation.value,
+                          child:
+                              selectedPieces.isEmpty
+                                  ? _buildContinueButton(cellSize, fontSize)
+                                  : Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children:
+                                        selectedPieces
+                                            .map(
+                                              (piece) => Padding(
+                                                padding: EdgeInsets.symmetric(
+                                                  horizontal: spacing,
+                                                ),
+                                                child: Draggable<PieceType>(
+                                                  data: piece,
+                                                  feedback: Image.asset(
+                                                    'assets/images/white_${piece.name}.png',
+                                                    height: cellSize,
+                                                    width: cellSize,
+                                                    cacheHeight:
+                                                        (cellSize * 1.5)
+                                                            .toInt(),
+                                                    cacheWidth:
+                                                        (cellSize).toInt(),
+                                                  ),
+                                                  onDragEnd: (details) {
+                                                    if (details.wasAccepted) {
+                                                      setState(() {
+                                                        selectedPieces.remove(
+                                                          piece,
+                                                        );
+                                                      });
+                                                    }
+                                                  },
+                                                  childWhenDragging: Opacity(
+                                                    opacity: 0.2,
+                                                    child: Image.asset(
+                                                      'assets/images/white_${piece.name}.png',
+                                                      height: cellSize,
+                                                      width: cellSize,
+                                                    ),
+                                                  ),
+                                                  child: Image.asset(
+                                                    'assets/images/white_${piece.name}.png',
+                                                    height: cellSize,
+                                                    width: cellSize,
+                                                  ),
+                                                ),
+                                              ),
+                                            )
+                                            .toList(),
+                                  ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
               ),
             ),
-          ],
-        ),
+          );
+        },
       ),
-      bottomNavigationBar:
-          _bannerAd != null && _isBannerAdLoaded
-              ? SafeArea(
-                child: Container(
-                  margin: const EdgeInsets.only(bottom: 12.0),
-                  color: Colors.red, // For debugging visibility
-                  height: _bannerAd!.size.height.toDouble(),
-                  child: AdWidget(ad: _bannerAd!),
-                ),
-              )
-              : null,
+      bottomNavigationBar: SafeArea(child: BannerAdWidget()),
     );
   }
 }

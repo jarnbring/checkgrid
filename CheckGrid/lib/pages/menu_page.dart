@@ -1,9 +1,8 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:gamename/banner_ad.dart';
 import 'package:gamename/pages/game_page.dart';
 import 'package:gamename/settings/settings_page.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class MenuPage extends StatefulWidget {
@@ -18,16 +17,6 @@ class _MenuPageState extends State<MenuPage> {
   double iconSize = 25;
   String appVersion = "Beta 1.0.0";
 
-  // ADS
-  BannerAd? _bannerAd;
-  bool _isLoaded = false;
-  AnchoredAdaptiveBannerAdSize? _adSize;
-
-  // TODO: Replace with your own ad unit ID in production
-  final adUnitId = Platform.isAndroid
-      ? 'ca-app-pub-3940256099942544/9214589741' // Test ID for Android
-      : 'ca-app-pub-3940256099942544/2435281174'; // Test ID for iOS
-
   @override
   void initState() {
     super.initState();
@@ -41,61 +30,10 @@ class _MenuPageState extends State<MenuPage> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _loadBannerAd();
-  }
-
-  /// Loads a banner ad with proper async handling
-  Future<void> _loadBannerAd() async {
-    // Get anchored adaptive banner ad size
-    _adSize = await AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(
-      MediaQuery.sizeOf(context).width.truncate(),
-    );
-
-    if (_adSize == null) {
-      debugPrint('Failed to get ad size.');
-      return;
-    }
-
-    // Dispose of any existing ad
-    _bannerAd?.dispose();
-
-    // Create a new banner ad
-    _bannerAd = BannerAd(
-      adUnitId: adUnitId,
-      request: const AdRequest(),
-      size: _adSize!,
-      listener: BannerAdListener(
-        onAdLoaded: (ad) {
-          debugPrint('BannerAd loaded.');
-          setState(() {
-            _isLoaded = true;
-          });
-        },
-        onAdFailedToLoad: (ad, err) {
-          debugPrint('BannerAd failed to load: $err');
-          ad.dispose();
-          setState(() {
-            _bannerAd = null;
-            _isLoaded = false;
-          });
-          // Optionally retry loading the ad after a delay
-          Future.delayed(const Duration(seconds: 5), () {
-            if (mounted) _loadBannerAd();
-          });
-        },
-        onAdOpened: (ad) {},
-        onAdClosed: (ad) {},
-        onAdImpression: (ad) {},
-      ),
-    );
-
-    // Load the ad
-    await _bannerAd!.load();
   }
 
   @override
   void dispose() {
-    _bannerAd?.dispose();
     super.dispose();
   }
 
@@ -112,7 +50,7 @@ class _MenuPageState extends State<MenuPage> {
           );
         },
         style: ElevatedButton.styleFrom(
-          elevation: 20,
+          elevation: 5,
           padding: EdgeInsets.zero,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(25),
@@ -220,45 +158,37 @@ class _MenuPageState extends State<MenuPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            const SizedBox(height: 150),
-            AnimatedOpacity(
-              opacity: _showContent ? 1.0 : 0.0,
-              duration: const Duration(milliseconds: 1000),
-              curve: Curves.easeIn,
-              child: const Text('CheckGrid', style: TextStyle(fontSize: 35)),
-            ),
-            const SizedBox(height: 75),
-            menuButton("Play", const GamePage()),
-            const SizedBox(height: 50),
-            menuButton("Settings", const SettingsPage()),
-            const SizedBox(height: 50),
-            menuButton("Feedback", const GamePage()),
-            const Spacer(),
-            socials(),
-            const SizedBox(height: 50),
-            AnimatedOpacity(
-              opacity: _showContent ? 1.0 : 0.0,
-              duration: const Duration(milliseconds: 1000),
-              curve: Curves.easeIn,
-              child: Text(appVersion),
-            ),
-            const SizedBox(height: 50),
-          ],
+        child: Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const SizedBox(height: 75),
+              AnimatedOpacity(
+                opacity: _showContent ? 1.0 : 0.0,
+                duration: const Duration(milliseconds: 1000),
+                curve: Curves.easeIn,
+                child: const Text('CheckGrid', style: TextStyle(fontSize: 35)),
+              ),
+              const SizedBox(height: 50),
+              menuButton("Play", const GamePage()),
+              const SizedBox(height: 50),
+              menuButton("Settings", const SettingsPage()),
+              const SizedBox(height: 50),
+              menuButton("Feedback", const GamePage()),
+              const Spacer(),
+              socials(),
+              const SizedBox(height: 25),
+              AnimatedOpacity(
+                opacity: _showContent ? 1.0 : 0.0,
+                duration: const Duration(milliseconds: 1000),
+                curve: Curves.easeIn,
+                child: Text(appVersion),
+              ),
+            ],
+          ),
         ),
       ),
-      bottomNavigationBar: _bannerAd != null && _isLoaded
-          ? SafeArea(
-              child: Container(
-                margin: const EdgeInsets.only(bottom: 12.0),
-                color: Colors.red, // For debugging visibility
-                height: _bannerAd!.size.height.toDouble(),
-                child: AdWidget(ad: _bannerAd!),
-              ),
-            )
-          : null,
+      bottomNavigationBar: BannerAdWidget(),
     );
   }
 }

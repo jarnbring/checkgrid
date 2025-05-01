@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:gamename/components/group_settings.dart';
 import 'package:gamename/components/icon_widget.dart';
-import 'package:gamename/provider.dart';
+import 'package:gamename/providers/settings_provider.dart';
 import 'package:gamename/settings/privacy_policy.dart';
 import 'package:provider/provider.dart';
 

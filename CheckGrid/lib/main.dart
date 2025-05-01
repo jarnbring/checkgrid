@@ -2,14 +2,40 @@ import 'package:device_preview/device_preview.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:gamename/pages/menu_page.dart';
-import 'package:gamename/provider.dart';
+import 'package:gamename/providers/general_provider.dart';
+import 'package:gamename/providers/settings_provider.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:provider/provider.dart';
+
+/** 
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  runApp(
+    kReleaseMode
+        ? MultiProvider(
+            providers: [
+              ChangeNotifierProvider(create: (_) => SettingsProvider()),
+              ChangeNotifierProvider(create: (_) => GeneralProvider()),
+            ],
+            child: const MyApp(),
+          )
+        : DevicePreview(
+            enabled: true,
+            builder: (context) => MultiProvider(
+              providers: [
+                ChangeNotifierProvider(create: (_) => SettingsProvider()),
+                ChangeNotifierProvider(create: (_) => GeneralProvider()),
+              ],
+              child: const MyApp(),
+            ),
+          ),
+  );
+}
+*/
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Ange test-enhetens ID (för emulator räcker 'EMULATOR')
   MobileAds.instance.updateRequestConfiguration(
     RequestConfiguration(testDeviceIds: ['EMULATOR']),
   );
@@ -17,21 +43,15 @@ void main() async {
   await MobileAds.instance.initialize();
 
   runApp(
-    ChangeNotifierProvider(
-      create: (_) => SettingsProvider(),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => SettingsProvider()),
+        ChangeNotifierProvider(create: (_) => GeneralProvider()),
+      ],
       child: const MyApp(),
     ),
   );
 }
-
-
-//  kReleaseMode
-//      ? MyApp()
-//      : DevicePreview(
-//          enabled: true, 
-//          builder: (context) => MyApp(),
-//        ),
-//);
 
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
