@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:gamename/banner_ad.dart';
+import 'package:gamename/pages/feedback_page.dart';
 import 'package:gamename/pages/game_page.dart';
-import 'package:gamename/settings/settings_page.dart';
+import 'package:gamename/pages/store_page.dart';
+import 'package:gamename/providers/general_provider.dart';
+import 'package:gamename/pages/settings_page.dart';
+import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class MenuPage extends StatefulWidget {
@@ -154,41 +158,115 @@ class _MenuPageState extends State<MenuPage> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const SizedBox(height: 75),
-              AnimatedOpacity(
-                opacity: _showContent ? 1.0 : 0.0,
-                duration: const Duration(milliseconds: 1000),
-                curve: Curves.easeIn,
-                child: const Text('CheckGrid', style: TextStyle(fontSize: 35)),
-              ),
-              const SizedBox(height: 50),
-              menuButton("Play", const GamePage()),
-              const SizedBox(height: 50),
-              menuButton("Settings", const SettingsPage()),
-              const SizedBox(height: 50),
-              menuButton("Feedback", const GamePage()),
-              const Spacer(),
-              socials(),
-              const SizedBox(height: 25),
-              AnimatedOpacity(
-                opacity: _showContent ? 1.0 : 0.0,
-                duration: const Duration(milliseconds: 1000),
-                curve: Curves.easeIn,
-                child: Text(appVersion),
-              ),
-            ],
-          ),
-        ),
-      ),
-      bottomNavigationBar: BannerAdWidget(),
+  Widget _buildGameNameText() {
+    return AnimatedOpacity(
+      opacity: _showContent ? 1.0 : 0.0,
+      duration: const Duration(milliseconds: 1000),
+      curve: Curves.easeIn,
+      child: const Text('CheckGrid', style: TextStyle(fontSize: 35)),
     );
   }
+  
+  Widget _buildNormalMenu(double screenHeight, double scaleFactorHeight) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      spacing: screenHeight / scaleFactorHeight * 0.5,
+      children: [
+        SizedBox(height: screenHeight / scaleFactorHeight * 1),
+        _buildGameNameText(),
+        menuButton("Play", const GamePage()),
+        menuButton("Settings", const SettingsPage()),
+        menuButton("Store", const StorePage()),
+        menuButton("Feedback", const FeedbackPage()),
+        const Spacer(),
+        socials(),
+        SizedBox(height: screenHeight / (scaleFactorHeight * 2)),
+        AnimatedOpacity(
+          opacity: _showContent ? 1.0 : 0.0,
+          duration: const Duration(milliseconds: 1000),
+          curve: Curves.easeIn,
+          child: Text(appVersion),
+        ),
+        const Spacer(),
+      ],
+    );
+  }
+
+  Widget _buildTabletLandscapeMenu(
+    double screenHeight,
+    double scaleFactorHeight,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        SizedBox(height: screenHeight / scaleFactorHeight),
+        _buildGameNameText(),
+        SizedBox(height: screenHeight / scaleFactorHeight),
+        Wrap(
+          spacing:
+              screenHeight /
+              scaleFactorHeight, // Horisontellt mellanrum mellan element
+          runSpacing:
+              screenHeight /
+              scaleFactorHeight, // Vertikalt mellanrum mellan rader
+          children: [
+            menuButton("Play", const GamePage()),
+            menuButton("Settings", const SettingsPage()),
+          ],
+        ),
+        SizedBox(height: screenHeight / scaleFactorHeight),
+        Wrap(
+          spacing:
+              screenHeight /
+              scaleFactorHeight, // Horisontellt mellanrum mellan element
+          runSpacing:
+              screenHeight /
+              scaleFactorHeight, // Vertikalt mellanrum mellan rader
+          children: [
+            menuButton("Store", const StorePage()),
+            menuButton("Feedback", const FeedbackPage()),
+          ],
+        ),
+        const Spacer(),
+        socials(),
+        SizedBox(height: screenHeight / (scaleFactorHeight * 2)),
+        AnimatedOpacity(
+          opacity: _showContent ? 1.0 : 0.0,
+          duration: const Duration(milliseconds: 1000),
+          curve: Curves.easeIn,
+          child: Text(appVersion),
+        ),
+        const Spacer(),
+      ],
+    );
+  }
+
+
+  @override
+  Widget build(BuildContext context) {
+    final generalProvider = context.watch<GeneralProvider>();
+    double bannerAdHeight = generalProvider.getBannerAdHeight();
+    double screenHeight =
+        generalProvider.getScreenHeight(context) - bannerAdHeight;
+    double screenWidth = generalProvider.getScreenWidth(context);
+    bool isTablet = generalProvider.isTablet(context);
+    bool isLandscape = generalProvider.getLandscapeMode(context);
+    bool isTabletAndLandscape = isTablet && isLandscape;
+
+    double scaleFactorHeight = 13.3;
+
+    print("SCREEN HEIGHT!---------------------$screenHeight"); //997.333333
+    print(screenWidth); // 448.0
+
+    return Scaffold(
+      body: Center(
+        child:
+            isTabletAndLandscape
+                ? _buildTabletLandscapeMenu(screenHeight, scaleFactorHeight)
+                : _buildNormalMenu(screenHeight, scaleFactorHeight),
+      ),
+      //bottomNavigationBar: BannerAdWidget(),
+    );
+  }
+
 }

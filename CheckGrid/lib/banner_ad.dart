@@ -1,7 +1,8 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
+import 'package:gamename/providers/general_provider.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:provider/provider.dart';
 
 class BannerAdWidget extends StatefulWidget {
   const BannerAdWidget({super.key});
@@ -17,7 +18,6 @@ class _BannerAdWidgetState extends State<BannerAdWidget> {
   final String adUnitId = Platform.isAndroid
       ? 'ca-app-pub-3940256099942544/9214589741' // Test ID för Android
       : 'ca-app-pub-3940256099942544/2435281174'; // Test ID för iOS
-
 
   @override
   void didChangeDependencies() {
@@ -49,10 +49,13 @@ class _BannerAdWidgetState extends State<BannerAdWidget> {
       size: _adSize!,
       listener: BannerAdListener(
         onAdLoaded: (ad) {
-          debugPrint('BannerAd loaded.');
+          debugPrint('BannerAd loaded with height: ${_bannerAd!.size.height}');
           setState(() {
             _isBannerAdLoaded = true;
           });
+          // Sätt bannerAdHeight i GeneralProvider när annonsen laddas
+          final generalProvider = context.read<GeneralProvider>();
+          generalProvider.setBannerAdHeight(_bannerAd!.size.height.toDouble() + 12.0); // Inkludera marginal
         },
         onAdFailedToLoad: (ad, err) {
           debugPrint('BannerAd failed to load: $err');
@@ -61,6 +64,9 @@ class _BannerAdWidgetState extends State<BannerAdWidget> {
             _bannerAd = null;
             _isBannerAdLoaded = false;
           });
+          // Återställ bannerAdHeight till 0.0 om annonsen misslyckas
+          final generalProvider = context.read<GeneralProvider>();
+          generalProvider.setBannerAdHeight(0.0);
           Future.delayed(const Duration(seconds: 5), () {
             if (mounted) _loadBannerAd();
           });

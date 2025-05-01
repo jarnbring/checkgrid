@@ -1,13 +1,14 @@
 import 'package:device_preview/device_preview.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:gamename/pages/menu_page.dart';
 import 'package:gamename/providers/general_provider.dart';
 import 'package:gamename/providers/settings_provider.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:provider/provider.dart';
 
-/** 
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   runApp(
@@ -31,8 +32,8 @@ void main() async {
           ),
   );
 }
-*/
 
+/**
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -52,6 +53,7 @@ void main() async {
     ),
   );
 }
+*/
 
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
@@ -61,6 +63,7 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
+  // Darkmode & Lightmode colors
   final Color darkmodeBackgroundColor = const Color.fromARGB(255, 39, 39, 39);
   final Color darkmodeTextColor = Colors.white;
   final Color lightmodeBackgroundColor = Colors.white;
@@ -71,8 +74,30 @@ class _MyAppState extends State<MyApp> {
     super.initState();
   }
 
+  void setOrientations() {
+    final generalProvider = context.watch<GeneralProvider>();
+    bool isTablet = generalProvider.isTablet(context);
+
+    // Set orientations depending on device
+    SystemChrome.setPreferredOrientations(
+      isTablet
+          ? [
+              DeviceOrientation.portraitUp,
+              DeviceOrientation.portraitDown,
+              DeviceOrientation.landscapeLeft,
+              DeviceOrientation.landscapeRight,
+            ]
+          : [
+            DeviceOrientation.portraitUp,
+            DeviceOrientation.portraitDown
+          ], // Only able to use portrait mode if on mobile
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    setOrientations();
+
     return MaterialApp(
       theme: ThemeData(
         appBarTheme: AppBarTheme(
