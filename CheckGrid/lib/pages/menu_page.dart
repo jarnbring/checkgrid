@@ -265,7 +265,7 @@ class _MenuPageState extends State<MenuPage> {
                 ? _buildTabletLandscapeMenu(screenHeight, scaleFactorHeight)
                 : _buildNormalMenu(screenHeight, scaleFactorHeight),
       ),
-      //bottomNavigationBar: BannerAdWidget(),
+      bottomNavigationBar: BannerAdWidget(),
     );
   }
 

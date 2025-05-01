@@ -9,6 +9,7 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:provider/provider.dart';
 
 
+/**
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   runApp(
@@ -32,8 +33,8 @@ void main() async {
           ),
   );
 }
+*/
 
-/**
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -53,7 +54,7 @@ void main() async {
     ),
   );
 }
-*/
+
 
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
