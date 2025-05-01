@@ -552,9 +552,9 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
           const Spacer(),
           _buildSelectedPieces(isLandscape, gridHorizontalPadding),
           const Spacer(),
+          BannerAdWidget()
         ],
       ),
-      //bottomNavigationBar: BannerAdWidget(),
     );
   }
 }
