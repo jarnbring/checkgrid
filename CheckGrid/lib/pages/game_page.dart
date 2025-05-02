@@ -271,11 +271,77 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
     }
   }
 
+  Widget _buildSelectedPieces(bool isLandscape, double gridHorizontalPadding) {
+    double iconSize = 75;
+
+    return Container(
+      width: 250, // Match _buildContinueButton width
+      height: iconSize + 28, // iconSize + padding (14 * 2)
+      padding: EdgeInsets.all(14), // Standardized padding
+      decoration: BoxDecoration(
+        color: const Color.fromARGB(255, 57, 159, 255),
+        borderRadius: BorderRadius.circular(30), // Match _buildContinueButton
+      ),
+      child: AnimatedBuilder(
+        animation: _fadeAnimation,
+        builder: (context, child) {
+          return Opacity(
+            opacity: _fadeAnimation.value,
+            child:
+                selectedPieces.isEmpty
+                    ? _buildContinueButton()
+                    : Row(
+                      mainAxisSize: MainAxisSize.max,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children:
+                          selectedPieces
+                              .map(
+                                (piece) => Flexible(
+                                  child: Draggable<PieceType>(
+                                    data: piece,
+                                    feedback: Image.asset(
+                                      'assets/images/white_${piece.name}.png',
+                                      height: imageHeight,
+                                      width: imageWidth,
+                                      cacheHeight: (imageHeight * 1.5).toInt(),
+                                      cacheWidth: (imageWidth * 1.0).toInt(),
+                                    ),
+                                    onDragEnd: (details) {
+                                      if (details.wasAccepted) {
+                                        setState(() {
+                                          selectedPieces.remove(piece);
+                                        });
+                                      }
+                                    },
+                                    childWhenDragging: Opacity(
+                                      opacity: 0.2,
+                                      child: Image.asset(
+                                        'assets/images/white_${piece.name}.png',
+                                        height: iconSize,
+                                        width: iconSize,
+                                      ),
+                                    ),
+                                    child: Image.asset(
+                                      'assets/images/white_${piece.name}.png',
+                                      height: iconSize,
+                                      width: iconSize,
+                                    ),
+                                  ),
+                                ),
+                              )
+                              .toList(),
+                    ),
+          );
+        },
+      ),
+    );
+  }
+
   Widget _buildContinueButton() {
     return GestureDetector(
       onTap: setPiecesAndRemoveBlocks,
       child: Container(
-        width: 3 * 50 + 2 * 10,
+        width: 250,
         height: 50,
         decoration: BoxDecoration(
           color: const Color.fromARGB(255, 57, 159, 255),
@@ -286,7 +352,7 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
           "Continue",
           style: TextStyle(
             color: Colors.white,
-            fontSize: 18,
+            fontSize: 24,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -336,75 +402,6 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
           );
         }
       },
-    );
-  }
-
-  Widget _buildSelectedPieces(bool isLandscape, double gridHorizontalPadding) {
-    double iconSize = 75;
-
-    return Container(
-      padding: isLandscape ? EdgeInsets.all(0) : EdgeInsets.all(5),
-      decoration: BoxDecoration(
-        color: const Color.fromARGB(255, 57, 159, 255),
-        borderRadius: BorderRadius.circular(40),
-      ),
-      child: AnimatedBuilder(
-        animation: _fadeAnimation,
-        builder: (context, child) {
-          return Opacity(
-            opacity: _fadeAnimation.value,
-            child: Padding(
-              padding: const EdgeInsets.all(14),
-              child:
-                  selectedPieces.isEmpty
-                      ? _buildContinueButton()
-                      : Row(
-                        spacing: 15,
-                        mainAxisSize: MainAxisSize.min,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children:
-                            selectedPieces
-                                .map(
-                                  (piece) => Draggable<PieceType>(
-                                    data: piece,
-                                    feedback: Image.asset(
-                                      'assets/images/white_${piece.name}.png',
-                                      height: imageHeight,
-                                      width: imageWidth,
-                                      cacheHeight: (imageHeight * 1.5).toInt(),
-                                      cacheWidth: (imageWidth * 1.0).toInt(),
-                                    ),
-                                    onDragEnd: (details) {
-                                      if (details.wasAccepted) {
-                                        setState(() {
-                                          selectedPieces.remove(piece);
-                                        });
-                                      }
-                                      if (selectedPieces.isEmpty) {
-                                        _buildContinueButton();
-                                      }
-                                    },
-                                    childWhenDragging: Opacity(
-                                      opacity: 0.2,
-                                      child: Image.asset(
-                                        'assets/images/white_${piece.name}.png',
-                                        height: iconSize,
-                                        width: iconSize,
-                                      ),
-                                    ),
-                                    child: Image.asset(
-                                      'assets/images/white_${piece.name}.png',
-                                      height: iconSize,
-                                      width: iconSize,
-                                    ),
-                                  ),
-                                )
-                                .toList(),
-                      ),
-            ),
-          );
-        },
-      ),
     );
   }
 
@@ -532,9 +529,8 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
             children: [
               const Text(
                 "CheckGrid",
-                style: TextStyle(fontSize: 20),
-              ), // KAN ÄNDRAS RESPONSIVT!
-              _buildScore(),
+                style: TextStyle(fontSize: 34),
+              ),
             ],
           ),
         ),
@@ -546,15 +542,16 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
       ),
       body: Column(
         children: [
+          _buildScore(),
           const Spacer(),
           _buildPlayArea(isTablet, isLandscape, gridHorizontalPadding),
           _buildScoreAndCombo(),
           const Spacer(),
           _buildSelectedPieces(isLandscape, gridHorizontalPadding),
           const Spacer(),
-          BannerAdWidget()
         ],
       ),
+      bottomNavigationBar: BannerAdWidget(),
     );
   }
 }

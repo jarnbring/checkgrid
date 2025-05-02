@@ -24,6 +24,7 @@ dependencies:
   google_mobile_ads: ^6.0.0
   in_app_purchase: ^3.0.0
   image_picker: ^1.1.2
+  shimmer: ^3.0.0
 
 
 dev_dependencies:
