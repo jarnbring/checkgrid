@@ -178,8 +178,11 @@ class _FeedbackPageState extends State<FeedbackPage> with TickerProviderStateMix
     return GestureDetector(
       onTap: () {
         setState(() {
-          _selectedItems[title] = !isSelected;
-          if (!isSelected && animationController != null) {
+          // Set all items to false
+          _selectedItems.updateAll((key, value) => false);
+          // Set the tapped item to true
+          _selectedItems[title] = true;
+          if (animationController != null) {
             animationController.forward().then((_) => animationController.reverse());
           }
         });
@@ -266,7 +269,6 @@ class _FeedbackPageState extends State<FeedbackPage> with TickerProviderStateMix
                         onPressed: () {
                           if (_formKey.currentState!.validate()) {
                             print("Feedback submitted: ${_emailController.text}");
-                            // TODO: Skicka feedback till backend
                           }
                         },
                         child: Text(

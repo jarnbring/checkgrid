@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:gamename/banner_ad.dart';
@@ -5,9 +6,69 @@ import 'package:gamename/pages/feedback_page.dart';
 import 'package:gamename/pages/game_page.dart';
 import 'package:gamename/pages/store_page.dart';
 import 'package:gamename/providers/general_provider.dart';
-import 'package:gamename/pages/settings_page.dart';
+import 'package:gamename/settings/settings_page.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:shimmer/shimmer.dart';
+
+class Particle {
+  Offset position;
+  Offset velocity;
+  double size;
+  double lifespan;
+  Color color;
+  final double _initialLifespan;
+
+  static const double _gravity = 0.1; // Gravitationseffekt
+
+  Particle({
+    required this.position,
+    required this.velocity,
+    required this.size,
+    required this.lifespan,
+    required this.color,
+  }) : _initialLifespan = lifespan;
+
+  void update() {
+    position += velocity;
+    velocity = Offset(velocity.dx, velocity.dy + _gravity);
+    lifespan -= 1 / 60;
+
+    final sizeFactor = 1.0 + (sin(lifespan * pi * 2) * 0.1);
+    size = (size * sizeFactor).clamp(0.5, 2.0);
+
+    color = color.withOpacity((lifespan / _initialLifespan).clamp(0.0, 1.0));
+  }
+}
+
+class ParticlePainter extends CustomPainter {
+  final List<Particle> particles;
+  final Size textSize;
+  final Offset textPosition;
+
+  ParticlePainter({
+    required this.particles,
+    required this.textSize,
+    required this.textPosition,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    for (var particle in particles) {
+      if (particle.lifespan <= 0) continue;
+
+      final paint =
+          Paint()
+            ..color = particle.color
+            ..style = PaintingStyle.fill;
+
+      canvas.drawCircle(particle.position, particle.size, paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant ParticlePainter oldDelegate) => true;
+}
 
 class MenuPage extends StatefulWidget {
   const MenuPage({super.key});
@@ -18,27 +79,19 @@ class MenuPage extends StatefulWidget {
 
 class _MenuPageState extends State<MenuPage> {
   bool _showContent = false;
-  double iconSize = 25;
-  String appVersion = "Beta 1.0.0";
+  final double iconSize = 25;
+  final String appVersion = "Beta 1.0.0";
 
   @override
   void initState() {
     super.initState();
     Future.delayed(const Duration(milliseconds: 300), () {
-      setState(() {
-        _showContent = true;
-      });
+      if (mounted) {
+        setState(() {
+          _showContent = true;
+        });
+      }
     });
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
   }
 
   Widget menuButton(String title, Widget routePage) {
@@ -64,7 +117,7 @@ class _MenuPageState extends State<MenuPage> {
         child: Ink(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(25),
-            gradient: LinearGradient(
+            gradient: const LinearGradient(
               colors: [Colors.blue, Colors.purple],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
@@ -160,25 +213,40 @@ class _MenuPageState extends State<MenuPage> {
 
   Widget _buildGameNameText() {
     return AnimatedOpacity(
-      opacity: _showContent ? 1.0 : 0.0,
-      duration: const Duration(milliseconds: 1000),
+      opacity: _showContent ? 1.0 : 0.3,
+      duration: const Duration(milliseconds: 3000),
       curve: Curves.easeIn,
-      child: const Text('CheckGrid', style: TextStyle(fontSize: 35)),
+      child: Shimmer.fromColors(
+        baseColor: Theme.of(context).textTheme.bodyMedium!.color!,
+        highlightColor: Colors.grey,
+        child: const Text(
+          'CheckGrid',
+          style: TextStyle(
+            fontSize: 35,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 1.5,
+          ),
+        ),
+      ),
     );
   }
-  
+
   Widget _buildNormalMenu(double screenHeight, double scaleFactorHeight) {
     return Column(
+      mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.center,
-      spacing: screenHeight / scaleFactorHeight * 0.5,
       children: [
-        SizedBox(height: screenHeight / scaleFactorHeight * 1),
+        SizedBox(height: screenHeight / scaleFactorHeight * 1.75),
         _buildGameNameText(),
+        SizedBox(height: screenHeight / scaleFactorHeight * 0.5),
         menuButton("Play", const GamePage()),
+        SizedBox(height: screenHeight / scaleFactorHeight * 0.5),
         menuButton("Settings", const SettingsPage()),
+        SizedBox(height: screenHeight / scaleFactorHeight * 0.5),
         menuButton("Store", const StorePage()),
+        SizedBox(height: screenHeight / scaleFactorHeight * 0.5),
         menuButton("Feedback", const FeedbackPage()),
-        const Spacer(),
+        SizedBox(height: screenHeight / scaleFactorHeight * 0.5),
         socials(),
         SizedBox(height: screenHeight / (scaleFactorHeight * 2)),
         AnimatedOpacity(
@@ -187,7 +255,7 @@ class _MenuPageState extends State<MenuPage> {
           curve: Curves.easeIn,
           child: Text(appVersion),
         ),
-        const Spacer(),
+        SizedBox(height: screenHeight / (scaleFactorHeight * 0.25)),
       ],
     );
   }
@@ -197,18 +265,15 @@ class _MenuPageState extends State<MenuPage> {
     double scaleFactorHeight,
   ) {
     return Column(
+      mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         SizedBox(height: screenHeight / scaleFactorHeight),
         _buildGameNameText(),
         SizedBox(height: screenHeight / scaleFactorHeight),
         Wrap(
-          spacing:
-              screenHeight /
-              scaleFactorHeight, // Horisontellt mellanrum mellan element
-          runSpacing:
-              screenHeight /
-              scaleFactorHeight, // Vertikalt mellanrum mellan rader
+          spacing: screenHeight / scaleFactorHeight,
+          runSpacing: screenHeight / scaleFactorHeight,
           children: [
             menuButton("Play", const GamePage()),
             menuButton("Settings", const SettingsPage()),
@@ -216,18 +281,14 @@ class _MenuPageState extends State<MenuPage> {
         ),
         SizedBox(height: screenHeight / scaleFactorHeight),
         Wrap(
-          spacing:
-              screenHeight /
-              scaleFactorHeight, // Horisontellt mellanrum mellan element
-          runSpacing:
-              screenHeight /
-              scaleFactorHeight, // Vertikalt mellanrum mellan rader
+          spacing: screenHeight / scaleFactorHeight,
+          runSpacing: screenHeight / scaleFactorHeight,
           children: [
             menuButton("Store", const StorePage()),
             menuButton("Feedback", const FeedbackPage()),
           ],
         ),
-        const Spacer(),
+        SizedBox(height: screenHeight / scaleFactorHeight),
         socials(),
         SizedBox(height: screenHeight / (scaleFactorHeight * 2)),
         AnimatedOpacity(
@@ -236,11 +297,10 @@ class _MenuPageState extends State<MenuPage> {
           curve: Curves.easeIn,
           child: Text(appVersion),
         ),
-        const Spacer(),
+        SizedBox(height: screenHeight / (scaleFactorHeight * 2)),
       ],
     );
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -248,25 +308,21 @@ class _MenuPageState extends State<MenuPage> {
     double bannerAdHeight = generalProvider.getBannerAdHeight();
     double screenHeight =
         generalProvider.getScreenHeight(context) - bannerAdHeight;
-    double screenWidth = generalProvider.getScreenWidth(context);
     bool isTablet = generalProvider.isTablet(context);
     bool isLandscape = generalProvider.getLandscapeMode(context);
     bool isTabletAndLandscape = isTablet && isLandscape;
-
     double scaleFactorHeight = 13.3;
 
-    print("SCREEN HEIGHT!---------------------$screenHeight"); //997.333333
-    print(screenWidth); // 448.0
-
     return Scaffold(
-      body: Center(
-        child:
-            isTabletAndLandscape
-                ? _buildTabletLandscapeMenu(screenHeight, scaleFactorHeight)
-                : _buildNormalMenu(screenHeight, scaleFactorHeight),
+      body: SingleChildScrollView(
+        child: Center(
+          child:
+              isTabletAndLandscape
+                  ? _buildTabletLandscapeMenu(screenHeight, scaleFactorHeight)
+                  : _buildNormalMenu(screenHeight, scaleFactorHeight),
+        ),
       ),
-      bottomNavigationBar: BannerAdWidget(),
+      bottomNavigationBar: const BannerAdWidget(),
     );
   }
-
 }
