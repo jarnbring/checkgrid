@@ -1,3 +1,5 @@
+// ignore_for_file: unused_import, slash_for_doc_comments
+
 import 'package:device_preview/device_preview.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
@@ -7,7 +9,6 @@ import 'package:gamename/providers/general_provider.dart';
 import 'package:gamename/providers/settings_provider.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:provider/provider.dart';
-
 
 /**
 void main() async {
@@ -85,8 +86,6 @@ class _MyAppState extends State<MyApp> {
           ? [
               DeviceOrientation.portraitUp,
               DeviceOrientation.portraitDown,
-              DeviceOrientation.landscapeLeft,
-              DeviceOrientation.landscapeRight,
             ]
           : [
             DeviceOrientation.portraitUp,

@@ -35,7 +35,7 @@ class _FeedbackPageState extends State<FeedbackPage> with TickerProviderStateMix
   void initState() {
     super.initState();
     // Initiera animation controllers för varje item
-    _selectedItems.keys.forEach((title) {
+    for (var title in _selectedItems.keys) {
       final controller = AnimationController(
         vsync: this,
         duration: const Duration(milliseconds: 300),
@@ -47,7 +47,7 @@ class _FeedbackPageState extends State<FeedbackPage> with TickerProviderStateMix
           curve: Curves.easeInOut,
         ),
       );
-    });
+    }
   }
 
   @override

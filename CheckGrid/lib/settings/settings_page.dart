@@ -49,7 +49,6 @@ class SettingsPageState extends State<SettingsPage> {
                 _buildDarkmode(),
                 _buildVibration(),
                 _buildClearCache(),
-                _buildAlwaysPortraitMode(), // If tablet?
                 _buildPrivacyPolicy(),
               ],
             ),
@@ -93,24 +92,10 @@ class SettingsPageState extends State<SettingsPage> {
   }
 
   Widget _buildClearCache() {
-    return SwitchListTile(
-      title: const Text('Clear cache'),
-      secondary: IconWidget(icon: Icons.cached),
-      value: tempClearCache,
-      activeTrackColor: Colors.lightBlue,
-      onChanged: (bool value) {
-        setState(() {
-          tempClearCache = value;
-        });
-      },
-    );
-  }
-
-   Widget _buildAlwaysPortraitMode() {
     return ListTile(
-      title: const Text('Always portraitmode'),
+      title: const Text('Clear cache'),
       leading: IconWidget(
-        icon: Icons.privacy_tip_outlined,
+        icon: Icons.cached,
       ),
       trailing: Icon(
         Icons.arrow_forward_ios,

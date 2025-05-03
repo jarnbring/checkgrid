@@ -231,95 +231,43 @@ class _MenuPageState extends State<MenuPage> {
     );
   }
 
-  Widget _buildNormalMenu(double screenHeight, double scaleFactorHeight) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        SizedBox(height: screenHeight / scaleFactorHeight * 1.75),
-        _buildGameNameText(),
-        SizedBox(height: screenHeight / scaleFactorHeight * 0.5),
-        menuButton("Play", const GamePage()),
-        SizedBox(height: screenHeight / scaleFactorHeight * 0.5),
-        menuButton("Settings", const SettingsPage()),
-        SizedBox(height: screenHeight / scaleFactorHeight * 0.5),
-        menuButton("Store", const StorePage()),
-        SizedBox(height: screenHeight / scaleFactorHeight * 0.5),
-        menuButton("Feedback", const FeedbackPage()),
-        SizedBox(height: screenHeight / scaleFactorHeight * 0.5),
-        socials(),
-        SizedBox(height: screenHeight / (scaleFactorHeight * 2)),
-        AnimatedOpacity(
-          opacity: _showContent ? 1.0 : 0.0,
-          duration: const Duration(milliseconds: 1000),
-          curve: Curves.easeIn,
-          child: Text(appVersion),
-        ),
-        SizedBox(height: screenHeight / (scaleFactorHeight * 0.25)),
-      ],
-    );
-  }
-
-  Widget _buildTabletLandscapeMenu(
-    double screenHeight,
-    double scaleFactorHeight,
-  ) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        SizedBox(height: screenHeight / scaleFactorHeight),
-        _buildGameNameText(),
-        SizedBox(height: screenHeight / scaleFactorHeight),
-        Wrap(
-          spacing: screenHeight / scaleFactorHeight,
-          runSpacing: screenHeight / scaleFactorHeight,
-          children: [
-            menuButton("Play", const GamePage()),
-            menuButton("Settings", const SettingsPage()),
-          ],
-        ),
-        SizedBox(height: screenHeight / scaleFactorHeight),
-        Wrap(
-          spacing: screenHeight / scaleFactorHeight,
-          runSpacing: screenHeight / scaleFactorHeight,
-          children: [
-            menuButton("Store", const StorePage()),
-            menuButton("Feedback", const FeedbackPage()),
-          ],
-        ),
-        SizedBox(height: screenHeight / scaleFactorHeight),
-        socials(),
-        SizedBox(height: screenHeight / (scaleFactorHeight * 2)),
-        AnimatedOpacity(
-          opacity: _showContent ? 1.0 : 0.0,
-          duration: const Duration(milliseconds: 1000),
-          curve: Curves.easeIn,
-          child: Text(appVersion),
-        ),
-        SizedBox(height: screenHeight / (scaleFactorHeight * 2)),
-      ],
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final generalProvider = context.watch<GeneralProvider>();
     double bannerAdHeight = generalProvider.getBannerAdHeight();
     double screenHeight =
         generalProvider.getScreenHeight(context) - bannerAdHeight;
-    bool isTablet = generalProvider.isTablet(context);
-    bool isLandscape = generalProvider.getLandscapeMode(context);
-    bool isTabletAndLandscape = isTablet && isLandscape;
     double scaleFactorHeight = 13.3;
 
     return Scaffold(
       body: SingleChildScrollView(
         child: Center(
-          child:
-              isTabletAndLandscape
-                  ? _buildTabletLandscapeMenu(screenHeight, scaleFactorHeight)
-                  : _buildNormalMenu(screenHeight, scaleFactorHeight),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              SizedBox(height: screenHeight / scaleFactorHeight * 1.75),
+              _buildGameNameText(),
+              SizedBox(height: screenHeight / scaleFactorHeight * 0.5),
+              menuButton("Play", const GamePage()),
+              SizedBox(height: screenHeight / scaleFactorHeight * 0.5),
+              menuButton("Store", const StorePage()),
+              SizedBox(height: screenHeight / scaleFactorHeight * 0.5),
+              menuButton("Settings", const SettingsPage()),
+              SizedBox(height: screenHeight / scaleFactorHeight * 0.5),
+              menuButton("Feedback", const FeedbackPage()),
+              SizedBox(height: screenHeight / scaleFactorHeight * 0.5),
+              socials(),
+              SizedBox(height: screenHeight / (scaleFactorHeight * 2)),
+              AnimatedOpacity(
+                opacity: _showContent ? 1.0 : 0.0,
+                duration: const Duration(milliseconds: 1000),
+                curve: Curves.easeIn,
+                child: Text(appVersion),
+              ),
+              SizedBox(height: screenHeight / (scaleFactorHeight * 0.25)),
+            ],
+          ),
         ),
       ),
       bottomNavigationBar: const BannerAdWidget(),
