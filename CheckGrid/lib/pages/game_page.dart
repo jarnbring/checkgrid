@@ -1,10 +1,13 @@
+import 'dart:convert';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:gamename/banner_ad.dart';
 import 'package:gamename/components/countdown_loading.dart';
 import 'package:gamename/game/block.dart';
+import 'package:gamename/game/difficulty.dart';
 import 'package:gamename/game/piecetype.dart';
 import 'package:gamename/providers/general_provider.dart';
+import 'package:gamename/settings/settings_page.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -17,78 +20,224 @@ class GamePage extends StatefulWidget {
 }
 
 class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
-  // Create a 2D board with nulls (empty cells)
   List<List<Block?>> board = List.generate(8, (_) => List.filled(8, null));
+  List<PieceType> selectedPieces = [];
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
 
-  late List<PieceType> selectedPieces; // Randomizes the user's pieces
-  late AnimationController _animationController; // Controller for animation
-  late Animation<double> _fadeAnimation; // Fade animation for pieces
+  final imageWidth = 50.0, imageHeight = 50.0;
+  final boardWidth = 8, boardHeight = 8, comboRequirement = 6;
 
-  // Constants
-  final double imageWidth = 50;
-  final double imageHeight = 50;
-  final int boardWidth = 8; // Measured in cells
-  final int boardHeight = 8; // Measured in cells
-  final int comboRequirement = 6;
-
-  // Variables
-  List<Point> selectedPiecesPositions = [];
+  List<Point<int>> selectedPiecesPositions = [];
   List<Block> targetedCells = [];
   bool isReviveShowing = false;
-  bool isFirstLoad = true;
-  BigInt currentScore = BigInt.zero;
-  BigInt comboCount = BigInt.zero;
-  BigInt? latestHighScore;
+  BigInt currentScore = BigInt.zero, comboCount = BigInt.zero;
+  BigInt latestHighScore = BigInt.zero, displayedHighscore = BigInt.zero;
+
+  final double spawnRate = 0.8;
+  Difficulty _difficulty = Difficulty.normal;
 
   @override
   void initState() {
     super.initState();
+
     _animationController = AnimationController(
       duration: const Duration(seconds: 1),
       vsync: this,
     );
     _fadeAnimation = Tween(begin: 0.0, end: 1.0).animate(_animationController);
-    isFirstLoad = true;
-    getHighscore();
-    initKillingCells();
-    setPieces();
-    update();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await _loadGameState();
+      if (selectedPieces.isEmpty &&
+          board.every((row) => row.every((block) => block == null))) {
+        initKillingCells(spawnRate);
+        setPieces();
+      } else if (selectedPieces.isNotEmpty ||
+          selectedPiecesPositions.isNotEmpty) {
+        // Trigger animation for loaded pieces or show Continue button
+        _animationController.forward(from: 0.0);
+      }
+      update();
+      setState(() {});
+    });
   }
 
   @override
   void dispose() {
+    _saveGameState();
     _animationController.dispose();
     super.dispose();
   }
 
-  Future<void> saveHighscore(BigInt score) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
+  Future<BigInt> _loadHighscore() async {
+    final prefs = await SharedPreferences.getInstance();
+    final s = prefs.getString('highscore');
+    return s != null ? BigInt.parse(s) : BigInt.zero;
+  }
+
+  Future<void> _saveHighscore(BigInt score) async {
+    final prefs = await SharedPreferences.getInstance();
     await prefs.setString('highscore', score.toString());
   }
 
-  Future<BigInt> getHighscore() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? highscoreString = prefs.getString('highscore');
-    if (highscoreString != null) {
-      latestHighScore = BigInt.parse(highscoreString);
-      return BigInt.parse(highscoreString);
+  Future<void> _saveGameState() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    // Save board
+    final boardJson =
+        board
+            .asMap()
+            .map(
+              (row, cols) => MapEntry(
+                row.toString(),
+                cols.asMap().map(
+                  (col, block) => MapEntry(col.toString(), block?.toJson()),
+                ),
+              ),
+            )
+            .values
+            .toList();
+    await prefs.setString('game_board', jsonEncode(boardJson));
+
+    // Save selected pieces
+    final piecesToSave = selectedPieces.map((p) => p.name).toList();
+    await prefs.setStringList('selected_pieces', piecesToSave);
+
+    // Save scores
+    await prefs.setString('current_score', currentScore.toString());
+    await prefs.setString('combo_count', comboCount.toString());
+
+    // Save selected pieces positions
+    final positionsJson =
+        selectedPiecesPositions.map((p) => {'x': p.x, 'y': p.y}).toList();
+    await prefs.setString(
+      'selected_pieces_positions',
+      jsonEncode(positionsJson),
+    );
+
+    // Save targeted cells (optional, as they may be transient)
+    final targetedJson = targetedCells.map((b) => b.toJson()).toList();
+    await prefs.setString('targeted_cells', jsonEncode(targetedJson));
+  }
+
+  Future<void> _loadGameState() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    // Load board
+    final boardJson = prefs.getString('game_board');
+    if (boardJson != null) {
+      try {
+        final List<dynamic> boardData = jsonDecode(boardJson);
+        board = List.generate(
+          8,
+          (row) => List.generate(8, (col) {
+            final blockJson = boardData[row][col.toString()];
+            return blockJson != null ? Block.fromJson(blockJson) : null;
+          }),
+        );
+      } catch (e) {
+        print('Error loading board: $e');
+        board = List.generate(8, (_) => List.filled(8, null));
+      }
     }
-    return BigInt.zero;
+
+    // Load selected pieces
+    final pieces = prefs.getStringList('selected_pieces');
+    if (pieces != null && pieces.isNotEmpty) {
+      try {
+        selectedPieces =
+            pieces
+                .map(
+                  (name) => PieceType.values.firstWhere(
+                    (e) => e.name == name,
+                    orElse: () => throw Exception('Invalid PieceType: $name'),
+                  ),
+                )
+                .toList();
+      } catch (e) {
+        print('Error loading selected pieces: $e');
+        selectedPieces = [];
+      }
+    } else {
+      selectedPieces = [];
+    }
+
+    // Load scores
+    final score = prefs.getString('current_score');
+    currentScore = score != null ? BigInt.parse(score) : BigInt.zero;
+
+    final combo = prefs.getString('combo_count');
+    comboCount = combo != null ? BigInt.parse(combo) : BigInt.zero;
+
+    // Load selected pieces positions
+    final positionsJson = prefs.getString('selected_pieces_positions');
+    if (positionsJson != null) {
+      try {
+        final List<dynamic> positionsData = jsonDecode(positionsJson);
+        selectedPiecesPositions =
+            positionsData
+                .map((p) => Point<int>(p['x'] as int, p['y'] as int))
+                .toList();
+        print('Restored selectedPiecesPositions: $selectedPiecesPositions');
+      } catch (e) {
+        print('Error loading selected pieces positions: $e');
+        selectedPiecesPositions = [];
+      }
+    }
+
+    // Load targeted cells (optional)
+    final targetedJson = prefs.getString('targeted_cells');
+    if (targetedJson != null) {
+      try {
+        final List<dynamic> targetedData = jsonDecode(targetedJson);
+        targetedCells =
+            targetedData.map((json) => Block.fromJson(json)).toList();
+      } catch (e) {
+        print('Error loading targeted cells: $e');
+        targetedCells = [];
+      }
+    }
+
+    // Load highscore
+    final hs = await _loadHighscore();
+    latestHighScore = hs;
+    displayedHighscore = hs;
+  }
+
+  Future<void> animateBigInt(
+    BigInt start,
+    BigInt end,
+    void Function(BigInt) onUpdate,
+  ) async {
+    const durationMs = 500;
+    const steps = 20;
+    final diff = end - start;
+    for (var i = 1; i <= steps; i++) {
+      await Future.delayed(Duration(milliseconds: durationMs ~/ steps));
+      onUpdate(start + (diff * BigInt.from(i) ~/ BigInt.from(steps)));
+    }
   }
 
   void setPieces() {
-    final allPieces = List<PieceType>.from(PieceType.values)..shuffle();
-    selectedPieces = allPieces.take(3).toList();
-    _animationController.forward(from: 0.0);
+    final all = List.of(PieceType.values)..shuffle();
+    selectedPieces = all.take(3).toList();
+    setState(() {
+      _animationController.forward(from: 0.0);
+    });
   }
 
-  void initKillingCells() {
-    final random = Random();
-    for (int row = 0; row < 2; row++) {
-      for (int col = 0; col < boardWidth; col++) {
-        if (random.nextBool()) {
+  void initKillingCells(double spawnChance) {
+    assert(
+      spawnChance >= 0.0 && spawnChance <= 1.0,
+      'spawnChance must be between 0.0 and 1.0',
+    );
+    final rng = Random();
+    for (var row = 0; row < 2; row++) {
+      for (var col = 0; col < boardWidth; col++) {
+        if (rng.nextDouble() < spawnChance) {
           board[row][col] = Block(
-            position: Point(row, col),
+            position: Point<int>(row, col),
             isActive: true,
             color: Colors.green,
           );
@@ -98,52 +247,60 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
     update();
   }
 
-  void showTargetedCells(
-    DragTargetDetails<PieceType> details,
-    int row,
-    int col,
-  ) {
-    setState(() {
-      for (var direction in details.data.movementPattern.directions) {
-        for (var offset in direction.offsets) {
-          int newRow = row;
-          int newCol = col;
-          int steps =
-              details.data.movementPattern.canMoveMultipleSquares ? 8 : 1;
+  void addScore() async {
+    final count = targetedCells.length;
+    comboCount =
+        count >= comboRequirement ? comboCount + BigInt.one : BigInt.zero;
+    final base = BigInt.from(10) * BigInt.from(count);
+    final totalScore = base * (comboCount + BigInt.one);
 
-          for (int i = 0; i < steps; i++) {
-            newRow += offset.dy.toInt();
-            newCol += offset.dx.toInt();
+    final oldScore = currentScore;
+    final newScore = oldScore + totalScore;
+    targetedCells.clear();
 
-            if (newRow < 0 ||
-                newRow >= boardHeight ||
-                newCol < 0 ||
-                newCol >= boardWidth) {
-              break;
-            }
+    final oldHigh = latestHighScore;
+    final newHigh = newScore > oldHigh ? newScore : oldHigh;
+    if (newScore > oldHigh) {
+      await _saveHighscore(newScore);
+      latestHighScore = newHigh;
+    }
 
-            if (board[newRow][newCol] != null &&
-                board[newRow][newCol]!.isActive) {
-              board[newRow][newCol]!.isTargeted = true;
-              targetedCells.add(board[newRow][newCol]!);
-              break;
-            }
-          }
-        }
-      }
-    });
+    final scoreAnim = animateBigInt(
+      oldScore,
+      newScore,
+      (v) => setState(() => currentScore = v),
+    );
+    final highAnim =
+        (newScore > oldHigh)
+            ? animateBigInt(
+              oldHigh,
+              newHigh,
+              (v) => setState(() => displayedHighscore = v),
+            )
+            : Future.value();
+
+    await Future.wait([scoreAnim, highAnim]);
+  }
+
+  void spawnNewRows() {
+    if (isReviveShowing) return;
+    for (var row = boardHeight - 1; row > 0; row--) {
+      board[row] = List.from(board[row - 1]);
+    }
+    board[0] = List.filled(boardWidth, null);
+    addScore();
+    initKillingCells(spawnRate);
+    update();
   }
 
   void setPiecesAndRemoveBlocks() {
     setState(() {
       update();
-      for (int row = 0; row < boardHeight; row++) {
-        for (int col = 0; col < boardWidth; col++) {
-          if (board[row][col]?.isTargeted == true) {
-            board[row][col] = null;
-          }
-          if (selectedPiecesPositions.contains(Point(row, col))) {
-            board[row][col] = null;
+      for (var r = 0; r < boardHeight; r++) {
+        for (var c = 0; c < boardWidth; c++) {
+          if (board[r][c]?.isTargeted == true ||
+              selectedPiecesPositions.contains(Point<int>(r, c))) {
+            board[r][c] = null;
           }
         }
       }
@@ -153,70 +310,56 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
     });
   }
 
-  void addScore() async {
-    int numberOfCells = targetedCells.length;
-
-    if (numberOfCells >= comboRequirement) {
-      comboCount += BigInt.from(1);
-    } else {
-      comboCount = BigInt.zero;
-    }
-
-    BigInt baseScore = BigInt.from(10) * BigInt.from(numberOfCells);
-    BigInt comboMultiplier = comboCount + BigInt.one;
-    BigInt totalScore = baseScore * comboMultiplier;
-
-    currentScore += totalScore;
-    targetedCells.clear();
-
-    BigInt highscore = await getHighscore();
-    if (currentScore > highscore) {
-      await saveHighscore(currentScore);
-    }
-  }
-
-  void spawnNewRows() {
-    if (isReviveShowing) return;
-
-    for (int row = boardHeight - 1; row > 0; row--) {
-      board[row] = List<Block?>.from(board[row - 1]);
-    }
-    board[0] = List<Block?>.filled(boardWidth, null);
-
-    addScore();
-    initKillingCells();
-    update();
+  void showTargetedCells(DragTargetDetails<PieceType> d, int row, int col) {
+    setState(() {
+      for (var dir in d.data.movementPattern.directions) {
+        for (var off in dir.offsets) {
+          var nr = row, nc = col;
+          final steps = d.data.movementPattern.canMoveMultipleSquares ? 8 : 1;
+          for (var i = 0; i < steps; i++) {
+            nr += off.dy.toInt();
+            nc += off.dx.toInt();
+            if (nr < 0 || nr >= boardHeight || nc < 0 || nc >= boardWidth)
+              break;
+            final b = board[nr][nc];
+            if (b != null && b.isActive) {
+              b.isTargeted = true;
+              targetedCells.add(b);
+              break;
+            }
+          }
+        }
+      }
+    });
   }
 
   void update() {
     if (loseCondition()) return;
     setState(() {
-      for (int row = 0; row < boardHeight; row++) {
-        for (int col = 0; col < boardWidth; col++) {
-          var block = board[row][col];
-
-          if (row == 6 || row == 7) {
-            if (block == null) {
-              board[row][col] = Block(
-                position: Point(row, col),
+      for (var r = 0; r < boardHeight; r++) {
+        for (var c = 0; c < boardWidth; c++) {
+          final b = board[r][c];
+          if (r >= 6) {
+            if (b == null) {
+              board[r][c] = Block(
+                position: Point<int>(r, c),
                 isActive: false,
                 hasPiece: false,
                 color: Colors.blueGrey,
               );
             } else {
-              block.color = Colors.blueGrey;
+              b.color = Colors.blueGrey;
             }
-          } else if (block != null) {
-            if (block.hasPiece || block.piece != null) {
-              block.color = Colors.blue;
-            } else if (block.isActive) {
-              if (row == 0 || row == 1) {
-                block.color = Colors.green;
-              } else if (row == 2 || row == 3) {
-                block.color = Colors.orange;
-              } else if (row == 4 || row == 5) {
-                block.color = Colors.red;
-              }
+          } else if (b != null) {
+            if (b.hasPiece || b.piece != null) {
+              b.color = Colors.blue;
+            } else if (b.isActive) {
+              b.color =
+                  r < 2
+                      ? Colors.green
+                      : r < 4
+                      ? Colors.orange
+                      : Colors.red;
             }
           }
         }
@@ -237,269 +380,206 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
     return false;
   }
 
-  void _restartGame() {
+  void _restartGame() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('game_board');
+    await prefs.remove('selected_pieces');
+    await prefs.remove('current_score');
+    await prefs.remove('combo_count');
+    await prefs.remove('selected_pieces_positions');
+    await prefs.remove('targeted_cells');
+
     setState(() {
       board = List.generate(8, (_) => List.filled(8, null));
       selectedPiecesPositions.clear();
       setPieces();
-      initKillingCells();
+      initKillingCells(spawnRate);
       currentScore = BigInt.zero;
       comboCount = BigInt.zero;
+      displayedHighscore = latestHighScore;
       isReviveShowing = false;
     });
   }
 
-  void _showLoseDialog(BuildContext context) {
-    if (isReviveShowing) return;
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          backgroundColor: Colors.transparent,
-          content: CountdownLoading(
-            onRestart: _restartGame,
-            isReviveShowing: isReviveShowing,
-          ),
-        );
-      },
-    );
-  }
-
   void _showLoseDialogSafe() {
-    if (mounted) {
-      _showLoseDialog(context);
+    if (!isReviveShowing && mounted) {
+      showDialog(
+        context: context,
+        builder:
+            (_) => AlertDialog(
+              backgroundColor: Colors.transparent,
+              content: CountdownLoading(
+                onRestart: _restartGame,
+                isReviveShowing: isReviveShowing,
+              ),
+            ),
+      );
     }
   }
 
-  Widget _buildSelectedPieces(bool isLandscape, double gridHorizontalPadding) {
-    double iconSize = 75;
+  Widget _buildScore() => Text(
+    NumberFormat("#,###").format(currentScore.toInt()),
+    style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
+  );
 
+  Widget _buildCombo() {
+    return Text("Combo: $comboCount", style: const TextStyle(fontSize: 20));
+  }
+
+  Widget _buildHighscore() => Text(
+    "Highscore: ${NumberFormat('#,###').format(displayedHighscore.toInt())}",
+    style: const TextStyle(fontSize: 20),
+  );
+
+  Widget _buildScoreAndCombo() => Row(
+    mainAxisAlignment: MainAxisAlignment.center,
+    children: [_buildHighscore(), const SizedBox(width: 120), _buildCombo()],
+  );
+
+  Widget _buildSelectedPieces(bool isLandscape, double pad) {
+    const iconSize = 75.0;
     return Container(
-      width: 250, // Match _buildContinueButton width
-      height: iconSize + 28, // iconSize + padding (14 * 2)
-      padding: EdgeInsets.all(14), // Standardized padding
+      width: 250,
+      height: iconSize + 28,
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: const Color.fromARGB(255, 57, 159, 255),
-        borderRadius: BorderRadius.circular(30), // Match _buildContinueButton
+        borderRadius: BorderRadius.circular(30),
       ),
       child: AnimatedBuilder(
         animation: _fadeAnimation,
-        builder: (context, child) {
-          return Opacity(
-            opacity: _fadeAnimation.value,
-            child:
-                selectedPieces.isEmpty
-                    ? _buildContinueButton()
-                    : Row(
-                      mainAxisSize: MainAxisSize.max,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children:
-                          selectedPieces
-                              .map(
-                                (piece) => Flexible(
-                                  child: Draggable<PieceType>(
-                                    data: piece,
-                                    feedback: Image.asset(
-                                      'assets/images/white_${piece.name}.png',
-                                      height: imageHeight,
-                                      width: imageWidth,
-                                      cacheHeight: (imageHeight * 1.5).toInt(),
-                                      cacheWidth: (imageWidth * 1.0).toInt(),
-                                    ),
-                                    onDragEnd: (details) {
-                                      if (details.wasAccepted) {
-                                        setState(() {
-                                          selectedPieces.remove(piece);
-                                        });
-                                      }
-                                    },
-                                    childWhenDragging: Opacity(
-                                      opacity: 0.2,
-                                      child: Image.asset(
-                                        'assets/images/white_${piece.name}.png',
-                                        height: iconSize,
-                                        width: iconSize,
-                                      ),
-                                    ),
+        builder:
+            (_, __) => Opacity(
+              opacity: _fadeAnimation.value,
+              child:
+                  selectedPieces.isEmpty && selectedPiecesPositions.isNotEmpty
+                      ? GestureDetector(
+                        onTap: setPiecesAndRemoveBlocks,
+                        child: Container(
+                          width: 250,
+                          height: 50,
+                          decoration: BoxDecoration(
+                            color: const Color.fromARGB(255, 57, 159, 255),
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                          alignment: Alignment.center,
+                          child: const Text(
+                            "Continue",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      )
+                      : Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children:
+                            selectedPieces.map((p) {
+                              return Flexible(
+                                child: Draggable<PieceType>(
+                                  data: p,
+                                  feedback: Image.asset(
+                                    'assets/images/white_${p.name}.png',
+                                    width: imageWidth + 1,
+                                    height: imageHeight + 10,
+                                  ),
+
+                                  feedbackOffset: Offset(
+                                    -imageWidth / 3,
+                                    -imageHeight / 3,
+                                  ),
+                                  childWhenDragging: Opacity(
+                                    opacity: 0.2,
                                     child: Image.asset(
-                                      'assets/images/white_${piece.name}.png',
-                                      height: iconSize,
+                                      'assets/images/white_${p.name}.png',
                                       width: iconSize,
+                                      height: iconSize,
                                     ),
                                   ),
+                                  onDragEnd:
+                                      (d) =>
+                                          d.wasAccepted
+                                              ? setState(() {
+                                                selectedPieces.remove(p);
+                                              })
+                                              : null,
+                                  child: Image.asset(
+                                    'assets/images/white_${p.name}.png',
+                                    width: iconSize,
+                                    height: iconSize,
+                                  ),
                                 ),
-                              )
-                              .toList(),
-                    ),
-          );
-        },
+                              );
+                            }).toList(),
+                      ),
+            ),
       ),
     );
   }
 
-  Widget _buildContinueButton() {
-    return GestureDetector(
-      onTap: setPiecesAndRemoveBlocks,
-      child: Container(
-        width: 250,
-        height: 50,
-        decoration: BoxDecoration(
-          color: const Color.fromARGB(255, 57, 159, 255),
-          borderRadius: BorderRadius.circular(30),
-        ),
-        alignment: Alignment.center,
-        child: const Text(
-          "Continue",
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCombo() {
-    return AnimatedBuilder(
-      animation: _fadeAnimation,
-      builder: (context, child) {
-        return Opacity(
-          opacity: _fadeAnimation.value,
-          child: Text(
-            "Combo: ${comboCount.toString()}",
-            style: const TextStyle(fontSize: 20),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildScore() {
-    return Text(
-      NumberFormat("#,###").format(currentScore.toInt()),
-      style: const TextStyle(fontSize: 20),
-    );
-  }
-
-  Widget _buildHighscore() {
-    return FutureBuilder<BigInt>(
-      future: getHighscore(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting &&
-            !isFirstLoad) {
-          return Text(
-            "Highscore: ${NumberFormat("#,###").format(latestHighScore ?? BigInt.zero)}",
-            style: const TextStyle(fontSize: 20),
-          );
-        } else if (snapshot.hasError) {
-          return Text('Error: ${snapshot.error}');
-        } else {
-          BigInt highscore = snapshot.data ?? BigInt.zero;
-          return Text(
-            "Highscore: ${NumberFormat("#,###").format(highscore.toInt())}",
-            style: const TextStyle(fontSize: 20),
-          );
-        }
-      },
-    );
-  }
-
-  Widget _buildScoreAndCombo() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [_buildHighscore(), const SizedBox(width: 120), _buildCombo()],
-    );
-  }
-
-  Widget _buildPlayArea(
-    bool isTablet,
-    bool isLandscape,
-    double gridHorizontalPadding,
-  ) {
+  Widget _buildPlayArea(bool isTablet, bool isLandscape, double pad) {
     return Padding(
       padding:
           isLandscape
-              ? EdgeInsets.fromLTRB(
-                gridHorizontalPadding / 10,
-                gridHorizontalPadding / 20,
-                gridHorizontalPadding / 10,
-                0,
-              )
+              ? EdgeInsets.symmetric(horizontal: pad)
               : isTablet
-              ? const EdgeInsets.fromLTRB(100, 20, 100, 0)
-              : const EdgeInsets.fromLTRB(40, 20, 40, 0),
+              ? const EdgeInsets.symmetric(horizontal: 100, vertical: 20)
+              : const EdgeInsets.symmetric(horizontal: 40, vertical: 20),
       child: GridView.builder(
-        padding:
-            isLandscape
-                ? EdgeInsets.fromLTRB(
-                  gridHorizontalPadding,
-                  0,
-                  gridHorizontalPadding,
-                  20,
-                )
-                : const EdgeInsets.fromLTRB(0, 0, 0, 20),
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 8,
           mainAxisSpacing: 3,
           crossAxisSpacing: 3,
-          childAspectRatio: 1,
         ),
         itemCount: 64,
-        itemBuilder: (context, index) {
-          final row = index ~/ 8;
-          final col = index % 8;
-          final block = board[row][col];
-
+        itemBuilder: (_, idx) {
+          final r = idx ~/ 8, c = idx % 8, b = board[r][c];
           return DragTarget<PieceType>(
-            onWillAcceptWithDetails: (data) {
-              return (block == null ||
-                  (block.hasPiece == false && block.isActive == false));
+            onWillAcceptWithDetails:
+                (d) => b == null || (!b.hasPiece && !b.isActive),
+            onAcceptWithDetails: (d) {
+              if (b == null || (!b.hasPiece && !b.isActive)) {
+                setState(() {
+                  board[r][c] = Block(
+                    position: Point<int>(r, c),
+                    piece: d.data,
+                    isActive: false,
+                    hasPiece: true,
+                  );
+                  showTargetedCells(d, r, c);
+                  selectedPiecesPositions.add(Point<int>(r, c));
+                  selectedPieces.remove(d.data);
+                });
+              }
             },
-            onAcceptWithDetails: (details) {
-              setState(() {
-                board[row][col] = Block(
-                  position: Point(row, col),
-                  piece: details.data,
-                  isActive: false,
-                  hasPiece: true,
-                );
-                showTargetedCells(details, row, col);
-                selectedPiecesPositions.add(Point(row, col));
-                selectedPieces.remove(details.data);
-              });
-            },
-            builder: (context, candidateData, rejectedData) {
-              return Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(5),
-                  color:
-                      block == null
-                          ? (row == 6 || row == 7
-                              ? Colors.blueGrey
-                              : Colors.grey)
-                          : (block.piece != null
-                              ? Colors.blue
-                              : block.color ?? Colors.grey),
+            builder:
+                (_, __, ___) => Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(5),
+                    color:
+                        b == null
+                            ? (r >= 6 ? Colors.blueGrey : Colors.grey)
+                            : (b.piece != null ? Colors.blue : b.color),
+                  ),
+                  child:
+                      b == null
+                          ? null
+                          : b.piece != null
+                          ? Image.asset(
+                            'assets/images/white_${b.piece!.name}.png',
+                            fit: BoxFit.contain,
+                          )
+                          : b.isTargeted
+                          ? Image.asset(
+                            'assets/images/cross.png',
+                            fit: BoxFit.contain,
+                          )
+                          : null,
                 ),
-                child:
-                    block != null
-                        ? (block.piece != null
-                            ? Image.asset(
-                              'assets/images/white_${block.piece!.name}.png',
-                              fit: BoxFit.contain,
-                            )
-                            : (block.isTargeted
-                                ? Image.asset(
-                                  'assets/images/cross.png',
-                                  fit: BoxFit.contain,
-                                )
-                                : null))
-                        : null,
-              );
-            },
           );
         },
       ),
@@ -508,13 +588,17 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    // Orientation vars
+    final gen = context.watch<GeneralProvider>();
+    final w = gen.getScreenWidth(context);
+    final pad = w * 0.3125;
+    final isTablet = gen.isTablet(context),
+        isLandscape = gen.getLandscapeMode(context);
+
     final generalProvider = context.watch<GeneralProvider>();
-    double screenWidth = generalProvider.getScreenWidth(context);
-    double paddingPercentage = 0.3125;
-    double gridHorizontalPadding = screenWidth * paddingPercentage;
-    bool isTablet = generalProvider.isTablet(context);
-    bool isLandscape = generalProvider.getLandscapeMode(context);
+    double bannerAdHeight = generalProvider.getBannerAdHeight();
+    double screenHeight =
+        generalProvider.getScreenHeight(context) - bannerAdHeight;
+    double scaleFactorHeight = 13.3;
 
     if (loseCondition() && !isReviveShowing) {
       Future.delayed(const Duration(milliseconds: 100), _showLoseDialogSafe);
@@ -522,36 +606,118 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
 
     return Scaffold(
       appBar: AppBar(
-        title: Container(
-          decoration: BoxDecoration(borderRadius: BorderRadius.circular(25)),
-          child: Column(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () async {
+            await _saveGameState();
+            Navigator.of(context).pop();
+          },
+        ),
+
+        centerTitle: true,
+        title: const Text("CheckGrid", style: TextStyle(fontSize: 34)),
+        actions: [
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.menu), // Ikon för menyn
+            onSelected: (String value) {
+              // Hantera valet från menyn
+              switch (value) {
+                case 'new_game':
+                  _restartGame();
+                  break;
+                case 'settings':
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => SettingsPage()),
+                  );
+                  break;
+                case 'difficulty':
+                  _showDifficultyDialog(context);
+                  break;
+              }
+            },
+            itemBuilder:
+                (BuildContext context) => <PopupMenuEntry<String>>[
+                  const PopupMenuItem<String>(
+                    value: 'new_game',
+                    child: Text('Restart game'),
+                  ),
+                  const PopupMenuItem<String>(
+                    value: 'settings',
+                    child: Text('Settings'),
+                  ),
+                  const PopupMenuItem<String>(
+                    value: 'difficulty',
+                    child: Text('Difficulty'),
+                  ),
+                ],
+          ),
+        ],
+      ),
+
+      body: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(height: screenHeight / scaleFactorHeight * 0.2),
+            _buildScore(),
+            SizedBox(height: screenHeight / scaleFactorHeight * 0.2),
+            _buildPlayArea(isTablet, isLandscape, pad),
+            _buildScoreAndCombo(),
+            SizedBox(height: screenHeight / scaleFactorHeight * 0.5),
+            _buildSelectedPieces(isLandscape, pad),
+          ],
+        ),
+      ),
+      bottomNavigationBar: const BannerAdWidget(),
+    );
+  }
+
+  // Funktion för att visa AlertDialog för svårighetsval
+  void _showDifficultyDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Row(
             mainAxisAlignment: MainAxisAlignment.center,
+            children: [Text('Choose Difficulty')],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              const Text(
-                "CheckGrid",
-                style: TextStyle(fontSize: 34),
+              ListTile(
+                title: Text('Chill'),
+                onTap: () {
+                  _setDifficulty(Difficulty.chill);
+                  Navigator.of(context).pop();
+                },
+              ),
+              ListTile(
+                title: Text('Normal'),
+                onTap: () {
+                  _setDifficulty(Difficulty.normal);
+                  Navigator.of(context).pop();
+                },
+              ),
+              ListTile(
+                title: Text('Max'),
+                onTap: () {
+                  _setDifficulty(Difficulty.max);
+                  Navigator.of(context).pop();
+                },
               ),
             ],
           ),
-        ),
-        centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
-      body: Column(
-        children: [
-          _buildScore(),
-          const Spacer(),
-          _buildPlayArea(isTablet, isLandscape, gridHorizontalPadding),
-          _buildScoreAndCombo(),
-          const Spacer(),
-          _buildSelectedPieces(isLandscape, gridHorizontalPadding),
-          const Spacer(),
-        ],
-      ),
-      bottomNavigationBar: BannerAdWidget(),
+        );
+      },
     );
+  }
+
+  // Funktion för att uppdatera svårigheten
+  void _setDifficulty(Difficulty difficulty) {
+    setState(() {
+      _difficulty = difficulty;
+    });
   }
 }
