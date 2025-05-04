@@ -1,15 +1,16 @@
 import 'dart:math';
 
-import 'package:flutter/rendering.dart';
+import 'package:flutter/material.dart';
 import 'package:gamename/game/piecetype.dart';
 
 class Block {
-  Point<int> position; // Explicitly Point<int>
+  Point<int> position;
   bool isActive;
   bool isTargeted;
   bool hasPiece;
   PieceType? piece;
-  Color? color;
+  Gradient? gradient;
+  Color? fallbackColor;
 
   Block({
     required this.position,
@@ -17,7 +18,8 @@ class Block {
     this.isTargeted = false,
     this.hasPiece = false,
     this.piece,
-    this.color,
+    this.gradient,
+    this.fallbackColor,
   });
 
   Map<String, dynamic> toJson() => {
@@ -26,7 +28,7 @@ class Block {
         'isTargeted': isTargeted,
         'hasPiece': hasPiece,
         'piece': piece?.name,
-        'color': color?.value,
+        'color': fallbackColor?.value,
       };
 
   factory Block.fromJson(Map<String, dynamic> json) => Block(
@@ -40,6 +42,6 @@ class Block {
         piece: json['piece'] != null
             ? PieceType.values.firstWhere((e) => e.name == json['piece'])
             : null,
-        color: json['color'] != null ? Color(json['color'] as int) : null,
+        fallbackColor: json['color'] != null ? Color(json['color'] as int) : null,
       );
 }
