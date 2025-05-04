@@ -39,16 +39,20 @@ void main() async {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Konfigurera MobileAds
   MobileAds.instance.updateRequestConfiguration(
     RequestConfiguration(testDeviceIds: ['EMULATOR']),
   );
-
   await MobileAds.instance.initialize();
+
+  // Skapa SettingsProvider och vänta på att inställningarna laddas
+  final settingsProvider = SettingsProvider();
+  await settingsProvider.loadSettings(); // Vänta på att ladda inställningar
 
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => SettingsProvider()),
+        ChangeNotifierProvider.value(value: settingsProvider), // Använd den förberedda instansen
         ChangeNotifierProvider(create: (_) => GeneralProvider()),
       ],
       child: const MyApp(),

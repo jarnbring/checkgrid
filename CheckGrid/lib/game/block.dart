@@ -45,3 +45,48 @@ class Block {
         fallbackColor: json['color'] != null ? Color(json['color'] as int) : null,
       );
 }
+
+class GlossyBlockPainter extends CustomPainter {
+  final Gradient? gradient;
+  final double glossPosition;
+  final Color? fallbackColor;
+
+  GlossyBlockPainter({
+    this.gradient,
+    required this.glossPosition,
+    this.fallbackColor,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint();
+    if (gradient != null) {
+      paint.shader = gradient!.createShader(Rect.fromLTWH(0, 0, size.width, size.height));
+    } else if (fallbackColor != null) {
+      paint.color = fallbackColor!;
+    } else {
+      paint.color = Colors.grey;
+    }
+
+    final rect = RRect.fromRectAndRadius(
+      Rect.fromLTWH(0, 0, size.width, size.height),
+      const Radius.circular(5),
+    );
+
+    canvas.drawRRect(rect, paint);
+
+    if (gradient != null) {
+      final glossPaint = Paint()
+        ..color = Colors.white.withOpacity(0.4)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5);
+      canvas.drawCircle(
+        Offset(size.width * glossPosition, size.height * glossPosition),
+        size.width * 0.2,
+        glossPaint,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+}

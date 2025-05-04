@@ -29,10 +29,7 @@ class SettingsPageState extends State<SettingsPage> {
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
-        title: const Text(
-          'Settings',
-          style: TextStyle(fontSize: 20),
-        ),
+        title: const Text('Settings', style: TextStyle(fontSize: 20)),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
@@ -47,8 +44,9 @@ class SettingsPageState extends State<SettingsPage> {
               header: "General",
               children: [
                 _buildDarkmode(),
+                _buildGlossEffect(),
                 _buildVibration(),
-                _buildClearCache(),
+                //_buildClearCache(),
                 _buildPrivacyPolicy(),
               ],
             ),
@@ -68,7 +66,10 @@ class SettingsPageState extends State<SettingsPage> {
   Widget _buildDarkmode() {
     return SwitchListTile(
       title: const Text('Darkmode'),
-      secondary: IconWidget(icon: Icons.dark_mode),
+      secondary:
+          context.watch<SettingsProvider>().isDarkMode
+              ? IconWidget(icon: Icons.dark_mode)
+              : IconWidget(icon: Icons.light_mode),
       value: context.watch<SettingsProvider>().isDarkMode,
       activeTrackColor: Colors.lightBlue,
       onChanged: (bool value) {
@@ -77,15 +78,30 @@ class SettingsPageState extends State<SettingsPage> {
     );
   }
 
+Widget _buildGlossEffect() {
+  return SwitchListTile(
+    title: const Text('Gloss effect'),
+    secondary: IconWidget(icon: Icons.aspect_ratio),
+    value: Provider.of<SettingsProvider>(context).useGlossEffect, // Använd SettingsProvider
+    activeTrackColor: Colors.lightBlue,
+    onChanged: (bool value) {
+      Provider.of<SettingsProvider>(context, listen: false).toggleGlossEffect();
+    },
+  );
+}
+
   Widget _buildVibration() {
     return SwitchListTile(
       title: const Text('Vibrations'),
-      secondary: IconWidget(icon: Icons.vibration_rounded),
-      value: tempVibration,
+      secondary:
+          context.watch<SettingsProvider>().isVibrationOn
+              ? IconWidget(icon: Icons.vibration)
+              : IconWidget(icon: Icons.phone_iphone),
+      value: context.watch<SettingsProvider>().isVibrationOn,
       activeTrackColor: Colors.lightBlue,
       onChanged: (bool value) {
         setState(() {
-          tempVibration = value;
+          context.read<SettingsProvider>().setVibration(value);
         });
       },
     );
@@ -94,29 +110,51 @@ class SettingsPageState extends State<SettingsPage> {
   Widget _buildClearCache() {
     return ListTile(
       title: const Text('Clear cache'),
-      leading: IconWidget(
-        icon: Icons.cached,
-      ),
+      leading: IconWidget(icon: Icons.cached),
       trailing: Icon(
         Icons.arrow_forward_ios,
         color: Theme.of(context).iconTheme.color?.withAlpha(100),
       ),
-      onTap:
-          () => {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => PrivacyPolicyPage()),
-            ),
+      onTap: () {
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text('Clear Cache'),
+              content: const Text(
+                'Are you sure you want to clear the cache? All your settings will reset to default and the app will restart.',
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop(); // Stäng dialogen (Cancel)
+                  },
+                  child: const Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop(); // Stäng dialogen
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => PrivacyPolicyPage(),
+                      ),
+                    );
+                  },
+                  child: const Text('Continue'),
+                ),
+              ],
+            );
           },
+        );
+      },
     );
   }
 
   Widget _buildPrivacyPolicy() {
     return ListTile(
       title: const Text('Privacy Policy'),
-      leading: IconWidget(
-        icon: Icons.privacy_tip_outlined,
-      ),
+      leading: IconWidget(icon: Icons.privacy_tip_outlined),
       trailing: Icon(
         Icons.arrow_forward_ios,
         color: Theme.of(context).iconTheme.color?.withAlpha(100),
@@ -135,7 +173,10 @@ class SettingsPageState extends State<SettingsPage> {
   Widget _buildSound() {
     return SwitchListTile(
       title: const Text('Sound'),
-      secondary: IconWidget(icon: Icons.volume_up),
+      secondary:
+          tempSound
+              ? IconWidget(icon: Icons.volume_up)
+              : IconWidget(icon: Icons.volume_off),
       value: tempSound,
       activeTrackColor: Colors.lightBlue,
       onChanged: (bool value) {
@@ -163,7 +204,10 @@ class SettingsPageState extends State<SettingsPage> {
   Widget _buildNotificationReminder() {
     return SwitchListTile(
       title: const Text('Reminder'),
-      secondary: IconWidget(icon: Icons.notifications_on),
+      secondary:
+          tempNotificationReminder
+              ? IconWidget(icon: Icons.notifications_on)
+              : IconWidget(icon: Icons.notifications_off),
       value: tempNotificationReminder,
       activeTrackColor: Colors.lightBlue,
       onChanged: (bool value) {

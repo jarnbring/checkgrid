@@ -1,9 +1,9 @@
-# gamename
+# CheckGrid
 
 To do:
 
-    Settings, clear cache, sound, vibrations, always portraitmode, notifications
-    Difficulties
+    Settings, sound, notifications ------ Testa ifall vibrations funkar! ------
+    Difficulties, visa vilken som är aktiv just nu!
     Highscore desgin change?
     Responsive UI
     Revive ads
