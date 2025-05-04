@@ -16,7 +16,7 @@ class GameAnimations {
 
     // Initialize gloss animation
     _glossAnimationController = AnimationController(
-      duration: const Duration(seconds: 10),
+      duration: const Duration(seconds: 6),
       vsync: vsync,
     );
     _glossAnimation = Tween<double>(begin: 0.3, end: 0.7).animate(

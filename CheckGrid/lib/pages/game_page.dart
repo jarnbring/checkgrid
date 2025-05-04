@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:gamename/animations/game_animations.dart';
 import 'package:gamename/banner_ad.dart';
 import 'package:gamename/components/countdown_loading.dart';
 import 'package:gamename/components/icon_widget.dart';
@@ -8,6 +10,7 @@ import 'package:gamename/game/block.dart';
 import 'package:gamename/game/difficulty.dart';
 import 'package:gamename/game/piecetype.dart';
 import 'package:gamename/providers/general_provider.dart';
+import 'package:gamename/providers/settings_provider.dart';
 import 'package:gamename/settings/settings_page.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -23,11 +26,8 @@ class GamePage extends StatefulWidget {
 class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
   List<List<Block?>> board = List.generate(8, (_) => List.filled(8, null));
   List<PieceType> selectedPieces = [];
-  late AnimationController _animationController;
-  late Animation<double> _fadeAnimation;
-  late AnimationController _glossAnimationController;
-  late Animation<double> _glossAnimation;
-  bool useGlossEffect = true; // Ny variabel för att spåra glanseffekt
+  late GameAnimations _animations;
+  bool useGlossEffect = false;
 
   final imageWidth = 50.0, imageHeight = 50.0;
   final boardWidth = 8, boardHeight = 8, comboRequirement = 6;
@@ -38,40 +38,23 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
   BigInt currentScore = BigInt.zero, comboCount = BigInt.zero;
   BigInt latestHighScore = BigInt.zero, displayedHighscore = BigInt.zero;
 
-  final double spawnRate = 0.8;
   Difficulty _difficulty = Difficulty.normal;
 
   @override
   void initState() {
     super.initState();
 
-    _animationController = AnimationController(
-      duration: const Duration(seconds: 1),
-      vsync: this,
-    );
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(_animationController);
-    _glossAnimationController = AnimationController(
-      duration: const Duration(seconds: 10),
-      vsync: this,
-    );
-    _glossAnimation = Tween<double>(begin: 0.3, end: 0.7).animate(
-      CurvedAnimation(
-        parent: _glossAnimationController,
-        curve: Curves.easeInOut,
-      ),
-    );
-    _glossAnimationController.repeat(reverse: true);
+    _animations = GameAnimations(this);
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await _loadGameState();
-      await _loadGlossSetting();
       if (selectedPieces.isEmpty &&
           board.every((row) => row.every((block) => block == null))) {
         initKillingCells(_difficulty);
         setPieces();
       } else if (selectedPieces.isNotEmpty ||
           selectedPiecesPositions.isNotEmpty) {
-        _animationController.forward(from: 0.0);
+        _animations.animationController.forward(from: 0.0);
       }
       update();
       setState(() {});
@@ -81,165 +64,113 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
   @override
   void dispose() {
     _saveGameState();
-    _saveGlossSetting(); // Spara glansinställningen
-    _animationController.dispose();
-    _glossAnimationController.dispose();
+    _animations.dispose();
     super.dispose();
   }
 
-  Future<void> _loadGlossSetting() async {
-    final prefs = await SharedPreferences.getInstance();
+  void update() {
+    if (loseCondition()) return;
     setState(() {
-      useGlossEffect = prefs.getBool('useGlossEffect') ?? true;
-      if (!useGlossEffect) {
-        _glossAnimationController.stop(); // Stoppa animation om glans är av
+      for (var row = 0; row < boardHeight; row++) {
+        for (var col = 0; col < boardWidth; col++) {
+          final cell = board[row][col];
+          if (row >= 6) {
+            if (cell == null) {
+              board[row][col] = Block(
+                position: Point<int>(row, col),
+                isActive: false,
+                hasPiece: false,
+                fallbackColor: Colors.blueGrey,
+              );
+            }
+          } else if (cell != null) {
+            if (cell.hasPiece || cell.piece != null) {
+              cell.gradient =
+                  useGlossEffect
+                      ? const LinearGradient(
+                        colors: [
+                          Colors.blue,
+                          Color.fromARGB(255, 100, 180, 255),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      )
+                      : null;
+              cell.fallbackColor = Colors.blue;
+            } else if (cell.isActive) {
+              if (row < 2) {
+                cell.gradient =
+                    useGlossEffect
+                        ? const LinearGradient(
+                          colors: [
+                            Colors.green,
+                            Color.fromARGB(255, 150, 255, 150),
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        )
+                        : null;
+                cell.fallbackColor = Colors.green;
+              } else if (row < 4) {
+                cell.gradient =
+                    useGlossEffect
+                        ? const LinearGradient(
+                          colors: [
+                            Colors.orange,
+                            Color.fromARGB(255, 255, 200, 100),
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        )
+                        : null;
+                cell.fallbackColor = Colors.orange;
+              } else {
+                cell.gradient =
+                    useGlossEffect
+                        ? const LinearGradient(
+                          colors: [
+                            Colors.red,
+                            Color.fromARGB(255, 255, 100, 100),
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        )
+                        : null;
+                cell.fallbackColor = Colors.red;
+              }
+            }
+          }
+        }
       }
     });
   }
 
-  Future<void> _saveGlossSetting() async {
+  void _restartGame() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('useGlossEffect', useGlossEffect);
-  }
+    await prefs.remove('game_board');
+    await prefs.remove('selected_pieces');
+    await prefs.remove('current_score');
+    await prefs.remove('combo_count');
+    await prefs.remove('selected_pieces_positions');
+    await prefs.remove('targeted_cells');
 
-  Future<BigInt> _loadHighscore() async {
-    final prefs = await SharedPreferences.getInstance();
-    final s = prefs.getString('highscore');
-    return s != null ? BigInt.parse(s) : BigInt.zero;
-  }
-
-  Future<void> _saveHighscore(BigInt score) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('highscore', score.toString());
-  }
-
-  Future<void> _saveGameState() async {
-    final prefs = await SharedPreferences.getInstance();
-
-    final boardJson = board
-        .asMap()
-        .map(
-          (row, cols) => MapEntry(
-            row.toString(),
-            cols.asMap().map(
-              (col, block) => MapEntry(col.toString(), block?.toJson()),
-            ),
-          ),
-        )
-        .values
-        .toList();
-    await prefs.setString('game_board', jsonEncode(boardJson));
-
-    final piecesToSave = selectedPieces.map((p) => p.name).toList();
-    await prefs.setStringList('selected_pieces', piecesToSave);
-
-    await prefs.setString('current_score', currentScore.toString());
-    await prefs.setString('combo_count', comboCount.toString());
-
-    final positionsJson =
-        selectedPiecesPositions.map((p) => {'x': p.x, 'y': p.y}).toList();
-    await prefs.setString(
-      'selected_pieces_positions',
-      jsonEncode(positionsJson),
-    );
-
-    final targetedJson = targetedCells.map((b) => b.toJson()).toList();
-    await prefs.setString('targeted_cells', jsonEncode(targetedJson));
-  }
-
-  Future<void> _loadGameState() async {
-    final prefs = await SharedPreferences.getInstance();
-
-    final boardJson = prefs.getString('game_board');
-    if (boardJson != null) {
-      try {
-        final List<dynamic> boardData = jsonDecode(boardJson);
-        board = List.generate(
-          8,
-          (row) => List.generate(8, (col) {
-            final blockJson = boardData[row][col.toString()];
-            return blockJson != null ? Block.fromJson(blockJson) : null;
-          }),
-        );
-      } catch (e) {
-        print('Error loading board: $e');
-        board = List.generate(8, (_) => List.filled(8, null));
-      }
-    }
-
-    final pieces = prefs.getStringList('selected_pieces');
-    if (pieces != null && pieces.isNotEmpty) {
-      try {
-        selectedPieces = pieces
-            .map(
-              (name) => PieceType.values.firstWhere(
-                (e) => e.name == name,
-                orElse: () => throw Exception('Invalid PieceType: $name'),
-              ),
-            )
-            .toList();
-      } catch (e) {
-        print('Error loading selected pieces: $e');
-        selectedPieces = [];
-      }
-    } else {
-      selectedPieces = [];
-    }
-
-    final score = prefs.getString('current_score');
-    currentScore = score != null ? BigInt.parse(score) : BigInt.zero;
-
-    final combo = prefs.getString('combo_count');
-    comboCount = combo != null ? BigInt.parse(combo) : BigInt.zero;
-
-    final positionsJson = prefs.getString('selected_pieces_positions');
-    if (positionsJson != null) {
-      try {
-        final List<dynamic> positionsData = jsonDecode(positionsJson);
-        selectedPiecesPositions =
-            positionsData.map((p) => Point<int>(p['x'] as int, p['y'] as int)).toList();
-        print('Restored selectedPiecesPositions: $selectedPiecesPositions');
-      } catch (e) {
-        print('Error loading selected pieces positions: $e');
-        selectedPiecesPositions = [];
-      }
-    }
-
-    final targetedJson = prefs.getString('targeted_cells');
-    if (targetedJson != null) {
-      try {
-        final List<dynamic> targetedData = jsonDecode(targetedJson);
-        targetedCells = targetedData.map((json) => Block.fromJson(json)).toList();
-      } catch (e) {
-        print('Error loading targeted cells: $e');
-        targetedCells = [];
-      }
-    }
-
-    final hs = await _loadHighscore();
-    latestHighScore = hs;
-    displayedHighscore = hs;
-  }
-
-  Future<void> animateBigInt(
-    BigInt start,
-    BigInt end,
-    void Function(BigInt) onUpdate,
-  ) async {
-    const durationMs = 500;
-    const steps = 20;
-    final diff = end - start;
-    for (var i = 1; i <= steps; i++) {
-      await Future.delayed(Duration(milliseconds: durationMs ~/ steps));
-      onUpdate(start + (diff * BigInt.from(i) ~/ BigInt.from(steps)));
-    }
+    setState(() {
+      board = List.generate(8, (_) => List.filled(8, null));
+      selectedPiecesPositions.clear();
+      setPieces();
+      initKillingCells(_difficulty);
+      currentScore = BigInt.zero;
+      comboCount = BigInt.zero;
+      displayedHighscore = latestHighScore;
+      isReviveShowing = false;
+    });
   }
 
   void setPieces() {
     final all = List.of(PieceType.values)..shuffle();
     selectedPieces = all.take(3).toList();
     setState(() {
-      _animationController.forward(from: 0.0);
+      _animations.animationController.forward(from: 0.0);
     });
   }
 
@@ -255,16 +186,17 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
           board[row][col] = Block(
             position: Point<int>(row, col),
             isActive: true,
-            gradient: useGlossEffect
-                ? const LinearGradient(
-                    colors: [
-                      Colors.green,
-                      Color.fromARGB(255, 150, 255, 150),
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  )
-                : null,
+            gradient:
+                useGlossEffect
+                    ? const LinearGradient(
+                      colors: [
+                        Colors.green,
+                        Color.fromARGB(255, 150, 255, 150),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    )
+                    : null,
             fallbackColor: Colors.green,
           );
         }
@@ -275,7 +207,8 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
 
   void addScore() async {
     final count = targetedCells.length;
-    comboCount = count >= comboRequirement ? comboCount + BigInt.one : BigInt.zero;
+    comboCount =
+        count >= comboRequirement ? comboCount + BigInt.one : BigInt.zero;
     final base = BigInt.from(10) * BigInt.from(count);
     final totalScore = base * (comboCount + BigInt.one);
 
@@ -290,18 +223,19 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
       latestHighScore = newHigh;
     }
 
-    final scoreAnim = animateBigInt(
+    final scoreAnim = _animations.animateBigInt(
       oldScore,
       newScore,
       (v) => setState(() => currentScore = v),
     );
-    final highAnim = (newScore > oldHigh)
-        ? animateBigInt(
-            oldHigh,
-            newHigh,
-            (v) => setState(() => displayedHighscore = v),
-          )
-        : Future.value();
+    final highAnim =
+        (newScore > oldHigh)
+            ? _animations.animateBigInt(
+              oldHigh,
+              newHigh,
+              (v) => setState(() => displayedHighscore = v),
+            )
+            : Future.value();
 
     await Future.wait([scoreAnim, highAnim]);
   }
@@ -343,107 +277,13 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
           for (var i = 0; i < steps; i++) {
             nr += off.dy.toInt();
             nc += off.dx.toInt();
-            if (nr < 0 || nr >= boardHeight || nc < 0 || nc >= boardWidth) break;
+            if (nr < 0 || nr >= boardHeight || nc < 0 || nc >= boardWidth)
+              break;
             final b = board[nr][nc];
             if (b != null && b.isActive) {
               b.isTargeted = true;
               targetedCells.add(b);
               break;
-            }
-          }
-        }
-      }
-    });
-  }
-
-  void update() {
-    if (loseCondition()) return;
-    setState(() {
-      for (var r = 0; r < boardHeight; r++) {
-        for (var c = 0; c < boardWidth; c++) {
-          final b = board[r][c];
-          if (r >= 6) {
-            if (b == null) {
-              board[r][c] = Block(
-                position: Point<int>(r, c),
-                isActive: false,
-                hasPiece: false,
-                gradient: useGlossEffect
-                    ? const LinearGradient(
-                        colors: [
-                          Colors.blueGrey,
-                          Color.fromARGB(255, 120, 140, 160),
-                        ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      )
-                    : null,
-                fallbackColor: Colors.blueGrey,
-              );
-            } else {
-              b.gradient = useGlossEffect
-                  ? const LinearGradient(
-                      colors: [
-                        Colors.blueGrey,
-                        Color.fromARGB(255, 120, 140, 160),
-                      ],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    )
-                  : null;
-              b.fallbackColor = Colors.blueGrey;
-            }
-          } else if (b != null) {
-            if (b.hasPiece || b.piece != null) {
-              b.gradient = useGlossEffect
-                  ? const LinearGradient(
-                      colors: [
-                        Colors.blue,
-                        Color.fromARGB(255, 100, 180, 255),
-                      ],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    )
-                  : null;
-              b.fallbackColor = Colors.blue;
-            } else if (b.isActive) {
-              if (r < 2) {
-                b.gradient = useGlossEffect
-                    ? const LinearGradient(
-                        colors: [
-                          Colors.green,
-                          Color.fromARGB(255, 150, 255, 150),
-                        ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      )
-                    : null;
-                b.fallbackColor = Colors.green;
-              } else if (r < 4) {
-                b.gradient = useGlossEffect
-                    ? const LinearGradient(
-                        colors: [
-                          Colors.orange,
-                          Color.fromARGB(255, 255, 200, 100),
-                        ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      )
-                    : null;
-                b.fallbackColor = Colors.orange;
-              } else {
-                b.gradient = useGlossEffect
-                    ? const LinearGradient(
-                        colors: [
-                          Colors.red,
-                          Color.fromARGB(255, 255, 100, 100),
-                        ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      )
-                    : null;
-                b.fallbackColor = Colors.red;
-              }
             }
           }
         }
@@ -464,61 +304,6 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
     return false;
   }
 
-  void _restartGame() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('game_board');
-    await prefs.remove('selected_pieces');
-    await prefs.remove('current_score');
-    await prefs.remove('combo_count');
-    await prefs.remove('selected_pieces_positions');
-    await prefs.remove('targeted_cells');
-
-    setState(() {
-      board = List.generate(8, (_) => List.filled(8, null));
-      selectedPiecesPositions.clear();
-      setPieces();
-      initKillingCells(_difficulty);
-      currentScore = BigInt.zero;
-      comboCount = BigInt.zero;
-      displayedHighscore = latestHighScore;
-      isReviveShowing = false;
-    });
-  }
-
-  void _showLoseDialogSafe() {
-    if (!isReviveShowing && mounted) {
-      showDialog(
-        context: context,
-        builder: (_) => AlertDialog(
-          backgroundColor: Colors.transparent,
-          content: CountdownLoading(
-            onRestart: _restartGame,
-            isReviveShowing: isReviveShowing,
-          ),
-        ),
-      );
-    }
-  }
-
-  Widget _buildScore() => Text(
-        NumberFormat("#,###").format(currentScore.toInt()),
-        style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
-      );
-
-  Widget _buildCombo() {
-    return Text("Combo: $comboCount", style: const TextStyle(fontSize: 20));
-  }
-
-  Widget _buildHighscore() => Text(
-        "Highscore: ${NumberFormat('#,###').format(displayedHighscore.toInt())}",
-        style: const TextStyle(fontSize: 20),
-      );
-
-  Widget _buildScoreAndCombo() => Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [_buildHighscore(), const SizedBox(width: 120), _buildCombo()],
-      );
-
   Widget _buildSelectedPieces(bool isLandscape, double pad) {
     const iconSize = 75.0;
     return Container(
@@ -527,114 +312,133 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: useGlossEffect ? null : const Color.fromARGB(255, 57, 159, 255),
-        gradient: useGlossEffect
-            ? const LinearGradient(
-                colors: [
-                  Color.fromARGB(255, 57, 159, 255),
-                  Color.fromARGB(255, 100, 180, 255),
-                ],
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-              )
-            : null,
+        gradient:
+            useGlossEffect
+                ? const LinearGradient(
+                  colors: [
+                    Color.fromARGB(255, 57, 159, 255),
+                    Color.fromARGB(255, 100, 180, 255),
+                  ],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                )
+                : null,
         borderRadius: BorderRadius.circular(30),
-        boxShadow: useGlossEffect
-            ? [
-                BoxShadow(
-                  color: Colors.white.withOpacity(0.3),
-                  blurRadius: 10,
-                  offset: const Offset(0, -2),
-                ),
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.2),
-                  blurRadius: 5,
-                  offset: const Offset(0, 2),
-                ),
-              ]
-            : null,
+        boxShadow:
+            useGlossEffect
+                ? [
+                  BoxShadow(
+                    color: Colors.white.withOpacity(0.3),
+                    blurRadius: 10,
+                    offset: const Offset(0, -2),
+                  ),
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.2),
+                    blurRadius: 5,
+                    offset: const Offset(0, 2),
+                  ),
+                ]
+                : null,
       ),
       child: AnimatedBuilder(
-        animation: _fadeAnimation,
-        builder: (_, __) => Opacity(
-          opacity: _fadeAnimation.value,
-          child: selectedPieces.isEmpty && selectedPiecesPositions.isNotEmpty
-              ? GestureDetector(
-                  onTap: setPiecesAndRemoveBlocks,
-                  child: Container(
-                    width: 250,
-                    height: 50,
-                    decoration: BoxDecoration(
-                      color: useGlossEffect ? null : const Color.fromARGB(255, 57, 159, 255),
-                      gradient: useGlossEffect
-                          ? const LinearGradient(
-                              colors: [
-                                Color.fromARGB(255, 57, 159, 255),
-                                Color.fromARGB(255, 100, 180, 255),
-                              ],
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                            )
-                          : null,
-                      borderRadius: BorderRadius.circular(30),
-                    ),
-                    alignment: Alignment.center,
-                    child: const Text(
-                      "Continue",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                )
-              : Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: selectedPieces.map((p) {
-                    return Flexible(
-                      child: Draggable<PieceType>(
-                        data: p,
-                        feedback: Image.asset(
-                          'assets/images/white_${p.name}.png',
-                          width: imageWidth + 1,
-                          height: imageHeight + 10,
-                        ),
-                        feedbackOffset: Offset(
-                          -imageWidth / 3,
-                          -imageHeight / 3,
-                        ),
-                        childWhenDragging: Opacity(
-                          opacity: 0.2,
-                          child: Image.asset(
-                            'assets/images/white_${p.name}.png',
-                            width: iconSize,
-                            height: iconSize,
+        animation: _animations.fadeAnimation,
+        builder:
+            (_, __) => Opacity(
+              opacity: _animations.fadeAnimation.value,
+              child:
+                  selectedPieces.isEmpty && selectedPiecesPositions.isNotEmpty
+                      ? GestureDetector(
+                        onTap: setPiecesAndRemoveBlocks,
+                        child: Container(
+                          width: 250,
+                          height: 50,
+                          decoration: BoxDecoration(
+                            color:
+                                useGlossEffect
+                                    ? null
+                                    : const Color.fromARGB(255, 57, 159, 255),
+                            gradient:
+                                useGlossEffect
+                                    ? const LinearGradient(
+                                      colors: [
+                                        Color.fromARGB(255, 57, 159, 255),
+                                        Color.fromARGB(255, 100, 180, 255),
+                                      ],
+                                      begin: Alignment.topCenter,
+                                      end: Alignment.bottomCenter,
+                                    )
+                                    : null,
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                          alignment: Alignment.center,
+                          child: const Text(
+                            "Continue",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
-                        onDragEnd: (d) => d.wasAccepted
-                            ? setState(() {
-                                selectedPieces.remove(p);
-                              })
-                            : null,
-                        child: Image.asset(
-                          'assets/images/white_${p.name}.png',
-                          width: iconSize,
-                          height: iconSize,
-                        ),
+                      )
+                      : Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children:
+                            selectedPieces.map((p) {
+                              return Flexible(
+                                child: Draggable<PieceType>(
+                                  data: p,
+                                  feedback: Image.asset(
+                                    'assets/images/white_${p.name}.png',
+                                    width: imageWidth + 10,
+                                    height:
+                                        imageHeight +
+                                        10, // fixade +1 till +10 för symmetri
+                                  ),
+                                  feedbackOffset: Offset(
+                                    -imageWidth /
+                                        6, // mer förskjutning åt vänster
+                                    -imageHeight / 6, // mer förskjutning uppåt
+                                  ),
+                                  childWhenDragging: Opacity(
+                                    opacity: 0.2,
+                                    child: Image.asset(
+                                      'assets/images/white_${p.name}.png',
+                                      width: iconSize,
+                                      height: iconSize,
+                                    ),
+                                  ),
+                                  onDragEnd:
+                                      (d) =>
+                                          d.wasAccepted
+                                              ? setState(() {
+                                                selectedPieces.remove(p);
+                                              })
+                                              : null,
+                                  child: Image.asset(
+                                    'assets/images/white_${p.name}.png',
+                                    width: iconSize,
+                                    height: iconSize,
+                                  ),
+                                ),
+                              );
+                            }).toList(),
                       ),
-                    );
-                  }).toList(),
-                ),
-              )
-        )
-      );
+            ),
+      ),
+    );
   }
 
   Widget _buildPlayArea(bool isTablet, bool isLandscape, double pad) {
+    final settingsProvider = Provider.of<SettingsProvider>(
+      context,
+    ); // Hämta SettingsProvider
+
     return Padding(
-      padding: isLandscape
-          ? EdgeInsets.symmetric(horizontal: pad)
-          : isTablet
+      padding:
+          isLandscape
+              ? EdgeInsets.symmetric(horizontal: pad)
+              : isTablet
               ? const EdgeInsets.symmetric(horizontal: 100, vertical: 20)
               : const EdgeInsets.symmetric(horizontal: 40, vertical: 20),
       child: GridView.builder(
@@ -649,7 +453,8 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
         itemBuilder: (_, idx) {
           final r = idx ~/ 8, c = idx % 8, b = board[r][c];
           return DragTarget<PieceType>(
-            onWillAcceptWithDetails: (d) => b == null || (!b.hasPiece && !b.isActive),
+            onWillAcceptWithDetails:
+                (d) => b == null || (!b.hasPiece && !b.isActive),
             onAcceptWithDetails: (d) {
               if (b == null || (!b.hasPiece && !b.isActive)) {
                 setState(() {
@@ -658,168 +463,115 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
                     piece: d.data,
                     isActive: false,
                     hasPiece: true,
-                    gradient: useGlossEffect
-                        ? const LinearGradient(
-                            colors: [
-                              Colors.blue,
-                              Color.fromARGB(255, 100, 180, 255),
-                            ],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          )
-                        : null,
+                    gradient:
+                        useGlossEffect
+                            ? const LinearGradient(
+                              colors: [
+                                Colors.blue,
+                                Color.fromARGB(255, 100, 180, 255),
+                              ],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            )
+                            : null,
                     fallbackColor: Colors.blue,
                   );
                   showTargetedCells(d, r, c);
                   selectedPiecesPositions.add(Point<int>(r, c));
                   selectedPieces.remove(d.data);
+
+                  if (settingsProvider.isVibrationOn) {
+                    HapticFeedback.heavyImpact();
+                    print("NU KÖRS EN VIBRATION!");
+                  }
                 });
               }
             },
-            builder: (_, __, ___) => AnimatedBuilder(
-              animation: useGlossEffect ? _glossAnimation : Listenable.merge([]), // Undvik animation om glans är av
-              builder: (context, child) => CustomPaint(
-                painter: GlossyBlockPainter(
-                  gradient: b == null
-                      ? useGlossEffect
-                          ? LinearGradient(
-                              colors: [
-                                r >= 6 ? Colors.blueGrey.shade700 : Colors.grey.shade700,
-                                r >= 6 ? Colors.blueGrey.shade300 : Colors.grey.shade300,
-                              ],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            )
-                          : null
-                      : b.gradient,
-                  glossPosition: useGlossEffect ? _glossAnimation.value : 0.0,
-                  fallbackColor: b == null
-                      ? (r >= 6 ? Colors.blueGrey : Colors.grey)
-                      : b.fallbackColor,
+            builder:
+                (_, __, ___) => AnimatedBuilder(
+                  animation:
+                      useGlossEffect
+                          ? _animations.glossAnimation
+                          : Listenable.merge([]),
+                  builder:
+                      (context, child) => CustomPaint(
+                        painter: GlossyBlockPainter(
+                          gradient: b?.gradient,
+                          glossPosition:
+                              useGlossEffect
+                                  ? _animations.glossAnimation.value
+                                  : 0.0,
+                          fallbackColor:
+                              b == null
+                                  ? (r >= 6 ? Colors.blueGrey : Colors.grey)
+                                  : b.fallbackColor,
+                        ),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(5),
+                          ),
+                          child:
+                              b == null
+                                  ? null
+                                  : b.piece != null
+                                  ? Image.asset(
+                                    'assets/images/white_${b.piece!.name}.png',
+                                    fit: BoxFit.contain,
+                                  )
+                                  : b.isTargeted
+                                  ? Image.asset(
+                                    'assets/images/cross.png',
+                                    fit: BoxFit.contain,
+                                  )
+                                  : null,
+                        ),
+                      ),
                 ),
-                child: Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(5),
-                  ),
-                  child: b == null
-                      ? null
-                      : b.piece != null
-                          ? Image.asset(
-                              'assets/images/white_${b.piece!.name}.png',
-                              fit: BoxFit.contain,
-                            )
-                          : b.isTargeted
-                              ? Image.asset(
-                                  'assets/images/cross.png',
-                                  fit: BoxFit.contain,
-                                )
-                              : null,
-                ),
-              ),
-            ),
           );
         },
       ),
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final gen = context.watch<GeneralProvider>();
-    final w = gen.getScreenWidth(context);
-    final pad = w * 0.3125;
-    final isTablet = gen.isTablet(context),
-        isLandscape = gen.getLandscapeMode(context);
-
-    final generalProvider = context.watch<GeneralProvider>();
-    double bannerAdHeight = generalProvider.getBannerAdHeight();
-    double screenHeight = generalProvider.getScreenHeight(context) - bannerAdHeight;
-    double scaleFactorHeight = 13.3;
-
-    if (loseCondition() && !isReviveShowing) {
-      Future.delayed(const Duration(milliseconds: 100), _showLoseDialogSafe);
-    }
-
-    return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () async {
-            await _saveGameState();
-            await _saveGlossSetting();
-            Navigator.of(context).pop();
-          },
-        ),
-        centerTitle: true,
-        title: const Text("CheckGrid", style: TextStyle(fontSize: 34)),
-        actions: [
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.settings),
-            onSelected: (String value) {
-              switch (value) {
-                case 'new_game':
-                  _restartGame();
-                  break;
-                case 'settings':
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => SettingsPage()),
-                  );
-                  break;
-                case 'difficulty':
-                  _showDifficultyDialog(context);
-                  break;
-                case 'toggle_gloss':
-                  setState(() {
-                    useGlossEffect = !useGlossEffect;
-                    if (useGlossEffect) {
-                      _glossAnimationController.repeat(reverse: true);
-                    } else {
-                      _glossAnimationController.stop();
-                    }
-                    update(); // Uppdatera blockens utseende
-                  });
-                  _saveGlossSetting();
-                  break;
-              }
-            },
-            itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-              const PopupMenuItem<String>(
-                value: 'new_game',
-                child: Text('Restart game'),
-              ),
-              const PopupMenuItem<String>(
-                value: 'settings',
-                child: Text('Settings'),
-              ),
-              const PopupMenuItem<String>(
-                value: 'difficulty',
-                child: Text('Difficulty'),
-              ),
-              PopupMenuItem<String>(
-                value: 'toggle_gloss',
-                child: Text(useGlossEffect ? 'Disable Gloss Effect' : 'Enable Gloss Effect'),
-              ),
-            ],
-          ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            SizedBox(height: screenHeight / scaleFactorHeight * 0.2),
-            _buildScore(),
-            SizedBox(height: screenHeight / scaleFactorHeight * 0.2),
-            _buildPlayArea(isTablet, isLandscape, pad),
-            _buildScoreAndCombo(),
-            SizedBox(height: screenHeight / scaleFactorHeight * 0.5),
-            _buildSelectedPieces(isLandscape, pad),
-          ],
-        ),
-      ),
-      bottomNavigationBar: const BannerAdWidget(),
+  Widget _buildScore() {
+    return Text(
+      NumberFormat("#,###").format(currentScore.toInt()),
+      style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
     );
+  }
+
+  Widget _buildCombo() {
+    return Text("Combo: $comboCount", style: const TextStyle(fontSize: 20));
+  }
+
+  Widget _buildHighscore() {
+    return Text(
+      "Highscore: ${NumberFormat('#,###').format(displayedHighscore.toInt())}",
+      style: const TextStyle(fontSize: 20),
+    );
+  }
+
+  Widget _buildScoreAndCombo() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [_buildHighscore(), const SizedBox(width: 120), _buildCombo()],
+    );
+  }
+
+  void _showLoseDialogSafe() {
+    if (!isReviveShowing && mounted) {
+      showDialog(
+        context: context,
+        builder:
+            (_) => AlertDialog(
+              backgroundColor: Colors.transparent,
+              content: CountdownLoading(
+                onRestart: _restartGame,
+                isReviveShowing: isReviveShowing,
+              ),
+            ),
+      );
+    }
   }
 
   void _showDifficultyDialog(BuildContext context) {
@@ -848,7 +600,8 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
                           ),
                         ),
                         TextSpan(
-                          text: "This will restart your current progress and start a new game!",
+                          text:
+                              "This will restart your current progress and start a new game!",
                           style: TextStyle(fontWeight: FontWeight.normal),
                         ),
                       ],
@@ -896,49 +649,215 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
       _restartGame();
     });
   }
-}
 
-class GlossyBlockPainter extends CustomPainter {
-  final Gradient? gradient;
-  final double glossPosition;
-  final Color? fallbackColor;
+  Future<BigInt> _loadHighscore() async {
+    final prefs = await SharedPreferences.getInstance();
+    final s = prefs.getString('highscore');
+    return s != null ? BigInt.parse(s) : BigInt.zero;
+  }
 
-  GlossyBlockPainter({
-    this.gradient,
-    required this.glossPosition,
-    this.fallbackColor,
-  });
+  Future<void> _saveHighscore(BigInt score) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('highscore', score.toString());
+  }
 
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint();
-    if (gradient != null) {
-      paint.shader = gradient!.createShader(Rect.fromLTWH(0, 0, size.width, size.height));
-    } else if (fallbackColor != null) {
-      paint.color = fallbackColor!;
-    } else {
-      paint.color = Colors.grey; // Standardfärg om inget anges
-    }
+  Future<void> _saveGameState() async {
+    final prefs = await SharedPreferences.getInstance();
 
-    final rect = RRect.fromRectAndRadius(
-      Rect.fromLTWH(0, 0, size.width, size.height),
-      const Radius.circular(5),
+    final boardJson =
+        board
+            .asMap()
+            .map(
+              (row, cols) => MapEntry(
+                row.toString(),
+                cols.asMap().map(
+                  (col, block) => MapEntry(col.toString(), block?.toJson()),
+                ),
+              ),
+            )
+            .values
+            .toList();
+    await prefs.setString('game_board', jsonEncode(boardJson));
+
+    final piecesToSave = selectedPieces.map((p) => p.name).toList();
+    await prefs.setStringList('selected_pieces', piecesToSave);
+
+    await prefs.setString('current_score', currentScore.toString());
+    await prefs.setString('combo_count', comboCount.toString());
+
+    final positionsJson =
+        selectedPiecesPositions.map((p) => {'x': p.x, 'y': p.y}).toList();
+    await prefs.setString(
+      'selected_pieces_positions',
+      jsonEncode(positionsJson),
     );
 
-    canvas.drawRRect(rect, paint);
+    final targetedJson = targetedCells.map((b) => b.toJson()).toList();
+    await prefs.setString('targeted_cells', jsonEncode(targetedJson));
+  }
 
-    if (gradient != null) {
-      final glossPaint = Paint()
-        ..color = Colors.white.withOpacity(0.4)
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5);
-      canvas.drawCircle(
-        Offset(size.width * glossPosition, size.height * glossPosition),
-        size.width * 0.2,
-        glossPaint,
-      );
+  Future<void> _loadGameState() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    final boardJson = prefs.getString('game_board');
+    if (boardJson != null) {
+      try {
+        final List<dynamic> boardData = jsonDecode(boardJson);
+        board = List.generate(
+          8,
+          (row) => List.generate(8, (col) {
+            final blockJson = boardData[row][col.toString()];
+            return blockJson != null ? Block.fromJson(blockJson) : null;
+          }),
+        );
+      } catch (e) {
+        print('Error loading board: $e');
+        board = List.generate(8, (_) => List.filled(8, null));
+      }
     }
+
+    final pieces = prefs.getStringList('selected_pieces');
+    if (pieces != null && pieces.isNotEmpty) {
+      try {
+        selectedPieces =
+            pieces
+                .map(
+                  (name) => PieceType.values.firstWhere(
+                    (e) => e.name == name,
+                    orElse: () => throw Exception('Invalid PieceType: $name'),
+                  ),
+                )
+                .toList();
+      } catch (e) {
+        print('Error loading selected pieces: $e');
+        selectedPieces = [];
+      }
+    } else {
+      selectedPieces = [];
+    }
+
+    final score = prefs.getString('current_score');
+    currentScore = score != null ? BigInt.parse(score) : BigInt.zero;
+
+    final combo = prefs.getString('combo_count');
+    comboCount = combo != null ? BigInt.parse(combo) : BigInt.zero;
+
+    final positionsJson = prefs.getString('selected_pieces_positions');
+    if (positionsJson != null) {
+      try {
+        final List<dynamic> positionsData = jsonDecode(positionsJson);
+        selectedPiecesPositions =
+            positionsData
+                .map((p) => Point<int>(p['x'] as int, p['y'] as int))
+                .toList();
+        print('Restored selectedPiecesPositions: $selectedPiecesPositions');
+      } catch (e) {
+        print('Error loading selected pieces positions: $e');
+        selectedPiecesPositions = [];
+      }
+    }
+
+    final targetedJson = prefs.getString('targeted_cells');
+    if (targetedJson != null) {
+      try {
+        final List<dynamic> targetedData = jsonDecode(targetedJson);
+        targetedCells =
+            targetedData.map((json) => Block.fromJson(json)).toList();
+      } catch (e) {
+        print('Error loading targeted cells: $e');
+        targetedCells = [];
+      }
+    }
+
+    final hs = await _loadHighscore();
+    latestHighScore = hs;
+    displayedHighscore = hs;
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+  Widget build(BuildContext context) {
+    useGlossEffect = context.watch<SettingsProvider>().useGlossEffect;
+
+    final gen = context.watch<GeneralProvider>();
+    final w = gen.getScreenWidth(context);
+    final pad = w * 0.3125;
+    final isTablet = gen.isTablet(context),
+        isLandscape = gen.getLandscapeMode(context);
+
+    final generalProvider = context.watch<GeneralProvider>();
+    double bannerAdHeight = generalProvider.getBannerAdHeight();
+    double screenHeight =
+        generalProvider.getScreenHeight(context) - bannerAdHeight;
+    double scaleFactorHeight = 13.3;
+
+    if (loseCondition() && !isReviveShowing) {
+      Future.delayed(const Duration(milliseconds: 100), _showLoseDialogSafe);
+    }
+
+    return Scaffold(
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () async {
+            await _saveGameState();
+            Navigator.of(context).pop();
+          },
+        ),
+        centerTitle: true,
+        title: const Text("CheckGrid", style: TextStyle(fontSize: 34)),
+        actions: [
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.settings),
+            onSelected: (String value) async {
+              switch (value) {
+                case 'new_game':
+                  _restartGame();
+                  break;
+                case 'settings':
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => SettingsPage()),
+                  );
+                  update();
+                  break;
+                case 'difficulty':
+                  _showDifficultyDialog(context);
+                  break;
+              }
+            },
+            itemBuilder:
+                (BuildContext context) => <PopupMenuEntry<String>>[
+                  const PopupMenuItem<String>(
+                    value: 'settings',
+                    child: Text('Settings'),
+                  ),
+                  const PopupMenuItem<String>(
+                    value: 'difficulty',
+                    child: Text('Difficulty'),
+                  ),
+                  const PopupMenuItem<String>(
+                    value: 'new_game',
+                    child: Text('Restart game'),
+                  ),
+                ],
+          ),
+        ],
+      ),
+      body: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(height: screenHeight / scaleFactorHeight * 0.2),
+            _buildScore(),
+            SizedBox(height: screenHeight / scaleFactorHeight * 0.2),
+            _buildPlayArea(isTablet, isLandscape, pad),
+            _buildScoreAndCombo(),
+            SizedBox(height: screenHeight / scaleFactorHeight * 0.5),
+            _buildSelectedPieces(isLandscape, pad),
+          ],
+        ),
+      ),
+      bottomNavigationBar: const BannerAdWidget(),
+    );
+  }
 }
