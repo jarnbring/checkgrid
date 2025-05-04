@@ -47,5 +47,27 @@
 	<true/>
 	<key>GADApplicationIdentifier</key>
 	<string>ca-app-pub-3940256099942544~3347511713</string>
+	<key>UIBackgroundModes</key>
+<array>
+    <string>fetch</string>
+    <string>remote-notification</string>
+</array>
+<key>UNUserNotificationCenter</key>
+<dict>
+    <key>UNUserNotificationCenterDelegate</key>
+    <string>Runner.AppDelegate</string>
+</dict>
+<key>UILocalNotification</key>
+<dict>
+    <key>UIUserNotificationSettings</key>
+    <dict>
+        <key>alert</key>
+        <true/>
+        <key>badge</key>
+        <true/>
+        <key>sound</key>
+        <true/>
+    </dict>
+</dict>
 </dict>
 </plist>

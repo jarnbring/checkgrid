@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:gamename/components/group_settings.dart';
 import 'package:gamename/components/icon_widget.dart';
 import 'package:gamename/providers/settings_provider.dart';
+import 'package:gamename/settings/noti_service.dart';
 import 'package:gamename/settings/privacy_policy.dart';
 import 'package:provider/provider.dart';
 
@@ -46,7 +47,6 @@ class SettingsPageState extends State<SettingsPage> {
                 _buildDarkmode(),
                 _buildGlossEffect(),
                 _buildVibration(),
-                //_buildClearCache(),
                 _buildPrivacyPolicy(),
               ],
             ),
@@ -55,6 +55,15 @@ class SettingsPageState extends State<SettingsPage> {
             GroupSettingsWidget(
               header: "Notifications",
               children: [_buildNotificationReminder()],
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                NotiService().showNotification(
+                  title: "CheckGrid",
+                  body: "Play now!"
+                );
+              },
+              child: const Text("Send notification"),
             ),
           ],
         ),
@@ -66,10 +75,18 @@ class SettingsPageState extends State<SettingsPage> {
   Widget _buildDarkmode() {
     return SwitchListTile(
       title: const Text('Darkmode'),
-      secondary:
-          context.watch<SettingsProvider>().isDarkMode
-              ? IconWidget(icon: Icons.dark_mode)
-              : IconWidget(icon: Icons.light_mode),
+      secondary: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 300),
+        transitionBuilder:
+            (child, animation) => FadeTransition(
+              opacity: animation,
+              child: ScaleTransition(scale: animation, child: child),
+            ),
+        child:
+            context.watch<SettingsProvider>().isDarkMode
+                ? IconWidget(key: ValueKey('dark'), icon: Icons.dark_mode)
+                : IconWidget(key: ValueKey('light'), icon: Icons.light_mode),
+      ),
       value: context.watch<SettingsProvider>().isDarkMode,
       activeTrackColor: Colors.lightBlue,
       onChanged: (bool value) {
@@ -78,75 +95,65 @@ class SettingsPageState extends State<SettingsPage> {
     );
   }
 
-Widget _buildGlossEffect() {
-  return SwitchListTile(
-    title: const Text('Gloss effect'),
-    secondary: IconWidget(icon: Icons.aspect_ratio),
-    value: Provider.of<SettingsProvider>(context).useGlossEffect, // Använd SettingsProvider
-    activeTrackColor: Colors.lightBlue,
-    onChanged: (bool value) {
-      Provider.of<SettingsProvider>(context, listen: false).toggleGlossEffect();
-    },
-  );
-}
+  Widget _buildGlossEffect() {
+    return SwitchListTile(
+      title: const Text('Gloss effect'),
+      secondary: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 300),
+        transitionBuilder:
+            (child, animation) => FadeTransition(
+              opacity: animation,
+              child: ScaleTransition(scale: animation, child: child),
+            ),
+        child:
+            Provider.of<SettingsProvider>(context).useGlossEffect
+                ? IconWidget(
+                  key: ValueKey('gloss_on'),
+                  icon: Icons.aspect_ratio,
+                )
+                : IconWidget(
+                  key: ValueKey('gloss_off'),
+                  icon: Icons.fit_screen_sharp,
+                ),
+      ),
+      value: Provider.of<SettingsProvider>(context).useGlossEffect,
+      activeTrackColor: Colors.lightBlue,
+      onChanged: (bool value) {
+        Provider.of<SettingsProvider>(
+          context,
+          listen: false,
+        ).toggleGlossEffect();
+      },
+    );
+  }
 
   Widget _buildVibration() {
     return SwitchListTile(
       title: const Text('Vibrations'),
-      secondary:
-          context.watch<SettingsProvider>().isVibrationOn
-              ? IconWidget(icon: Icons.vibration)
-              : IconWidget(icon: Icons.phone_iphone),
+      secondary: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 300),
+        transitionBuilder:
+            (child, animation) => FadeTransition(
+              opacity: animation,
+              child: ScaleTransition(scale: animation, child: child),
+            ),
+        child:
+            context.watch<SettingsProvider>().isVibrationOn
+                ? IconWidget(
+                  key: ValueKey('vibration_on'),
+                  icon: Icons.vibration,
+                )
+                : IconWidget(
+                  key: ValueKey('vibration_off'),
+                  icon: Icons.phone_iphone,
+                ),
+      ),
       value: context.watch<SettingsProvider>().isVibrationOn,
       activeTrackColor: Colors.lightBlue,
       onChanged: (bool value) {
         setState(() {
           context.read<SettingsProvider>().setVibration(value);
         });
-      },
-    );
-  }
-
-  Widget _buildClearCache() {
-    return ListTile(
-      title: const Text('Clear cache'),
-      leading: IconWidget(icon: Icons.cached),
-      trailing: Icon(
-        Icons.arrow_forward_ios,
-        color: Theme.of(context).iconTheme.color?.withAlpha(100),
-      ),
-      onTap: () {
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: const Text('Clear Cache'),
-              content: const Text(
-                'Are you sure you want to clear the cache? All your settings will reset to default and the app will restart.',
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop(); // Stäng dialogen (Cancel)
-                  },
-                  child: const Text('Cancel'),
-                ),
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop(); // Stäng dialogen
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => PrivacyPolicyPage(),
-                      ),
-                    );
-                  },
-                  child: const Text('Continue'),
-                ),
-              ],
-            );
-          },
-        );
       },
     );
   }
@@ -159,13 +166,12 @@ Widget _buildGlossEffect() {
         Icons.arrow_forward_ios,
         color: Theme.of(context).iconTheme.color?.withAlpha(100),
       ),
-      onTap:
-          () => {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => PrivacyPolicyPage()),
-            ),
-          },
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => PrivacyPolicyPage()),
+        );
+      },
     );
   }
 
@@ -173,10 +179,21 @@ Widget _buildGlossEffect() {
   Widget _buildSound() {
     return SwitchListTile(
       title: const Text('Sound'),
-      secondary:
-          tempSound
-              ? IconWidget(icon: Icons.volume_up)
-              : IconWidget(icon: Icons.volume_off),
+      secondary: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 300),
+        transitionBuilder:
+            (child, animation) => FadeTransition(
+              opacity: animation,
+              child: ScaleTransition(scale: animation, child: child),
+            ),
+        child:
+            tempSound
+                ? IconWidget(key: ValueKey('sound_on'), icon: Icons.volume_up)
+                : IconWidget(
+                  key: ValueKey('sound_off'),
+                  icon: Icons.volume_off,
+                ),
+      ),
       value: tempSound,
       activeTrackColor: Colors.lightBlue,
       onChanged: (bool value) {
@@ -191,7 +208,21 @@ Widget _buildGlossEffect() {
   Widget _buildBoldText() {
     return SwitchListTile(
       title: const Text('Bold text'),
-      secondary: IconWidget(icon: Icons.format_bold),
+      secondary: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 300),
+        transitionBuilder:
+            (child, animation) => FadeTransition(
+              opacity: animation,
+              child: ScaleTransition(scale: animation, child: child),
+            ),
+        child:
+            context.watch<SettingsProvider>().isBoldText
+                ? IconWidget(key: ValueKey('bold_on'), icon: Icons.format_bold)
+                : IconWidget(
+                  key: ValueKey('bold_off'),
+                  icon: Icons.format_clear,
+                ),
+      ),
       value: context.watch<SettingsProvider>().isBoldText,
       activeTrackColor: Colors.lightBlue,
       onChanged: (bool value) {
@@ -204,15 +235,29 @@ Widget _buildGlossEffect() {
   Widget _buildNotificationReminder() {
     return SwitchListTile(
       title: const Text('Reminder'),
-      secondary:
-          tempNotificationReminder
-              ? IconWidget(icon: Icons.notifications_on)
-              : IconWidget(icon: Icons.notifications_off),
-      value: tempNotificationReminder,
+      secondary: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 300),
+        transitionBuilder:
+            (child, animation) => FadeTransition(
+              opacity: animation,
+              child: ScaleTransition(scale: animation, child: child),
+            ),
+        child:
+            context.watch<SettingsProvider>().notificationReminder
+                ? IconWidget(
+                  key: ValueKey('notif_on'),
+                  icon: Icons.notifications_on,
+                )
+                : IconWidget(
+                  key: ValueKey('notif_off'),
+                  icon: Icons.notifications_off,
+                ),
+      ),
+      value: context.watch<SettingsProvider>().notificationReminder,
       activeTrackColor: Colors.lightBlue,
       onChanged: (bool value) {
         setState(() {
-          tempNotificationReminder = value;
+          context.read<SettingsProvider>().setNotificationReminder(value);
         });
       },
     );
