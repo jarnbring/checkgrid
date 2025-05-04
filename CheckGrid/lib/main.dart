@@ -4,9 +4,11 @@ import 'package:device_preview/device_preview.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:gamename/pages/menu_page.dart';
 import 'package:gamename/providers/general_provider.dart';
 import 'package:gamename/providers/settings_provider.dart';
+import 'package:gamename/settings/noti_service.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:provider/provider.dart';
 
@@ -47,12 +49,15 @@ void main() async {
 
   // Skapa SettingsProvider och vänta på att inställningarna laddas
   final settingsProvider = SettingsProvider();
-  await settingsProvider.loadSettings(); // Vänta på att ladda inställningar
+  await settingsProvider.loadSettings();
+
+  // Initialisera NotificationService
+  NotiService().initNotification();
 
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider.value(value: settingsProvider), // Använd den förberedda instansen
+        ChangeNotifierProvider.value(value: settingsProvider),
         ChangeNotifierProvider(create: (_) => GeneralProvider()),
       ],
       child: const MyApp(),
