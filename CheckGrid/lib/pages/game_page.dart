@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:gamename/banner_ad.dart';
 import 'package:gamename/components/countdown_loading.dart';
+import 'package:gamename/components/icon_widget.dart';
 import 'package:gamename/game/block.dart';
 import 'package:gamename/game/difficulty.dart';
 import 'package:gamename/game/piecetype.dart';
@@ -24,6 +25,9 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
   List<PieceType> selectedPieces = [];
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
+  late AnimationController _glossAnimationController;
+  late Animation<double> _glossAnimation;
+  bool useGlossEffect = true; // Ny variabel för att spåra glanseffekt
 
   final imageWidth = 50.0, imageHeight = 50.0;
   final boardWidth = 8, boardHeight = 8, comboRequirement = 6;
@@ -45,17 +49,28 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
       duration: const Duration(seconds: 1),
       vsync: this,
     );
-    _fadeAnimation = Tween(begin: 0.0, end: 1.0).animate(_animationController);
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(_animationController);
+    _glossAnimationController = AnimationController(
+      duration: const Duration(seconds: 10),
+      vsync: this,
+    );
+    _glossAnimation = Tween<double>(begin: 0.3, end: 0.7).animate(
+      CurvedAnimation(
+        parent: _glossAnimationController,
+        curve: Curves.easeInOut,
+      ),
+    );
+    _glossAnimationController.repeat(reverse: true);
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await _loadGameState();
+      await _loadGlossSetting();
       if (selectedPieces.isEmpty &&
           board.every((row) => row.every((block) => block == null))) {
-        initKillingCells(spawnRate);
+        initKillingCells(_difficulty);
         setPieces();
       } else if (selectedPieces.isNotEmpty ||
           selectedPiecesPositions.isNotEmpty) {
-        // Trigger animation for loaded pieces or show Continue button
         _animationController.forward(from: 0.0);
       }
       update();
@@ -66,8 +81,25 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
   @override
   void dispose() {
     _saveGameState();
+    _saveGlossSetting(); // Spara glansinställningen
     _animationController.dispose();
+    _glossAnimationController.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadGlossSetting() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      useGlossEffect = prefs.getBool('useGlossEffect') ?? true;
+      if (!useGlossEffect) {
+        _glossAnimationController.stop(); // Stoppa animation om glans är av
+      }
+    });
+  }
+
+  Future<void> _saveGlossSetting() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('useGlossEffect', useGlossEffect);
   }
 
   Future<BigInt> _loadHighscore() async {
@@ -84,31 +116,26 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
   Future<void> _saveGameState() async {
     final prefs = await SharedPreferences.getInstance();
 
-    // Save board
-    final boardJson =
-        board
-            .asMap()
-            .map(
-              (row, cols) => MapEntry(
-                row.toString(),
-                cols.asMap().map(
-                  (col, block) => MapEntry(col.toString(), block?.toJson()),
-                ),
-              ),
-            )
-            .values
-            .toList();
+    final boardJson = board
+        .asMap()
+        .map(
+          (row, cols) => MapEntry(
+            row.toString(),
+            cols.asMap().map(
+              (col, block) => MapEntry(col.toString(), block?.toJson()),
+            ),
+          ),
+        )
+        .values
+        .toList();
     await prefs.setString('game_board', jsonEncode(boardJson));
 
-    // Save selected pieces
     final piecesToSave = selectedPieces.map((p) => p.name).toList();
     await prefs.setStringList('selected_pieces', piecesToSave);
 
-    // Save scores
     await prefs.setString('current_score', currentScore.toString());
     await prefs.setString('combo_count', comboCount.toString());
 
-    // Save selected pieces positions
     final positionsJson =
         selectedPiecesPositions.map((p) => {'x': p.x, 'y': p.y}).toList();
     await prefs.setString(
@@ -116,7 +143,6 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
       jsonEncode(positionsJson),
     );
 
-    // Save targeted cells (optional, as they may be transient)
     final targetedJson = targetedCells.map((b) => b.toJson()).toList();
     await prefs.setString('targeted_cells', jsonEncode(targetedJson));
   }
@@ -124,7 +150,6 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
   Future<void> _loadGameState() async {
     final prefs = await SharedPreferences.getInstance();
 
-    // Load board
     final boardJson = prefs.getString('game_board');
     if (boardJson != null) {
       try {
@@ -142,19 +167,17 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
       }
     }
 
-    // Load selected pieces
     final pieces = prefs.getStringList('selected_pieces');
     if (pieces != null && pieces.isNotEmpty) {
       try {
-        selectedPieces =
-            pieces
-                .map(
-                  (name) => PieceType.values.firstWhere(
-                    (e) => e.name == name,
-                    orElse: () => throw Exception('Invalid PieceType: $name'),
-                  ),
-                )
-                .toList();
+        selectedPieces = pieces
+            .map(
+              (name) => PieceType.values.firstWhere(
+                (e) => e.name == name,
+                orElse: () => throw Exception('Invalid PieceType: $name'),
+              ),
+            )
+            .toList();
       } catch (e) {
         print('Error loading selected pieces: $e');
         selectedPieces = [];
@@ -163,22 +186,18 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
       selectedPieces = [];
     }
 
-    // Load scores
     final score = prefs.getString('current_score');
     currentScore = score != null ? BigInt.parse(score) : BigInt.zero;
 
     final combo = prefs.getString('combo_count');
     comboCount = combo != null ? BigInt.parse(combo) : BigInt.zero;
 
-    // Load selected pieces positions
     final positionsJson = prefs.getString('selected_pieces_positions');
     if (positionsJson != null) {
       try {
         final List<dynamic> positionsData = jsonDecode(positionsJson);
         selectedPiecesPositions =
-            positionsData
-                .map((p) => Point<int>(p['x'] as int, p['y'] as int))
-                .toList();
+            positionsData.map((p) => Point<int>(p['x'] as int, p['y'] as int)).toList();
         print('Restored selectedPiecesPositions: $selectedPiecesPositions');
       } catch (e) {
         print('Error loading selected pieces positions: $e');
@@ -186,20 +205,17 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
       }
     }
 
-    // Load targeted cells (optional)
     final targetedJson = prefs.getString('targeted_cells');
     if (targetedJson != null) {
       try {
         final List<dynamic> targetedData = jsonDecode(targetedJson);
-        targetedCells =
-            targetedData.map((json) => Block.fromJson(json)).toList();
+        targetedCells = targetedData.map((json) => Block.fromJson(json)).toList();
       } catch (e) {
         print('Error loading targeted cells: $e');
         targetedCells = [];
       }
     }
 
-    // Load highscore
     final hs = await _loadHighscore();
     latestHighScore = hs;
     displayedHighscore = hs;
@@ -227,19 +243,29 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
     });
   }
 
-  void initKillingCells(double spawnChance) {
+  void initKillingCells(Difficulty difficulty) {
     assert(
-      spawnChance >= 0.0 && spawnChance <= 1.0,
+      difficulty.spawnRate >= 0.0 && difficulty.spawnRate <= 1.0,
       'spawnChance must be between 0.0 and 1.0',
     );
     final rng = Random();
     for (var row = 0; row < 2; row++) {
       for (var col = 0; col < boardWidth; col++) {
-        if (rng.nextDouble() < spawnChance) {
+        if (rng.nextDouble() < difficulty.spawnRate) {
           board[row][col] = Block(
             position: Point<int>(row, col),
             isActive: true,
-            color: Colors.green,
+            gradient: useGlossEffect
+                ? const LinearGradient(
+                    colors: [
+                      Colors.green,
+                      Color.fromARGB(255, 150, 255, 150),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  )
+                : null,
+            fallbackColor: Colors.green,
           );
         }
       }
@@ -249,8 +275,7 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
 
   void addScore() async {
     final count = targetedCells.length;
-    comboCount =
-        count >= comboRequirement ? comboCount + BigInt.one : BigInt.zero;
+    comboCount = count >= comboRequirement ? comboCount + BigInt.one : BigInt.zero;
     final base = BigInt.from(10) * BigInt.from(count);
     final totalScore = base * (comboCount + BigInt.one);
 
@@ -270,14 +295,13 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
       newScore,
       (v) => setState(() => currentScore = v),
     );
-    final highAnim =
-        (newScore > oldHigh)
-            ? animateBigInt(
-              oldHigh,
-              newHigh,
-              (v) => setState(() => displayedHighscore = v),
-            )
-            : Future.value();
+    final highAnim = (newScore > oldHigh)
+        ? animateBigInt(
+            oldHigh,
+            newHigh,
+            (v) => setState(() => displayedHighscore = v),
+          )
+        : Future.value();
 
     await Future.wait([scoreAnim, highAnim]);
   }
@@ -289,7 +313,7 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
     }
     board[0] = List.filled(boardWidth, null);
     addScore();
-    initKillingCells(spawnRate);
+    initKillingCells(_difficulty);
     update();
   }
 
@@ -319,8 +343,7 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
           for (var i = 0; i < steps; i++) {
             nr += off.dy.toInt();
             nc += off.dx.toInt();
-            if (nr < 0 || nr >= boardHeight || nc < 0 || nc >= boardWidth)
-              break;
+            if (nr < 0 || nr >= boardHeight || nc < 0 || nc >= boardWidth) break;
             final b = board[nr][nc];
             if (b != null && b.isActive) {
               b.isTargeted = true;
@@ -345,21 +368,82 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
                 position: Point<int>(r, c),
                 isActive: false,
                 hasPiece: false,
-                color: Colors.blueGrey,
+                gradient: useGlossEffect
+                    ? const LinearGradient(
+                        colors: [
+                          Colors.blueGrey,
+                          Color.fromARGB(255, 120, 140, 160),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      )
+                    : null,
+                fallbackColor: Colors.blueGrey,
               );
             } else {
-              b.color = Colors.blueGrey;
+              b.gradient = useGlossEffect
+                  ? const LinearGradient(
+                      colors: [
+                        Colors.blueGrey,
+                        Color.fromARGB(255, 120, 140, 160),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    )
+                  : null;
+              b.fallbackColor = Colors.blueGrey;
             }
           } else if (b != null) {
             if (b.hasPiece || b.piece != null) {
-              b.color = Colors.blue;
+              b.gradient = useGlossEffect
+                  ? const LinearGradient(
+                      colors: [
+                        Colors.blue,
+                        Color.fromARGB(255, 100, 180, 255),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    )
+                  : null;
+              b.fallbackColor = Colors.blue;
             } else if (b.isActive) {
-              b.color =
-                  r < 2
-                      ? Colors.green
-                      : r < 4
-                      ? Colors.orange
-                      : Colors.red;
+              if (r < 2) {
+                b.gradient = useGlossEffect
+                    ? const LinearGradient(
+                        colors: [
+                          Colors.green,
+                          Color.fromARGB(255, 150, 255, 150),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      )
+                    : null;
+                b.fallbackColor = Colors.green;
+              } else if (r < 4) {
+                b.gradient = useGlossEffect
+                    ? const LinearGradient(
+                        colors: [
+                          Colors.orange,
+                          Color.fromARGB(255, 255, 200, 100),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      )
+                    : null;
+                b.fallbackColor = Colors.orange;
+              } else {
+                b.gradient = useGlossEffect
+                    ? const LinearGradient(
+                        colors: [
+                          Colors.red,
+                          Color.fromARGB(255, 255, 100, 100),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      )
+                    : null;
+                b.fallbackColor = Colors.red;
+              }
             }
           }
         }
@@ -393,7 +477,7 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
       board = List.generate(8, (_) => List.filled(8, null));
       selectedPiecesPositions.clear();
       setPieces();
-      initKillingCells(spawnRate);
+      initKillingCells(_difficulty);
       currentScore = BigInt.zero;
       comboCount = BigInt.zero;
       displayedHighscore = latestHighScore;
@@ -405,36 +489,35 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
     if (!isReviveShowing && mounted) {
       showDialog(
         context: context,
-        builder:
-            (_) => AlertDialog(
-              backgroundColor: Colors.transparent,
-              content: CountdownLoading(
-                onRestart: _restartGame,
-                isReviveShowing: isReviveShowing,
-              ),
-            ),
+        builder: (_) => AlertDialog(
+          backgroundColor: Colors.transparent,
+          content: CountdownLoading(
+            onRestart: _restartGame,
+            isReviveShowing: isReviveShowing,
+          ),
+        ),
       );
     }
   }
 
   Widget _buildScore() => Text(
-    NumberFormat("#,###").format(currentScore.toInt()),
-    style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
-  );
+        NumberFormat("#,###").format(currentScore.toInt()),
+        style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
+      );
 
   Widget _buildCombo() {
     return Text("Combo: $comboCount", style: const TextStyle(fontSize: 20));
   }
 
   Widget _buildHighscore() => Text(
-    "Highscore: ${NumberFormat('#,###').format(displayedHighscore.toInt())}",
-    style: const TextStyle(fontSize: 20),
-  );
+        "Highscore: ${NumberFormat('#,###').format(displayedHighscore.toInt())}",
+        style: const TextStyle(fontSize: 20),
+      );
 
   Widget _buildScoreAndCombo() => Row(
-    mainAxisAlignment: MainAxisAlignment.center,
-    children: [_buildHighscore(), const SizedBox(width: 120), _buildCombo()],
-  );
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [_buildHighscore(), const SizedBox(width: 120), _buildCombo()],
+      );
 
   Widget _buildSelectedPieces(bool isLandscape, double pad) {
     const iconSize = 75.0;
@@ -443,88 +526,115 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
       height: iconSize + 28,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color.fromARGB(255, 57, 159, 255),
+        color: useGlossEffect ? null : const Color.fromARGB(255, 57, 159, 255),
+        gradient: useGlossEffect
+            ? const LinearGradient(
+                colors: [
+                  Color.fromARGB(255, 57, 159, 255),
+                  Color.fromARGB(255, 100, 180, 255),
+                ],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              )
+            : null,
         borderRadius: BorderRadius.circular(30),
+        boxShadow: useGlossEffect
+            ? [
+                BoxShadow(
+                  color: Colors.white.withOpacity(0.3),
+                  blurRadius: 10,
+                  offset: const Offset(0, -2),
+                ),
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.2),
+                  blurRadius: 5,
+                  offset: const Offset(0, 2),
+                ),
+              ]
+            : null,
       ),
       child: AnimatedBuilder(
         animation: _fadeAnimation,
-        builder:
-            (_, __) => Opacity(
-              opacity: _fadeAnimation.value,
-              child:
-                  selectedPieces.isEmpty && selectedPiecesPositions.isNotEmpty
-                      ? GestureDetector(
-                        onTap: setPiecesAndRemoveBlocks,
-                        child: Container(
-                          width: 250,
-                          height: 50,
-                          decoration: BoxDecoration(
-                            color: const Color.fromARGB(255, 57, 159, 255),
-                            borderRadius: BorderRadius.circular(30),
-                          ),
-                          alignment: Alignment.center,
-                          child: const Text(
-                            "Continue",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                            ),
+        builder: (_, __) => Opacity(
+          opacity: _fadeAnimation.value,
+          child: selectedPieces.isEmpty && selectedPiecesPositions.isNotEmpty
+              ? GestureDetector(
+                  onTap: setPiecesAndRemoveBlocks,
+                  child: Container(
+                    width: 250,
+                    height: 50,
+                    decoration: BoxDecoration(
+                      color: useGlossEffect ? null : const Color.fromARGB(255, 57, 159, 255),
+                      gradient: useGlossEffect
+                          ? const LinearGradient(
+                              colors: [
+                                Color.fromARGB(255, 57, 159, 255),
+                                Color.fromARGB(255, 100, 180, 255),
+                              ],
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                            )
+                          : null,
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                    alignment: Alignment.center,
+                    child: const Text(
+                      "Continue",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                )
+              : Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: selectedPieces.map((p) {
+                    return Flexible(
+                      child: Draggable<PieceType>(
+                        data: p,
+                        feedback: Image.asset(
+                          'assets/images/white_${p.name}.png',
+                          width: imageWidth + 1,
+                          height: imageHeight + 10,
+                        ),
+                        feedbackOffset: Offset(
+                          -imageWidth / 3,
+                          -imageHeight / 3,
+                        ),
+                        childWhenDragging: Opacity(
+                          opacity: 0.2,
+                          child: Image.asset(
+                            'assets/images/white_${p.name}.png',
+                            width: iconSize,
+                            height: iconSize,
                           ),
                         ),
-                      )
-                      : Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children:
-                            selectedPieces.map((p) {
-                              return Flexible(
-                                child: Draggable<PieceType>(
-                                  data: p,
-                                  feedback: Image.asset(
-                                    'assets/images/white_${p.name}.png',
-                                    width: imageWidth + 1,
-                                    height: imageHeight + 10,
-                                  ),
-
-                                  feedbackOffset: Offset(
-                                    -imageWidth / 3,
-                                    -imageHeight / 3,
-                                  ),
-                                  childWhenDragging: Opacity(
-                                    opacity: 0.2,
-                                    child: Image.asset(
-                                      'assets/images/white_${p.name}.png',
-                                      width: iconSize,
-                                      height: iconSize,
-                                    ),
-                                  ),
-                                  onDragEnd:
-                                      (d) =>
-                                          d.wasAccepted
-                                              ? setState(() {
-                                                selectedPieces.remove(p);
-                                              })
-                                              : null,
-                                  child: Image.asset(
-                                    'assets/images/white_${p.name}.png',
-                                    width: iconSize,
-                                    height: iconSize,
-                                  ),
-                                ),
-                              );
-                            }).toList(),
+                        onDragEnd: (d) => d.wasAccepted
+                            ? setState(() {
+                                selectedPieces.remove(p);
+                              })
+                            : null,
+                        child: Image.asset(
+                          'assets/images/white_${p.name}.png',
+                          width: iconSize,
+                          height: iconSize,
+                        ),
                       ),
-            ),
-      ),
-    );
+                    );
+                  }).toList(),
+                ),
+              )
+        )
+      );
   }
 
   Widget _buildPlayArea(bool isTablet, bool isLandscape, double pad) {
     return Padding(
-      padding:
-          isLandscape
-              ? EdgeInsets.symmetric(horizontal: pad)
-              : isTablet
+      padding: isLandscape
+          ? EdgeInsets.symmetric(horizontal: pad)
+          : isTablet
               ? const EdgeInsets.symmetric(horizontal: 100, vertical: 20)
               : const EdgeInsets.symmetric(horizontal: 40, vertical: 20),
       child: GridView.builder(
@@ -539,8 +649,7 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
         itemBuilder: (_, idx) {
           final r = idx ~/ 8, c = idx % 8, b = board[r][c];
           return DragTarget<PieceType>(
-            onWillAcceptWithDetails:
-                (d) => b == null || (!b.hasPiece && !b.isActive),
+            onWillAcceptWithDetails: (d) => b == null || (!b.hasPiece && !b.isActive),
             onAcceptWithDetails: (d) {
               if (b == null || (!b.hasPiece && !b.isActive)) {
                 setState(() {
@@ -549,6 +658,17 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
                     piece: d.data,
                     isActive: false,
                     hasPiece: true,
+                    gradient: useGlossEffect
+                        ? const LinearGradient(
+                            colors: [
+                              Colors.blue,
+                              Color.fromARGB(255, 100, 180, 255),
+                            ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          )
+                        : null,
+                    fallbackColor: Colors.blue,
                   );
                   showTargetedCells(d, r, c);
                   selectedPiecesPositions.add(Point<int>(r, c));
@@ -556,30 +676,47 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
                 });
               }
             },
-            builder:
-                (_, __, ___) => Container(
+            builder: (_, __, ___) => AnimatedBuilder(
+              animation: useGlossEffect ? _glossAnimation : Listenable.merge([]), // Undvik animation om glans är av
+              builder: (context, child) => CustomPaint(
+                painter: GlossyBlockPainter(
+                  gradient: b == null
+                      ? useGlossEffect
+                          ? LinearGradient(
+                              colors: [
+                                r >= 6 ? Colors.blueGrey.shade700 : Colors.grey.shade700,
+                                r >= 6 ? Colors.blueGrey.shade300 : Colors.grey.shade300,
+                              ],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            )
+                          : null
+                      : b.gradient,
+                  glossPosition: useGlossEffect ? _glossAnimation.value : 0.0,
+                  fallbackColor: b == null
+                      ? (r >= 6 ? Colors.blueGrey : Colors.grey)
+                      : b.fallbackColor,
+                ),
+                child: Container(
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(5),
-                    color:
-                        b == null
-                            ? (r >= 6 ? Colors.blueGrey : Colors.grey)
-                            : (b.piece != null ? Colors.blue : b.color),
                   ),
-                  child:
-                      b == null
-                          ? null
-                          : b.piece != null
+                  child: b == null
+                      ? null
+                      : b.piece != null
                           ? Image.asset(
-                            'assets/images/white_${b.piece!.name}.png',
-                            fit: BoxFit.contain,
-                          )
+                              'assets/images/white_${b.piece!.name}.png',
+                              fit: BoxFit.contain,
+                            )
                           : b.isTargeted
-                          ? Image.asset(
-                            'assets/images/cross.png',
-                            fit: BoxFit.contain,
-                          )
-                          : null,
+                              ? Image.asset(
+                                  'assets/images/cross.png',
+                                  fit: BoxFit.contain,
+                                )
+                              : null,
                 ),
+              ),
+            ),
           );
         },
       ),
@@ -596,8 +733,7 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
 
     final generalProvider = context.watch<GeneralProvider>();
     double bannerAdHeight = generalProvider.getBannerAdHeight();
-    double screenHeight =
-        generalProvider.getScreenHeight(context) - bannerAdHeight;
+    double screenHeight = generalProvider.getScreenHeight(context) - bannerAdHeight;
     double scaleFactorHeight = 13.3;
 
     if (loseCondition() && !isReviveShowing) {
@@ -610,17 +746,16 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
           icon: const Icon(Icons.arrow_back),
           onPressed: () async {
             await _saveGameState();
+            await _saveGlossSetting();
             Navigator.of(context).pop();
           },
         ),
-
         centerTitle: true,
         title: const Text("CheckGrid", style: TextStyle(fontSize: 34)),
         actions: [
           PopupMenuButton<String>(
-            icon: const Icon(Icons.menu), // Ikon för menyn
+            icon: const Icon(Icons.settings),
             onSelected: (String value) {
-              // Hantera valet från menyn
               switch (value) {
                 case 'new_game':
                   _restartGame();
@@ -634,27 +769,41 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
                 case 'difficulty':
                   _showDifficultyDialog(context);
                   break;
+                case 'toggle_gloss':
+                  setState(() {
+                    useGlossEffect = !useGlossEffect;
+                    if (useGlossEffect) {
+                      _glossAnimationController.repeat(reverse: true);
+                    } else {
+                      _glossAnimationController.stop();
+                    }
+                    update(); // Uppdatera blockens utseende
+                  });
+                  _saveGlossSetting();
+                  break;
               }
             },
-            itemBuilder:
-                (BuildContext context) => <PopupMenuEntry<String>>[
-                  const PopupMenuItem<String>(
-                    value: 'new_game',
-                    child: Text('Restart game'),
-                  ),
-                  const PopupMenuItem<String>(
-                    value: 'settings',
-                    child: Text('Settings'),
-                  ),
-                  const PopupMenuItem<String>(
-                    value: 'difficulty',
-                    child: Text('Difficulty'),
-                  ),
-                ],
+            itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+              const PopupMenuItem<String>(
+                value: 'new_game',
+                child: Text('Restart game'),
+              ),
+              const PopupMenuItem<String>(
+                value: 'settings',
+                child: Text('Settings'),
+              ),
+              const PopupMenuItem<String>(
+                value: 'difficulty',
+                child: Text('Difficulty'),
+              ),
+              PopupMenuItem<String>(
+                value: 'toggle_gloss',
+                child: Text(useGlossEffect ? 'Disable Gloss Effect' : 'Enable Gloss Effect'),
+              ),
+            ],
           ),
         ],
       ),
-
       body: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -673,7 +822,6 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
     );
   }
 
-  // Funktion för att visa AlertDialog för svårighetsval
   void _showDifficultyDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -681,43 +829,116 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
         return AlertDialog(
           title: Row(
             mainAxisAlignment: MainAxisAlignment.center,
-            children: [Text('Choose Difficulty')],
+            children: [Text('Choose Difficulty', style: TextStyle())],
           ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                title: Text('Chill'),
-                onTap: () {
-                  _setDifficulty(Difficulty.chill);
-                  Navigator.of(context).pop();
-                },
+          content: Container(
+            constraints: BoxConstraints(maxHeight: 300),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text.rich(
+                    TextSpan(
+                      children: [
+                        TextSpan(
+                          text: "Note: ",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                          ),
+                        ),
+                        TextSpan(
+                          text: "This will restart your current progress and start a new game!",
+                          style: TextStyle(fontWeight: FontWeight.normal),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  ListTile(
+                    title: Text('Chill'),
+                    onTap: () {
+                      _setDifficulty(Difficulty.chill);
+                      Navigator.of(context).pop();
+                    },
+                    trailing: IconWidget(icon: Icons.ac_unit),
+                  ),
+                  const Divider(),
+                  ListTile(
+                    title: Text('Normal'),
+                    onTap: () {
+                      _setDifficulty(Difficulty.normal);
+                      Navigator.of(context).pop();
+                    },
+                    trailing: IconWidget(icon: Icons.headphones_rounded),
+                  ),
+                  const Divider(),
+                  ListTile(
+                    title: Text('Max'),
+                    onTap: () {
+                      _setDifficulty(Difficulty.max);
+                      Navigator.of(context).pop();
+                    },
+                    trailing: IconWidget(icon: Icons.flash_on),
+                  ),
+                ],
               ),
-              ListTile(
-                title: Text('Normal'),
-                onTap: () {
-                  _setDifficulty(Difficulty.normal);
-                  Navigator.of(context).pop();
-                },
-              ),
-              ListTile(
-                title: Text('Max'),
-                onTap: () {
-                  _setDifficulty(Difficulty.max);
-                  Navigator.of(context).pop();
-                },
-              ),
-            ],
+            ),
           ),
         );
       },
     );
   }
 
-  // Funktion för att uppdatera svårigheten
   void _setDifficulty(Difficulty difficulty) {
     setState(() {
       _difficulty = difficulty;
+      _restartGame();
     });
   }
+}
+
+class GlossyBlockPainter extends CustomPainter {
+  final Gradient? gradient;
+  final double glossPosition;
+  final Color? fallbackColor;
+
+  GlossyBlockPainter({
+    this.gradient,
+    required this.glossPosition,
+    this.fallbackColor,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint();
+    if (gradient != null) {
+      paint.shader = gradient!.createShader(Rect.fromLTWH(0, 0, size.width, size.height));
+    } else if (fallbackColor != null) {
+      paint.color = fallbackColor!;
+    } else {
+      paint.color = Colors.grey; // Standardfärg om inget anges
+    }
+
+    final rect = RRect.fromRectAndRadius(
+      Rect.fromLTWH(0, 0, size.width, size.height),
+      const Radius.circular(5),
+    );
+
+    canvas.drawRRect(rect, paint);
+
+    if (gradient != null) {
+      final glossPaint = Paint()
+        ..color = Colors.white.withOpacity(0.4)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5);
+      canvas.drawCircle(
+        Offset(size.width * glossPosition, size.height * glossPosition),
+        size.width * 0.2,
+        glossPaint,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }
