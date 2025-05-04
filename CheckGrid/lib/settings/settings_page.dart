@@ -56,14 +56,35 @@ class SettingsPageState extends State<SettingsPage> {
               header: "Notifications",
               children: [_buildNotificationReminder()],
             ),
-            ElevatedButton(
-              onPressed: () async {
-                NotiService().showNotification(
-                  title: "CheckGrid",
-                  body: "Play now!"
-                );
-              },
-              child: const Text("Send notification"),
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // Send notification now
+                ElevatedButton(
+                  onPressed: () async {
+                    NotiService().showNotification(
+                      title: "YOU NEED TO PLAY NOW!!!!",
+                      body:
+                          "Play now or I will kill every single person in your contact list moahahahaha",
+                    );
+                  },
+                  child: const Text("Send notification"),
+                ),
+
+                // Send scheduled notification
+                ElevatedButton(
+                  onPressed: () async {
+                    NotiService().scheduleNotification(
+                      title: "We miss you",
+                      body:
+                          "Come back on and keep highering your personal best!",
+                      hour: 0,
+                      minute: 35,
+                    );
+                  },
+                  child: const Text("Send delayed notification"),
+                ),
+              ],
             ),
           ],
         ),
