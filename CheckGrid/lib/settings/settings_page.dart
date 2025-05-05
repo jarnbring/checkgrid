@@ -66,6 +66,7 @@ class SettingsPageState extends State<SettingsPage> {
                       title: "YOU NEED TO PLAY NOW!!!!",
                       body:
                           "T",
+                      settingsProvider: SettingsProvider()
                     );
                   },
                   child: const Text("Send notification"),
@@ -78,8 +79,9 @@ class SettingsPageState extends State<SettingsPage> {
                       title: "We miss you",
                       body:
                           "Come back on and keep highering your personal best!",
-                      hour: 2,
-                      minute: 46,
+                      hour: 15,
+                      minute: 10,
+                      settingsProvider: SettingsProvider()
                     );
                   },
                   child: const Text("Send delayed notification"),

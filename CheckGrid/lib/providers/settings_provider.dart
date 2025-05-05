@@ -86,9 +86,9 @@ class SettingsProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  void setNotificationReminder(bool value) async {
+  void setNotificationReminder(bool value) {
     _notificationReminder = value;
-    await _saveSettings();
+    _saveSettings();
     notifyListeners();
   }
 

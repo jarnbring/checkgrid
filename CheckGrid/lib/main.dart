@@ -53,7 +53,7 @@ void main() async {
 
   // Initialisera NotificationService
   NotiService().initNotification();
-  NotiService().scheduleWeeklyRotatingNotifications();
+  NotiService().scheduleWeeklyRotatingNotifications(settingsProvider);
 
   runApp(
     MultiProvider(
