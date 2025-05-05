@@ -1,9 +1,7 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:timezone/data/latest.dart';
 import 'package:timezone/data/latest_all.dart' as tz show initializeTimeZones;
 import 'package:timezone/timezone.dart' as tz;
 import 'package:flutter_timezone/flutter_timezone.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 
 class NotiService {
@@ -116,5 +114,41 @@ class NotiService {
   Future<void> cancelAllNotifications() async {
     await notificationsPlugin.cancelAll();
   }
+
+  // List of notifications
+  Future<void> scheduleWeeklyRotatingNotifications() async {
+  final List<Map<String, String>> weeklyMessages = [
+    {"title": "Monday Boost", "body": "Start your week strong!"},
+    {"title": "Tuesday Tip", "body": "Keep the momentum going!"},
+    {"title": "Wednesday Reminder", "body": "Halfway there!"},
+    {"title": "Thursday Push", "body": "Stay focused!"},
+    {"title": "Friday Finish", "body": "You’re almost done!"},
+    {"title": "Saturday Fun", "body": "Enjoy your weekend!"},
+    {"title": "Sunday Recharge", "body": "Get ready for next week!"},
+  ];
+
+  for (int i = 0; i < 7; i++) {
+    final now = tz.TZDateTime.now(tz.local);
+    final nextDay = now.add(Duration(days: (i + 1 - now.weekday) % 7));
+    final scheduleDate = tz.TZDateTime(
+      tz.local,
+      nextDay.year,
+      nextDay.month,
+      nextDay.day,
+      13,
+      37,
+    );
+
+    await notificationsPlugin.zonedSchedule(
+      i,
+      weeklyMessages[i]["title"],
+      weeklyMessages[i]["body"],
+      scheduleDate,
+      notificationDetails(),
+      androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+      matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime,
+    );
+  }
+}
 
 }
