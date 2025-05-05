@@ -179,8 +179,12 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
       difficulty.spawnRate >= 0.0 && difficulty.spawnRate <= 1.0,
       'spawnChance must be between 0.0 and 1.0',
     );
+    int newRows = 2;
+    if (difficulty == Difficulty.max) {
+      newRows = 3;
+    }
     final rng = Random();
-    for (var row = 0; row < 2; row++) {
+    for (var row = 0; row < newRows; row++) {
       for (var col = 0; col < boardWidth; col++) {
         if (rng.nextDouble() < difficulty.spawnRate) {
           board[row][col] = Block(
@@ -240,7 +244,7 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
     await Future.wait([scoreAnim, highAnim]);
   }
 
-  void spawnNewRows() {
+  void spawnNewRows(Difficulty difficulty) {
     if (isReviveShowing) return;
     for (var row = boardHeight - 1; row > 0; row--) {
       board[row] = List.from(board[row - 1]);
@@ -264,7 +268,7 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
       }
       selectedPiecesPositions.clear();
       setPieces();
-      spawnNewRows();
+      spawnNewRows(_difficulty);
     });
   }
 

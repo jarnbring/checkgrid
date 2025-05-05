@@ -1,8 +1,10 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:gamename/providers/settings_provider.dart';
+import 'package:provider/provider.dart';
 import 'package:timezone/data/latest_all.dart' as tz show initializeTimeZones;
 import 'package:timezone/timezone.dart' as tz;
 import 'package:flutter_timezone/flutter_timezone.dart';
-
 
 class NotiService {
   final notificationsPlugin = FlutterLocalNotificationsPlugin();
@@ -60,7 +62,13 @@ class NotiService {
     int id = 0,
     String? title,
     String? body,
+    required SettingsProvider settingsProvider,
   }) async {
+    await settingsProvider.loadSettings();
+    if (!settingsProvider.notificationReminder) {
+      print("User has denied notifications through the app!");
+      return;
+    }
     return notificationsPlugin.show(id, title, body, notificationDetails());
   }
 
@@ -78,7 +86,14 @@ class NotiService {
     required String body,
     required int hour,
     required int minute,
+    required SettingsProvider settingsProvider,
   }) async {
+    await settingsProvider.loadSettings();
+    if (!settingsProvider.notificationReminder) {
+      print("User has denied notifications through the app!");
+      return;
+    }
+
     // Get the current date/time in device's local timezone
     final now = tz.TZDateTime.now(tz.local);
 
@@ -99,12 +114,12 @@ class NotiService {
       body,
       scheduleDate,
       notificationDetails(),
-      
+
       // Android specific: Allow notification while device is in low-power mode
       androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
 
       // Make notification repeat DAILY at same time
-      matchDateTimeComponents: DateTimeComponents.time
+      matchDateTimeComponents: DateTimeComponents.time,
     );
 
     print("Notification scheduled!: $scheduleDate");
@@ -116,39 +131,46 @@ class NotiService {
   }
 
   // List of notifications
-  Future<void> scheduleWeeklyRotatingNotifications() async {
-  final List<Map<String, String>> weeklyMessages = [
-    {"title": "Monday Boost", "body": "Start your week strong!"},
-    {"title": "Tuesday Tip", "body": "Keep the momentum going!"},
-    {"title": "Wednesday Reminder", "body": "Halfway there!"},
-    {"title": "Thursday Push", "body": "Stay focused!"},
-    {"title": "Friday Finish", "body": "You’re almost done!"},
-    {"title": "Saturday Fun", "body": "Enjoy your weekend!"},
-    {"title": "Sunday Recharge", "body": "Get ready for next week!"},
-  ];
+  Future<void> scheduleWeeklyRotatingNotifications(
+    SettingsProvider settingsProvider,
+  ) async {
+    await settingsProvider.loadSettings();
+    if (!settingsProvider.notificationReminder) {
+      print("User has denied notifications through the app!");
+      return;
+    }
 
-  for (int i = 0; i < 7; i++) {
-    final now = tz.TZDateTime.now(tz.local);
-    final nextDay = now.add(Duration(days: (i + 1 - now.weekday) % 7));
-    final scheduleDate = tz.TZDateTime(
-      tz.local,
-      nextDay.year,
-      nextDay.month,
-      nextDay.day,
-      13,
-      37,
-    );
+    final List<Map<String, String>> weeklyMessages = [
+      {"title": "Monday Boost", "body": "Start your week strong!"},
+      {"title": "Tuesday Tip", "body": "Keep the momentum going!"},
+      {"title": "Wednesday Reminder", "body": "Halfway there!"},
+      {"title": "Thursday Push", "body": "Stay focused!"},
+      {"title": "Friday Finish", "body": "You’re almost done!"},
+      {"title": "Saturday Fun", "body": "Enjoy your weekend!"},
+      {"title": "Sunday Recharge", "body": "Get ready for next week!"},
+    ];
 
-    await notificationsPlugin.zonedSchedule(
-      i,
-      weeklyMessages[i]["title"],
-      weeklyMessages[i]["body"],
-      scheduleDate,
-      notificationDetails(),
-      androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
-      matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime,
-    );
+    for (int i = 0; i < 7; i++) {
+      final now = tz.TZDateTime.now(tz.local);
+      final nextDay = now.add(Duration(days: (i + 1 - now.weekday) % 7));
+      final scheduleDate = tz.TZDateTime(
+        tz.local,
+        nextDay.year,
+        nextDay.month,
+        nextDay.day,
+        13,
+        37,
+      );
+
+      await notificationsPlugin.zonedSchedule(
+        i,
+        weeklyMessages[i]["title"],
+        weeklyMessages[i]["body"],
+        scheduleDate,
+        notificationDetails(),
+        androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+        matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime,
+      );
+    }
   }
-}
-
 }
