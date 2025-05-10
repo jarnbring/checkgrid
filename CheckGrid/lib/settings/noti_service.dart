@@ -1,7 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:gamename/providers/settings_provider.dart';
-import 'package:provider/provider.dart';
 import 'package:timezone/data/latest_all.dart' as tz show initializeTimeZones;
 import 'package:timezone/timezone.dart' as tz;
 import 'package:flutter_timezone/flutter_timezone.dart';
@@ -52,6 +50,8 @@ class NotiService {
         channelDescription: 'Daily Notification Channel',
         importance: Importance.max,
         priority: Priority.high,
+        playSound: true,
+        enableVibration: true,
       ),
       iOS: DarwinNotificationDetails(),
     );
@@ -60,8 +60,8 @@ class NotiService {
   // SHOW NOTIFICATION
   Future<void> showNotification({
     int id = 0,
-    String? title,
-    String? body,
+    required String title,
+    required String body,
     required SettingsProvider settingsProvider,
   }) async {
     await settingsProvider.loadSettings();

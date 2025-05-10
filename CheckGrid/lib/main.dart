@@ -52,8 +52,10 @@ void main() async {
   await settingsProvider.loadSettings();
 
   // Initialisera NotificationService
-  NotiService().initNotification();
-  NotiService().scheduleWeeklyRotatingNotifications(settingsProvider);
+  final notiService = NotiService();
+
+  await notiService.initNotification();
+  //await notiService.scheduleWeeklyRotatingNotifications(settingsProvider);
 
   runApp(
     MultiProvider(
