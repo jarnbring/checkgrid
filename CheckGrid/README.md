@@ -2,7 +2,7 @@
 
 To do:
 
-    Settings, sound, notifications ------ Testa ifall vibrations funkar! ------
+    Settings, sound, notifications ------ Testa ifall vibrations och notifications funkar! ------
     Difficulties, visa vilken som är aktiv just nu!
     Toggle for white/black chess pieces
     Highscore desgin change?

@@ -63,15 +63,13 @@ class SettingsPageState extends State<SettingsPage> {
                 ElevatedButton(
                   onPressed: () async {
                     NotiService().showNotification(
-                      title: "YOU NEED TO PLAY NOW!!!!",
-                      body:
-                          "T",
-                      settingsProvider: SettingsProvider()
+                      title: "CheckGrid",
+                      body: "We miss you, come back and play!",
+                      settingsProvider: SettingsProvider(),
                     );
                   },
                   child: const Text("Send notification"),
                 ),
-
                 // Send scheduled notification
                 ElevatedButton(
                   onPressed: () async {
@@ -79,9 +77,9 @@ class SettingsPageState extends State<SettingsPage> {
                       title: "We miss you",
                       body:
                           "Come back on and keep highering your personal best!",
-                      hour: 15,
-                      minute: 10,
-                      settingsProvider: SettingsProvider()
+                      hour: 23,
+                      minute: 55,
+                      settingsProvider: SettingsProvider(),
                     );
                   },
                   child: const Text("Send delayed notification"),

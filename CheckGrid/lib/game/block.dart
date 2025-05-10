@@ -7,6 +7,7 @@ class Block {
   Point<int> position;
   bool isActive;
   bool isTargeted;
+  bool isPreview; // Ny egenskap för förhandsvisning
   bool hasPiece;
   PieceType? piece;
   Gradient? gradient;
@@ -16,6 +17,7 @@ class Block {
     required this.position,
     this.isActive = false,
     this.isTargeted = false,
+    this.isPreview = false,
     this.hasPiece = false,
     this.piece,
     this.gradient,
@@ -26,6 +28,7 @@ class Block {
         'position': {'x': position.x, 'y': position.y},
         'isActive': isActive,
         'isTargeted': isTargeted,
+        'isPreview': isPreview,
         'hasPiece': hasPiece,
         'piece': piece?.name,
         'color': fallbackColor?.value,
@@ -38,6 +41,7 @@ class Block {
         ),
         isActive: json['isActive'] as bool,
         isTargeted: json['isTargeted'] as bool,
+        isPreview: json['isPreview'] as bool? ?? false,
         hasPiece: json['hasPiece'] as bool,
         piece: json['piece'] != null
             ? PieceType.values.firstWhere((e) => e.name == json['piece'])
