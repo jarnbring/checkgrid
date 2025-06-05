@@ -4,6 +4,8 @@ To do:
 
     Settings, sound, notifications ------ Testa ifall vibrations och notifications funkar! ------
     Difficulties, visa vilken som är aktiv just nu!
+    Stats? How many pieces you've placed
+    Wave counter?
     Toggle for white/black chess pieces
     Highscore desgin change?
     Responsive UI

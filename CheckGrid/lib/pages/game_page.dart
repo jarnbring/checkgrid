@@ -2,8 +2,9 @@ import 'dart:convert';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:gamename/ads/reward_ad.dart';
 import 'package:gamename/animations/game_animations.dart';
-import 'package:gamename/banner_ad.dart';
+import 'package:gamename/ads/banner_ad.dart';
 import 'package:gamename/components/countdown_loading.dart';
 import 'package:gamename/components/icon_widget.dart';
 import 'package:gamename/game/block.dart';
@@ -36,6 +37,7 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
   Map<Point<int>, List<Block>> targetedCellsMap = {};
   List<Block> previewCells = [];
   bool isReviveShowing = false;
+  bool isGameOver = false;
   BigInt currentScore = BigInt.zero, comboCount = BigInt.zero;
   BigInt latestHighScore = BigInt.zero, displayedHighscore = BigInt.zero;
 
@@ -162,11 +164,12 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
       targetedCellsMap.clear();
       setPieces();
       initKillingCells(_difficulty);
+      previewCells.clear();
       currentScore = BigInt.zero;
       comboCount = BigInt.zero;
       displayedHighscore = latestHighScore;
       isReviveShowing = false;
-      previewCells.clear();
+      isGameOver = false;
     });
   }
 
@@ -342,10 +345,12 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
         if (board[row][col] != null &&
             (row == 6 || row == 7) &&
             board[row][col]!.isActive) {
+          isGameOver = true;
           return true;
         }
       }
     }
+    isGameOver = false;
     return false;
   }
 
@@ -660,8 +665,17 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
               backgroundColor: Colors.transparent,
               insetPadding: EdgeInsets.all(10),
               child: CountdownLoading(
-                onRestart: () {
+                afterAd: () {
+                  board = List.generate(8, (_) => List.filled(8, null));
+                  selectedPiecesPositions.clear();
+                  targetedCellsMap.clear();
+                  setPieces();
+                  initKillingCells(_difficulty);
+                  previewCells.clear();
+                  isGameOver = false;
                   isReviveShowing = false;
+                },
+                onRestart: () {
                   _restartGame();
                 },
                 isReviveShowing: isReviveShowing,
@@ -816,7 +830,6 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
           }),
         );
       } catch (e) {
-        print('Error loading board: $e');
         board = List.generate(8, (_) => List.filled(8, null));
       }
     }
