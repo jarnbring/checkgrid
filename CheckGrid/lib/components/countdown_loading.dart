@@ -6,7 +6,11 @@ class CountdownLoading extends StatefulWidget {
   final VoidCallback onRestart; // Callback för att anropa restartGame
   final bool isReviveShowing; // Kontrollera om revive-dialogen ska visas
 
-  const CountdownLoading({super.key, required this.onRestart, required this.isReviveShowing});
+  const CountdownLoading({
+    super.key,
+    required this.onRestart,
+    required this.isReviveShowing,
+  });
 
   @override
   State<CountdownLoading> createState() => _CountdownLoadingState();
@@ -22,15 +26,17 @@ class _CountdownLoadingState extends State<CountdownLoading> {
     super.initState();
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_counter == 0) {
-        widget.onRestart(); // Anropa restartGame när räknaren är slut
-        Navigator.pop(context); // Stänger dialogrutan eller widgeten
-      }
-      if (_counter > 0) {
+        timer.cancel();
+        if (mounted) {
+          widget.onRestart();
+          if (Navigator.canPop(context)) {
+            Navigator.pop(context);
+          }
+        }
+      } else {
         setState(() {
           _counter--;
         });
-      } else {
-        _timer.cancel();
       }
     });
   }
@@ -43,20 +49,16 @@ class _CountdownLoadingState extends State<CountdownLoading> {
 
   @override
   Widget build(BuildContext context) {
-    if (widget.isReviveShowing) {
-      return SizedBox.shrink();
-    }
-
     return Scaffold(
-      backgroundColor: Colors.transparent,
+      backgroundColor: const Color.fromARGB(153, 0, 0, 0),
       body: Center(
         child: Column(
           children: [
-            const SizedBox(height: 100),
+            const SizedBox(height: 60),
             const Text(
               'Game Over',
               style: TextStyle(
-                fontSize: 30,
+                fontSize: 40,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
               ),
@@ -76,17 +78,21 @@ class _CountdownLoadingState extends State<CountdownLoading> {
                 ),
               ],
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 60),
 
             Container(
-              color: const Color.fromARGB(255, 50, 226, 56),
               width: 200,
+              height: 55,
+              decoration: BoxDecoration(
+                color: const Color.fromARGB(255, 40, 188, 45), // flyttad hit
+                borderRadius: BorderRadius.circular(15),
+              ),
               child: GestureDetector(
                 onTap: () {
-                  if (!_isDialogOpen) {
-                    _isDialogOpen = true; // Markera att dialogen är öppen
-                    widget.onRestart(); // Kalla på callbacken för att starta om spelet
-                    Navigator.pop(context); // Stänger den aktuella dialogrutan
+                  widget
+                      .onRestart(); // Kalla på callbacken för att starta om spelet
+                  if (Navigator.canPop(context)) {
+                    Navigator.pop(context);
                   }
                 },
                 child: Row(
