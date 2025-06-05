@@ -136,24 +136,6 @@ class _MyAppState extends State<MyApp> {
         highlightColor: Colors.transparent,
         hoverColor: Colors.transparent,
         iconTheme: IconThemeData(color: darkmodeBackgroundColor),
-
-        dialogTheme: DialogTheme(
-          backgroundColor: lightmodeBackgroundColor,
-          barrierColor: const Color.fromARGB(196, 0, 0, 0),
-          titleTextStyle: TextStyle(
-            color: lightmodeTextColor,
-            fontSize: 25,
-            fontWeight: FontWeight.bold,
-          ),
-          contentTextStyle: TextStyle(
-            color: lightmodeTextColor,
-            fontWeight:
-                context.watch<SettingsProvider>().isBoldText
-                    ? FontWeight.bold
-                    : FontWeight.normal,
-          ),
-        ),
-
         textTheme: TextTheme(
           bodyMedium: TextStyle(
             color: lightmodeTextColor,
@@ -192,22 +174,6 @@ class _MyAppState extends State<MyApp> {
         highlightColor: Colors.transparent,
         hoverColor: Colors.transparent,
         iconTheme: IconThemeData(color: lightmodeBackgroundColor),
-        dialogTheme: DialogTheme(
-          backgroundColor: dialogColor,
-          barrierColor: const Color.fromARGB(196, 0, 0, 0),
-          titleTextStyle: TextStyle(
-            color: darkmodeTextColor,
-            fontSize: 25,
-            fontWeight: FontWeight.bold,
-          ),
-          contentTextStyle: TextStyle(
-            color: darkmodeTextColor,
-            fontWeight:
-                context.watch<SettingsProvider>().isBoldText
-                    ? FontWeight.bold
-                    : FontWeight.normal,
-          ),
-        ),
         textTheme: TextTheme(
           bodyMedium: TextStyle(
             color: darkmodeTextColor,
