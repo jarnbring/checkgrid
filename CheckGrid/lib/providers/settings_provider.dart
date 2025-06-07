@@ -33,12 +33,9 @@ class SettingsProvider with ChangeNotifier {
       _useGlossEffect = prefs.getBool('useGlossEffect') ?? true;
       _themeMode = _isDarkMode ? ThemeMode.dark : ThemeMode.light;
 
-      print('Loaded settings: isBoldText=$_isBoldText, isDarkMode=$_isDarkMode, '
-          'isVibrationOn=$_isVibrationOn, isSoundOn=$_isSoundOn, '
-          'notificationReminder=$_notificationReminder, useGlossEffect=$_useGlossEffect');
       notifyListeners();
     } catch (e) {
-      print('Error loading settings: $e');
+      debugPrint("Error loading settings: $e");
     }
   }
 
@@ -51,15 +48,15 @@ class SettingsProvider with ChangeNotifier {
       await prefs.setBool('isSoundOn', _isSoundOn);
       await prefs.setBool('notificationReminder', _notificationReminder);
       await prefs.setBool('useGlossEffect', _useGlossEffect);
-      print('Saved settings: isBoldText=$_isBoldText, isDarkMode=$_isDarkMode, '
-          'isVibrationOn=$_isVibrationOn, isSoundOn=$_isSoundOn, '
-          'notificationReminder=$_notificationReminder, useGlossEffect=$_useGlossEffect');
+      print(
+        'Saved settings: isBoldText=$_isBoldText, isDarkMode=$_isDarkMode, '
+        'isVibrationOn=$_isVibrationOn, isSoundOn=$_isSoundOn, '
+        'notificationReminder=$_notificationReminder, useGlossEffect=$_useGlossEffect',
+      );
     } catch (e) {
       print('Error saving settings: $e');
     }
   }
-
-
 
   void setBoldText(bool value) {
     _isBoldText = value;
@@ -98,7 +95,7 @@ class SettingsProvider with ChangeNotifier {
     notifyListeners();
   }
 
-    void toggleGlossEffect() {
+  void toggleGlossEffect() {
     _useGlossEffect = !_useGlossEffect;
     _saveSettings();
     notifyListeners();

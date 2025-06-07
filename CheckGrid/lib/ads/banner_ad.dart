@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:gamename/providers/general_provider.dart';
+import 'package:CheckGrid/providers/general_provider.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:provider/provider.dart';
 
@@ -15,9 +15,10 @@ class _BannerAdWidgetState extends State<BannerAdWidget> {
   BannerAd? _bannerAd;
   bool _isBannerAdLoaded = false;
   AnchoredAdaptiveBannerAdSize? _adSize;
-  final String adUnitId = Platform.isAndroid
-      ? 'ca-app-pub-3940256099942544/9214589741' // Test ID för Android
-      : 'ca-app-pub-3940256099942544/2435281174'; // Test ID för iOS
+  final String adUnitId =
+      Platform.isAndroid
+          ? 'ca-app-pub-3940256099942544/9214589741' // Test ID för Android
+          : 'ca-app-pub-3940256099942544/2435281174'; // Test ID för iOS
 
   @override
   void didChangeDependencies() {
@@ -55,7 +56,9 @@ class _BannerAdWidgetState extends State<BannerAdWidget> {
           });
           // Sätt bannerAdHeight i GeneralProvider när annonsen laddas
           final generalProvider = context.read<GeneralProvider>();
-          generalProvider.setBannerAdHeight(_bannerAd!.size.height.toDouble() + 12.0); // Inkludera marginal
+          generalProvider.setBannerAdHeight(
+            _bannerAd!.size.height.toDouble() + 12.0,
+          ); // Inkludera marginal
         },
         onAdFailedToLoad: (ad, err) {
           debugPrint('BannerAd failed to load: $err');
@@ -84,12 +87,12 @@ class _BannerAdWidgetState extends State<BannerAdWidget> {
   Widget build(BuildContext context) {
     return _bannerAd != null && _isBannerAdLoaded
         ? SafeArea(
-            child: Container(
-              margin: const EdgeInsets.only(bottom: 12.0),
-              height: _bannerAd!.size.height.toDouble(),
-              child: AdWidget(ad: _bannerAd!),
-            ),
-          )
+          child: Container(
+            margin: const EdgeInsets.only(bottom: 12.0),
+            height: _bannerAd!.size.height.toDouble(),
+            child: AdWidget(ad: _bannerAd!),
+          ),
+        )
         : const SizedBox.shrink();
   }
 }

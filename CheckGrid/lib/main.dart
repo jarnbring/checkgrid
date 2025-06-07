@@ -5,10 +5,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:gamename/pages/menu_page.dart';
-import 'package:gamename/providers/general_provider.dart';
-import 'package:gamename/providers/settings_provider.dart';
-import 'package:gamename/settings/noti_service.dart';
+import 'package:CheckGrid/pages/menu_page.dart';
+import 'package:CheckGrid/providers/general_provider.dart';
+import 'package:CheckGrid/providers/settings_provider.dart';
+import 'package:CheckGrid/router.dart';
+import 'package:CheckGrid/settings/noti_service.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:provider/provider.dart';
 
@@ -41,13 +42,13 @@ void main() async {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Konfigurera MobileAds
+  // Configure MobileAds
   MobileAds.instance.updateRequestConfiguration(
     RequestConfiguration(testDeviceIds: ['EMULATOR']),
   );
   await MobileAds.instance.initialize();
 
-  // Skapa SettingsProvider och vänta på att inställningarna laddas
+  // Load settings
   final settingsProvider = SettingsProvider();
   await settingsProvider.loadSettings();
 
@@ -107,7 +108,8 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     setOrientations();
 
-    return MaterialApp(
+    return MaterialApp.router(
+      routerConfig: router,
       theme: ThemeData(
         appBarTheme: AppBarTheme(
           iconTheme: IconThemeData(color: lightmodeTextColor),
@@ -118,6 +120,16 @@ class _MyAppState extends State<MyApp> {
                 context.watch<SettingsProvider>().isBoldText
                     ? FontWeight.bold
                     : FontWeight.normal,
+          ),
+        ),
+        menuTheme: MenuThemeData(
+          style: MenuStyle(
+            backgroundColor: WidgetStatePropertyAll(
+              const Color.fromARGB(255, 68, 68, 68),
+            ),
+            shape: WidgetStatePropertyAll(
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
           ),
         ),
         listTileTheme: ListTileThemeData(
@@ -158,6 +170,16 @@ class _MyAppState extends State<MyApp> {
                     : FontWeight.normal,
           ),
         ),
+        menuTheme: MenuThemeData(
+          style: MenuStyle(
+            backgroundColor: WidgetStatePropertyAll(
+              const Color.fromARGB(255, 200, 200, 200),
+            ),
+            shape: WidgetStatePropertyAll(
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+          ),
+        ),
         listTileTheme: ListTileThemeData(
           titleTextStyle: TextStyle(
             color: darkmodeTextColor,
@@ -185,7 +207,6 @@ class _MyAppState extends State<MyApp> {
         ),
       ),
       themeMode: context.watch<SettingsProvider>().themeMode,
-      home: MenuPage(),
     );
   }
 }

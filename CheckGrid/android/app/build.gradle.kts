@@ -10,7 +10,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.gamename"
+    namespace = "com.example.CheckGrid"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = "27.0.12077973"
 
@@ -25,7 +25,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.example.gamename"
+        applicationId = "com.example.CheckGrid"
         minSdk = 23
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode

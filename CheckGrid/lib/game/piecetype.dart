@@ -1,28 +1,55 @@
 import 'package:flame/image_composition.dart';
-import 'package:gamename/game/move_pattern.dart';
+import 'package:CheckGrid/game/move_pattern.dart';
 
 enum PieceType { king, queen, rook, bishop, knight, pawn }
 
 extension PieceProperties on PieceType {
-
   MovePattern get movementPattern {
     switch (this) {
       case PieceType.king:
         return MovePattern(
-          directions: [Direction.up, Direction.down, Direction.left, Direction.right, Direction.upLeft, Direction.upRight, Direction.downLeft, Direction.downRight],
+          directions: [
+            Direction.up,
+            Direction.down,
+            Direction.left,
+            Direction.right,
+            Direction.upLeft,
+            Direction.upRight,
+            Direction.downLeft,
+            Direction.downRight,
+          ],
           canMoveMultipleSquares: false,
         );
       case PieceType.queen:
         return MovePattern(
-          directions: [Direction.up, Direction.down, Direction.left, Direction.right, Direction.upLeft, Direction.upRight, Direction.downLeft, Direction.downRight],
+          directions: [
+            Direction.up,
+            Direction.down,
+            Direction.left,
+            Direction.right,
+            Direction.upLeft,
+            Direction.upRight,
+            Direction.downLeft,
+            Direction.downRight,
+          ],
         );
       case PieceType.rook:
         return MovePattern(
-          directions: [Direction.up, Direction.down, Direction.left, Direction.right],
+          directions: [
+            Direction.up,
+            Direction.down,
+            Direction.left,
+            Direction.right,
+          ],
         );
       case PieceType.bishop:
         return MovePattern(
-          directions: [Direction.upLeft, Direction.upRight, Direction.downLeft, Direction.downRight],
+          directions: [
+            Direction.upLeft,
+            Direction.upRight,
+            Direction.downLeft,
+            Direction.downRight,
+          ],
         );
       case PieceType.knight:
         return MovePattern(
@@ -59,12 +86,15 @@ extension DirectionMovement on Direction {
         return [Offset(1, 1)];
       case Direction.knightLShape:
         return [
-          Offset(2, 1), Offset(2, -1), Offset(-2, 1), Offset(-2, -1), 
-          Offset(1, 2), Offset(1, -2), Offset(-1, 2), Offset(-1, -2)
+          Offset(2, 1),
+          Offset(2, -1),
+          Offset(-2, 1),
+          Offset(-2, -1),
+          Offset(1, 2),
+          Offset(1, -2),
+          Offset(-1, 2),
+          Offset(-1, -2),
         ];
     }
   }
 }
-
-
-

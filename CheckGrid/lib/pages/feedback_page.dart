@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:gamename/components/photopicker.dart';
-import 'package:gamename/components/textfield.dart';
-import 'package:gamename/providers/general_provider.dart';
+import 'package:CheckGrid/components/photopicker.dart';
+import 'package:CheckGrid/components/textfield.dart';
+import 'package:CheckGrid/providers/general_provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
@@ -12,7 +12,8 @@ class FeedbackPage extends StatefulWidget {
   State<FeedbackPage> createState() => _FeedbackPageState();
 }
 
-class _FeedbackPageState extends State<FeedbackPage> with TickerProviderStateMixin {
+class _FeedbackPageState extends State<FeedbackPage>
+    with TickerProviderStateMixin {
   // Controllers
   final TextEditingController _emailController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
@@ -41,12 +42,10 @@ class _FeedbackPageState extends State<FeedbackPage> with TickerProviderStateMix
         duration: const Duration(milliseconds: 300),
       );
       _animationControllers[title] = controller;
-      _scaleAnimations[title] = Tween<double>(begin: 1.0, end: 1.5).animate(
-        CurvedAnimation(
-          parent: controller,
-          curve: Curves.easeInOut,
-        ),
-      );
+      _scaleAnimations[title] = Tween<double>(
+        begin: 1.0,
+        end: 1.5,
+      ).animate(CurvedAnimation(parent: controller, curve: Curves.easeInOut));
     }
   }
 
@@ -183,7 +182,9 @@ class _FeedbackPageState extends State<FeedbackPage> with TickerProviderStateMix
           // Set the tapped item to true
           _selectedItems[title] = true;
           if (animationController != null) {
-            animationController.forward().then((_) => animationController.reverse());
+            animationController.forward().then(
+              (_) => animationController.reverse(),
+            );
           }
         });
       },
@@ -268,7 +269,9 @@ class _FeedbackPageState extends State<FeedbackPage> with TickerProviderStateMix
                       child: ElevatedButton(
                         onPressed: () {
                           if (_formKey.currentState!.validate()) {
-                            print("Feedback submitted: ${_emailController.text}");
+                            print(
+                              "Feedback submitted: ${_emailController.text}",
+                            );
                           }
                         },
                         child: Text(

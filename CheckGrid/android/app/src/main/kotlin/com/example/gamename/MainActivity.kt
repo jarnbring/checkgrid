@@ -1,4 +1,4 @@
-package com.example.gamename
+package com.example.CheckGrid
 
 import io.flutter.embedding.android.FlutterActivity
 
