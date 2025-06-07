@@ -5,8 +5,6 @@ class GeneralProvider with ChangeNotifier {
   double _bannerAdHeight = 90.0;
   double fontSizeInAppbar = 20.0;
 
-  get fontSize => 20.0; 
-
   String getUserCurrencyCode(BuildContext context) {
     final locale = Localizations.localeOf(context);
     // Mappa landskod till valutakod (enkel mappning, utöka vid behov)
@@ -38,8 +36,8 @@ class GeneralProvider with ChangeNotifier {
   }
 
   bool isTablet(BuildContext context) {
-  return MediaQuery.of(context).size.shortestSide >= 600;
-}
+    return MediaQuery.of(context).size.shortestSide >= 600;
+  }
 
   double getBannerAdHeight() {
     return _bannerAdHeight;
@@ -49,4 +47,11 @@ class GeneralProvider with ChangeNotifier {
     _bannerAdHeight = height;
     notifyListeners();
   }
+
+  // General constants
+  final double iconSize = 50.0;
+  final int boardSize = 8;
+
+  // Game constants
+  final int comboRequirement = 6;
 }

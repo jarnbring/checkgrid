@@ -90,12 +90,12 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "com.example" "\0"
-            VALUE "FileDescription", "gamename" "\0"
+            VALUE "FileDescription", "CheckGrid" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "gamename" "\0"
+            VALUE "InternalName", "CheckGrid" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2025 com.example. All rights reserved." "\0"
-            VALUE "OriginalFilename", "gamename.exe" "\0"
-            VALUE "ProductName", "gamename" "\0"
+            VALUE "OriginalFilename", "CheckGrid.exe" "\0"
+            VALUE "ProductName", "CheckGrid" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

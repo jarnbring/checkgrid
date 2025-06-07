@@ -2,17 +2,15 @@ import 'dart:convert';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:gamename/ads/reward_ad.dart';
-import 'package:gamename/animations/game_animations.dart';
-import 'package:gamename/ads/banner_ad.dart';
-import 'package:gamename/components/countdown_loading.dart';
-import 'package:gamename/components/icon_widget.dart';
-import 'package:gamename/game/block.dart';
-import 'package:gamename/game/difficulty.dart';
-import 'package:gamename/game/piecetype.dart';
-import 'package:gamename/providers/general_provider.dart';
-import 'package:gamename/providers/settings_provider.dart';
-import 'package:gamename/settings/settings_page.dart';
+import 'package:CheckGrid/animations/game_animations.dart';
+import 'package:CheckGrid/ads/banner_ad.dart';
+import 'package:CheckGrid/components/countdown_loading.dart';
+import 'package:CheckGrid/components/icon_widget.dart';
+import 'package:CheckGrid/game/block.dart';
+import 'package:CheckGrid/game/difficulty.dart';
+import 'package:CheckGrid/game/piecetype.dart';
+import 'package:CheckGrid/providers/settings_provider.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -25,21 +23,24 @@ class GamePage extends StatefulWidget {
 }
 
 class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
-  List<List<Block?>> board = List.generate(8, (_) => List.filled(8, null));
-  List<PieceType> selectedPieces = [];
   late GameAnimations _animations;
-  bool useGlossEffect = false;
+  late bool useGlossEffect;
 
   final imageWidth = 50.0, imageHeight = 50.0;
   final boardWidth = 8, boardHeight = 8, comboRequirement = 6;
 
+  // Initialize an empty board and pieces
+  List<List<Block?>> board = List.generate(8, (_) => List.filled(8, null));
+  List<PieceType> selectedPieces = [];
   List<Point<int>> selectedPiecesPositions = [];
   Map<Point<int>, List<Block>> targetedCellsMap = {};
   List<Block> previewCells = [];
-  bool isReviveShowing = false;
-  bool isGameOver = false;
+
   BigInt currentScore = BigInt.zero, comboCount = BigInt.zero;
   BigInt latestHighScore = BigInt.zero, displayedHighscore = BigInt.zero;
+
+  bool isReviveShowing = false;
+  bool isGameOver = false;
 
   Difficulty _difficulty = Difficulty.normal;
 
@@ -74,6 +75,7 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
   void update() {
     if (loseCondition()) return;
     setState(() {
+      // Updating colors
       for (var row = 0; row < boardHeight; row++) {
         for (var col = 0; col < boardWidth; col++) {
           final cell = board[row][col];
@@ -182,10 +184,7 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
   }
 
   void initKillingCells(Difficulty difficulty) {
-    assert(
-      difficulty.spawnRate >= 0.0 && difficulty.spawnRate <= 1.0,
-      'spawnChance must be between 0.0 and 1.0',
-    );
+    assert(difficulty.spawnRate >= 0.0 && difficulty.spawnRate <= 1.0);
     int newRows = 2;
     if (difficulty == Difficulty.max) {
       newRows = 3;
@@ -379,8 +378,9 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
     }
   }
 
-  Widget _buildSelectedPieces(bool isLandscape, double pad) {
+  Widget _buildSelectedPieces() {
     const iconSize = 75.0;
+    const extraVisualOffset = Offset(0, -20);
     return Container(
       width: 250,
       height: iconSize + 28,
@@ -463,42 +463,77 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children:
                             selectedPieces.map((p) {
+                              Offset? dragStartLocalPosition;
+
                               return Flexible(
-                                child: Draggable<PieceType>(
-                                  data: p,
-                                  feedback: Image.asset(
-                                    'assets/images/white_${p.name}.png',
-                                    width: imageWidth + 10,
-                                    height: imageHeight + 10,
-                                  ),
-                                  feedbackOffset: Offset(
-                                    -imageWidth / 6,
-                                    -imageHeight / 6,
-                                  ),
-                                  childWhenDragging: Opacity(
-                                    opacity: 0.2,
-                                    child: Image.asset(
-                                      'assets/images/white_${p.name}.png',
-                                      width: iconSize,
-                                      height: iconSize,
-                                    ),
-                                  ),
-                                  onDragEnd: (d) {
-                                    setState(() {
-                                      for (var block in previewCells) {
-                                        block.isPreview = false;
-                                      }
-                                      previewCells.clear();
-                                      if (d.wasAccepted) {
-                                        selectedPieces.remove(p);
-                                      }
-                                    });
+                                child: StatefulBuilder(
+                                  builder: (context, setLocalState) {
+                                    return GestureDetector(
+                                      onPanStart: (details) {
+                                        setLocalState(() {
+                                          dragStartLocalPosition =
+                                              details.localPosition;
+                                        });
+                                      },
+                                      onPanEnd: (_) {
+                                        setLocalState(() {
+                                          dragStartLocalPosition = null;
+                                        });
+                                      },
+                                      child: Draggable<PieceType>(
+                                        data: p,
+                                        feedback:
+                                            dragStartLocalPosition == null
+                                                ? Image.asset(
+                                                  'assets/images/white_${p.name}.png',
+                                                  width: imageWidth,
+                                                  height: imageHeight,
+                                                )
+                                                : Transform.translate(
+                                                  offset:
+                                                      -dragStartLocalPosition! +
+                                                      extraVisualOffset,
+                                                  child: Image.asset(
+                                                    'assets/images/white_${p.name}.png',
+                                                    width: imageWidth,
+                                                    height: imageHeight,
+                                                  ),
+                                                ),
+                                        feedbackOffset:
+                                            dragStartLocalPosition == null
+                                                ? Offset.zero
+                                                : -dragStartLocalPosition! +
+                                                    extraVisualOffset,
+                                        childWhenDragging: Opacity(
+                                          opacity: 0.2,
+                                          child: Image.asset(
+                                            'assets/images/white_${p.name}.png',
+                                            width: iconSize,
+                                            height: iconSize,
+                                          ),
+                                        ),
+                                        onDragEnd: (d) {
+                                          setState(() {
+                                            for (var block in previewCells) {
+                                              block.isPreview = false;
+                                            }
+                                            previewCells.clear();
+                                            if (d.wasAccepted) {
+                                              selectedPieces.remove(p);
+                                            }
+                                          });
+                                          setLocalState(() {
+                                            dragStartLocalPosition = null;
+                                          });
+                                        },
+                                        child: Image.asset(
+                                          'assets/images/white_${p.name}.png',
+                                          width: iconSize,
+                                          height: iconSize,
+                                        ),
+                                      ),
+                                    );
                                   },
-                                  child: Image.asset(
-                                    'assets/images/white_${p.name}.png',
-                                    width: iconSize,
-                                    height: iconSize,
-                                  ),
                                 ),
                               );
                             }).toList(),
@@ -508,16 +543,10 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildPlayArea(bool isTablet, bool isLandscape, double pad) {
-    final settingsProvider = Provider.of<SettingsProvider>(context);
-
+  Widget _buildPlayArea() {
     return Padding(
-      padding:
-          isLandscape
-              ? EdgeInsets.symmetric(horizontal: pad)
-              : isTablet
-              ? const EdgeInsets.symmetric(horizontal: 100, vertical: 20)
-              : const EdgeInsets.symmetric(horizontal: 40, vertical: 20),
+      padding: EdgeInsets.symmetric(horizontal: 40),
+
       child: GridView.builder(
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
@@ -575,7 +604,7 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
               });
             },
             builder:
-                (_, __, ___) => AnimatedBuilder(
+                (_, _, _) => AnimatedBuilder(
                   animation:
                       useGlossEffect
                           ? _animations.glossAnimation
@@ -655,32 +684,29 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
 
   void _showLoseDialogSafe() {
     if (!isReviveShowing && mounted) {
-      isReviveShowing = true; // <–– Blockera fler dialoger direkt
+      isReviveShowing = true;
 
-      showDialog(
+      showGeneralDialog(
         context: context,
         barrierDismissible: false,
-        builder:
-            (_) => Dialog(
-              backgroundColor: Colors.transparent,
-              insetPadding: EdgeInsets.all(10),
-              child: CountdownLoading(
-                afterAd: () {
-                  board = List.generate(8, (_) => List.filled(8, null));
-                  selectedPiecesPositions.clear();
-                  targetedCellsMap.clear();
-                  setPieces();
-                  initKillingCells(_difficulty);
-                  previewCells.clear();
-                  isGameOver = false;
-                  isReviveShowing = false;
-                },
-                onRestart: () {
-                  _restartGame();
-                },
-                isReviveShowing: isReviveShowing,
-              ),
-            ),
+        barrierColor: Colors.black54,
+        transitionDuration: const Duration(milliseconds: 500),
+        pageBuilder: (_, _, _) {
+          return CountdownLoading(
+            afterAd: () {
+              board = List.generate(8, (_) => List.filled(8, null));
+              selectedPiecesPositions.clear();
+              targetedCellsMap.clear();
+              setPieces();
+              initKillingCells(_difficulty);
+              previewCells.clear();
+              isGameOver = false;
+              isReviveShowing = false;
+            },
+            onRestart: _restartGame,
+            isReviveShowing: isReviveShowing,
+          );
+        },
       ).then((_) {
         isReviveShowing = false;
       });
@@ -847,7 +873,7 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
                 )
                 .toList();
       } catch (e) {
-        print('Error loading selected pieces: $e');
+        debugPrint('Error loading selected pieces: $e');
         selectedPieces = [];
       }
     } else {
@@ -869,7 +895,7 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
                 .map((p) => Point<int>(p['x'] as int, p['y'] as int))
                 .toList();
       } catch (e) {
-        print('Error loading selected pieces positions: $e');
+        debugPrint('Error loading selected pieces positions: $e');
         selectedPiecesPositions = [];
       }
     }
@@ -898,7 +924,6 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
           }
         }
       } catch (e) {
-        print('Error loading targeted cells map: $e');
         targetedCellsMap = {};
       }
     }
@@ -909,7 +934,7 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
         final List<dynamic> previewData = jsonDecode(previewJson);
         previewCells = previewData.map((json) => Block.fromJson(json)).toList();
       } catch (e) {
-        print('Error loading preview cells: $e');
+        debugPrint('Error loading preview cells: $e');
         previewCells = [];
       }
     }
@@ -923,18 +948,6 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     useGlossEffect = context.watch<SettingsProvider>().useGlossEffect;
 
-    final gen = context.watch<GeneralProvider>();
-    final w = gen.getScreenWidth(context);
-    final pad = w * 0.3125;
-    final isTablet = gen.isTablet(context),
-        isLandscape = gen.getLandscapeMode(context);
-
-    final generalProvider = context.watch<GeneralProvider>();
-    double bannerAdHeight = generalProvider.getBannerAdHeight();
-    double screenHeight =
-        generalProvider.getScreenHeight(context) - bannerAdHeight;
-    double scaleFactorHeight = 13.3;
-
     if (loseCondition() && !isReviveShowing) {
       Future.delayed(const Duration(milliseconds: 100), _showLoseDialogSafe);
     }
@@ -944,22 +957,16 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () async {
-            await _saveGameState();
-            Navigator.of(context).pop();
+            _saveGameState().then((_) {
+              if (!mounted) return;
+              context.goNamed('/menu');
+            });
           },
         ),
         centerTitle: true,
         title: const Text("CheckGrid", style: TextStyle(fontSize: 34)),
         actions: [
           MenuAnchor(
-            style: MenuStyle(
-              backgroundColor: WidgetStatePropertyAll(
-                const Color.fromARGB(255, 213, 213, 213),
-              ),
-              shape: WidgetStatePropertyAll(
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-              ),
-            ),
             builder:
                 (context, controller, child) => IconButton(
                   icon: const Icon(Icons.settings),
@@ -980,11 +987,7 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
               ),
               MenuItemButton(
                 onPressed: () async {
-                  await Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => SettingsPage()),
-                  );
-                  update();
+                  context.pushNamed("/settings").then((_) => update());
                 },
                 child: const Text('Settings'),
               ),
@@ -1002,13 +1005,14 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            SizedBox(height: screenHeight / scaleFactorHeight * 0.2),
+            SizedBox(height: 20),
             _buildScore(),
-            SizedBox(height: screenHeight / scaleFactorHeight * 0.2),
-            _buildPlayArea(isTablet, isLandscape, pad),
+            SizedBox(height: 20),
+            _buildPlayArea(),
+            SizedBox(height: 20),
             _buildScoreAndCombo(),
-            SizedBox(height: screenHeight / scaleFactorHeight * 0.5),
-            _buildSelectedPieces(isLandscape, pad),
+            SizedBox(height: 20),
+            _buildSelectedPieces(),
           ],
         ),
       ),

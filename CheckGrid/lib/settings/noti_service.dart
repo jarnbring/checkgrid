@@ -1,5 +1,5 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:gamename/providers/settings_provider.dart';
+import 'package:CheckGrid/providers/settings_provider.dart';
 import 'package:timezone/data/latest_all.dart' as tz show initializeTimeZones;
 import 'package:timezone/timezone.dart' as tz;
 import 'package:flutter_timezone/flutter_timezone.dart';

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:gamename/providers/general_provider.dart';
+import 'package:CheckGrid/providers/general_provider.dart';
 import 'package:provider/provider.dart';
 
 class StorePage extends StatefulWidget {
@@ -54,7 +54,9 @@ class _StorePageState extends State<StorePage> {
           },
           style: ElevatedButton.styleFrom(
             padding: EdgeInsets.zero,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
             backgroundColor: Colors.transparent,
             elevation: 0,
           ),
@@ -62,9 +64,10 @@ class _StorePageState extends State<StorePage> {
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(20),
               gradient: LinearGradient(
-                colors: isHighlighted
-                    ? [Colors.orange, Colors.red]
-                    : [Colors.lightGreen, Colors.green],
+                colors:
+                    isHighlighted
+                        ? [Colors.orange, Colors.red]
+                        : [Colors.lightGreen, Colors.green],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -79,7 +82,11 @@ class _StorePageState extends State<StorePage> {
                     children: [
                       Row(
                         children: [
-                          Icon(icon, color: Colors.white, size: isTablet ? 28 : 24),
+                          Icon(
+                            icon,
+                            color: Colors.white,
+                            size: isTablet ? 28 : 24,
+                          ),
                           const SizedBox(width: 8),
                           Text(
                             title,
@@ -132,12 +139,7 @@ class _StorePageState extends State<StorePage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          "Store",
-          style: TextStyle(
-            fontSize: isTablet ? 26 : 22,
-          ),
-        ),
+        title: Text("Store", style: TextStyle(fontSize: isTablet ? 26 : 22)),
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -183,7 +185,6 @@ class _StorePageState extends State<StorePage> {
                           isTablet: isTablet,
                           discountText: "Enjoy ad-free gaming!",
                         ),
-                        
                       ],
                     ),
                   ],

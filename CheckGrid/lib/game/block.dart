@@ -1,7 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:gamename/game/piecetype.dart';
+import 'package:CheckGrid/game/piecetype.dart';
 
 class Block {
   Point<int> position;
@@ -25,29 +25,30 @@ class Block {
   });
 
   Map<String, dynamic> toJson() => {
-        'position': {'x': position.x, 'y': position.y},
-        'isActive': isActive,
-        'isTargeted': isTargeted,
-        'isPreview': isPreview,
-        'hasPiece': hasPiece,
-        'piece': piece?.name,
-        'color': fallbackColor?.value,
-      };
+    'position': {'x': position.x, 'y': position.y},
+    'isActive': isActive,
+    'isTargeted': isTargeted,
+    'isPreview': isPreview,
+    'hasPiece': hasPiece,
+    'piece': piece?.name,
+    'color': fallbackColor?.value,
+  };
 
   factory Block.fromJson(Map<String, dynamic> json) => Block(
-        position: Point<int>(
-          json['position']['x'] as int,
-          json['position']['y'] as int,
-        ),
-        isActive: json['isActive'] as bool,
-        isTargeted: json['isTargeted'] as bool,
-        isPreview: json['isPreview'] as bool? ?? false,
-        hasPiece: json['hasPiece'] as bool,
-        piece: json['piece'] != null
+    position: Point<int>(
+      json['position']['x'] as int,
+      json['position']['y'] as int,
+    ),
+    isActive: json['isActive'] as bool,
+    isTargeted: json['isTargeted'] as bool,
+    isPreview: json['isPreview'] as bool? ?? false,
+    hasPiece: json['hasPiece'] as bool,
+    piece:
+        json['piece'] != null
             ? PieceType.values.firstWhere((e) => e.name == json['piece'])
             : null,
-        fallbackColor: json['color'] != null ? Color(json['color'] as int) : null,
-      );
+    fallbackColor: json['color'] != null ? Color(json['color'] as int) : null,
+  );
 }
 
 class GlossyBlockPainter extends CustomPainter {
@@ -65,7 +66,9 @@ class GlossyBlockPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final paint = Paint();
     if (gradient != null) {
-      paint.shader = gradient!.createShader(Rect.fromLTWH(0, 0, size.width, size.height));
+      paint.shader = gradient!.createShader(
+        Rect.fromLTWH(0, 0, size.width, size.height),
+      );
     } else if (fallbackColor != null) {
       paint.color = fallbackColor!;
     } else {
@@ -80,9 +83,10 @@ class GlossyBlockPainter extends CustomPainter {
     canvas.drawRRect(rect, paint);
 
     if (gradient != null) {
-      final glossPaint = Paint()
-        ..color = Colors.white.withOpacity(0.4)
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5);
+      final glossPaint =
+          Paint()
+            ..color = Colors.white.withOpacity(0.4)
+            ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5);
       canvas.drawCircle(
         Offset(size.width * glossPosition, size.height * glossPosition),
         size.width * 0.2,

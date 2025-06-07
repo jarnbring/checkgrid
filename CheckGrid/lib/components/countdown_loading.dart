@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
-import 'package:gamename/ads/reward_ad.dart';
+import 'package:CheckGrid/ads/reward_ad.dart';
 
 class CountdownLoading extends StatefulWidget {
   final VoidCallback onRestart; // Callback för att anropa restartGame
@@ -63,77 +63,82 @@ class _CountdownLoadingState extends State<CountdownLoading> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color.fromARGB(153, 0, 0, 0),
-      body: Center(
-        child: Column(
-          children: [
-            const SizedBox(height: 60),
-            const Text(
-              'Game Over',
-              style: TextStyle(
-                fontSize: 40,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-            ),
-            const SizedBox(height: 50),
-            Stack(
-              alignment: Alignment.center,
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        color: const Color.fromARGB(153, 0, 0, 0),
+        child: Center(
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const SpinKitDoubleBounce(color: Colors.blue, size: 250.0),
-                Text(
-                  '$_counter',
-                  style: const TextStyle(
-                    fontSize: 50,
+                const Text(
+                  'Game Over',
+                  style: TextStyle(
+                    fontSize: 40,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
                   ),
                 ),
-              ],
-            ),
-            const SizedBox(height: 60),
-            Container(
-              width: 200,
-              height: 55,
-              decoration: BoxDecoration(
-                color: const Color.fromARGB(255, 40, 188, 45),
-                borderRadius: BorderRadius.circular(15),
-              ),
-              child: GestureDetector(
-                onTap: () {
-                  isAdBeingShown =
-                      true; // STOPPA timern från att trigga restartGame
-
-                  _rewardedAdService.showAd(
-                    onUserEarnedReward: () {
-                      hasRevived = true;
-                      widget.afterAd();
-                      if (Navigator.canPop(context)) {
-                        Navigator.pop(context);
-                      }
-                    },
-                    onAdDismissed: () {
-                      if (!hasRevived) {
-                        widget.onRestart();
-                      }
-                      setState(() {
-                        _isDialogOpen = false;
-                      });
-                    },
-                  );
-                },
-                child: const Center(
-                  child: Text(
-                    "Revive?",
-                    style: TextStyle(
-                      fontSize: 30,
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
+                const SizedBox(height: 50),
+                Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    const SpinKitDoubleBounce(color: Colors.blue, size: 250.0),
+                    Text(
+                      '$_counter',
+                      style: const TextStyle(
+                        fontSize: 50,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 60),
+                GestureDetector(
+                  onTap: () {
+                    isAdBeingShown = true;
+                    _rewardedAdService.showAd(
+                      onUserEarnedReward: () {
+                        hasRevived = true;
+                        widget.afterAd();
+                        if (Navigator.canPop(context)) {
+                          Navigator.pop(context);
+                        }
+                      },
+                      onAdDismissed: () {
+                        if (!hasRevived) {
+                          widget.onRestart();
+                        }
+                        setState(() {
+                          _isDialogOpen = false;
+                        });
+                      },
+                    );
+                  },
+                  child: Container(
+                    width: 200,
+                    height: 55,
+                    decoration: BoxDecoration(
+                      color: const Color.fromARGB(255, 40, 188, 45),
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    child: const Center(
+                      child: Text(
+                        "Revive?",
+                        style: TextStyle(
+                          fontSize: 30,
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
                   ),
                 ),
-              ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
