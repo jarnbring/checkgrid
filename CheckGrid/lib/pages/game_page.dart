@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:math';
+import 'package:CheckGrid/providers/general_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:CheckGrid/animations/game_animations.dart';
@@ -714,13 +715,83 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
   }
 
   void _showDifficultyDialog(BuildContext context) {
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: "Dismiss",
+      barrierColor: Colors.black54, // bakgrundsfärg bakom dialogen
+      transitionDuration: Duration(milliseconds: 300),
+      pageBuilder: (context, animation, secondaryAnimation) {
+        return GestureDetector(
+          onTap:
+              () =>
+                  Navigator.of(context).pop(), // stäng när man trycker utanför
+          child: Scaffold(
+            backgroundColor: Colors.transparent,
+            body: Center(
+              child: GestureDetector(
+                onTap:
+                    () {}, // stoppa propagation så att rutan inte stänger själv
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Container(
+                      height: 350,
+                      width: 250,
+                      decoration: BoxDecoration(
+                        color: Color.fromARGB(255, 41, 107, 161),
+                        borderRadius: BorderRadius.circular(15),
+                        border: Border.all(width: 4, color: Colors.black),
+                      ),
+                    ),
+                    Positioned(
+                      top: -37.5,
+                      left: (250 - 75) / 2,
+                      child: Image.asset(
+                        'assets/images/difficulty.png',
+                        width: 75,
+                        height: 75,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+      transitionBuilder: (context, animation, secondaryAnimation, child) {
+        final curved = CurvedAnimation(
+          parent: animation,
+          curve: Curves.easeOut, // ingen studs
+          reverseCurve: Curves.easeIn,
+        );
+        return ScaleTransition(
+          scale: Tween<double>(begin: 0.7, end: 1.0).animate(curved),
+          child: FadeTransition(opacity: animation, child: child),
+        );
+      },
+    );
+  }
+
+  void _showDifficultyDialog1(BuildContext context) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
           title: Row(
             mainAxisAlignment: MainAxisAlignment.center,
-            children: [Text('Choose Difficulty', style: TextStyle())],
+            children: [
+              Text(
+                'Choose Difficulty',
+                style: TextStyle(
+                  color:
+                      context.watch<SettingsProvider>().isDarkMode
+                          ? Colors.white
+                          : const Color.fromARGB(255, 39, 39, 39),
+                ),
+              ),
+            ],
           ),
           content: Container(
             constraints: BoxConstraints(maxHeight: 300),

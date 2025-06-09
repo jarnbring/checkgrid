@@ -64,7 +64,7 @@ class SettingsPageState extends State<SettingsPage> {
                   onPressed: () async {
                     NotiService().showNotification(
                       title: "CheckGrid",
-                      body: "We miss you, come back and play!",
+                      body: "Come back baby, I miss you <3",
                       settingsProvider: SettingsProvider(),
                     );
                   },

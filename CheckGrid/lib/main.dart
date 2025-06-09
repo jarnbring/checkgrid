@@ -122,6 +122,7 @@ class _MyAppState extends State<MyApp> {
                     : FontWeight.normal,
           ),
         ),
+        dialogTheme: DialogThemeData(backgroundColor: lightmodeBackgroundColor),
         menuTheme: MenuThemeData(
           style: MenuStyle(
             backgroundColor: WidgetStatePropertyAll(
@@ -170,6 +171,7 @@ class _MyAppState extends State<MyApp> {
                     : FontWeight.normal,
           ),
         ),
+        dialogTheme: DialogThemeData(backgroundColor: darkmodeBackgroundColor),
         menuTheme: MenuThemeData(
           style: MenuStyle(
             backgroundColor: WidgetStatePropertyAll(
