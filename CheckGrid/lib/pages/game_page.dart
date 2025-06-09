@@ -43,7 +43,8 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
   bool isReviveShowing = false;
   bool isGameOver = false;
 
-  Difficulty _difficulty = Difficulty.normal;
+  Difficulty _difficulty = Difficulty.medium;
+  bool isGreen = false;
 
   @override
   void initState() {
@@ -187,7 +188,7 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
   void initKillingCells(Difficulty difficulty) {
     assert(difficulty.spawnRate >= 0.0 && difficulty.spawnRate <= 1.0);
     int newRows = 2;
-    if (difficulty == Difficulty.max) {
+    if (difficulty == Difficulty.hard) {
       newRows = 3;
     }
     final rng = Random();
@@ -715,40 +716,158 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
   }
 
   void _showDifficultyDialog(BuildContext context) {
+    Difficulty selectedDifficulty = _difficulty;
+
     showGeneralDialog(
       context: context,
       barrierDismissible: true,
       barrierLabel: "Dismiss",
-      barrierColor: Colors.black54, // bakgrundsfärg bakom dialogen
+      barrierColor: Colors.black54,
       transitionDuration: Duration(milliseconds: 300),
       pageBuilder: (context, animation, secondaryAnimation) {
         return GestureDetector(
-          onTap:
-              () =>
-                  Navigator.of(context).pop(), // stäng när man trycker utanför
+          onTap: () => Navigator.of(context).pop(),
           child: Scaffold(
             backgroundColor: Colors.transparent,
             body: Center(
               child: GestureDetector(
-                onTap:
-                    () {}, // stoppa propagation så att rutan inte stänger själv
+                onTap: () {},
                 child: Stack(
                   clipBehavior: Clip.none,
                   children: [
-                    Container(
-                      height: 350,
-                      width: 250,
-                      decoration: BoxDecoration(
-                        color: Color.fromARGB(255, 41, 107, 161),
-                        borderRadius: BorderRadius.circular(15),
-                        border: Border.all(width: 4, color: Colors.black),
-                      ),
+                    StatefulBuilder(
+                      builder: (context, setState) {
+                        return Container(
+                          height: 350,
+                          width: 250,
+                          decoration: BoxDecoration(
+                            color: Color.fromARGB(255, 41, 107, 161),
+                            borderRadius: BorderRadius.circular(15),
+                            border: Border.all(
+                              width: 4,
+                              color: const Color.fromARGB(255, 124, 137, 154),
+                            ),
+                          ),
+                          child: Center(
+                            child: Padding(
+                              padding: EdgeInsets.all(20),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  SizedBox(height: 20),
+                                  Text(
+                                    "Choose Difficulty",
+                                    style: TextStyle(fontSize: 20),
+                                  ),
+                                  SizedBox(height: 10),
+                                  Text.rich(
+                                    TextSpan(
+                                      children: [
+                                        TextSpan(
+                                          text: "Note: ",
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 18,
+                                          ),
+                                        ),
+                                        TextSpan(
+                                          text:
+                                              "This will restart your current progress and start a new game!",
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.normal,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  SizedBox(height: 30),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children:
+                                        Difficulty.values.map((difficulty) {
+                                          String assetName;
+                                          switch (difficulty) {
+                                            case Difficulty.easy:
+                                              assetName =
+                                                  'assets/images/difficulties/easy_icon.png';
+                                              break;
+                                            case Difficulty.medium:
+                                              assetName =
+                                                  'assets/images/difficulties/medium_icon.png';
+                                              break;
+                                            case Difficulty.hard:
+                                              assetName =
+                                                  'assets/images/difficulties/hard_icon.png';
+                                              break;
+                                          }
+                                          final isSelected =
+                                              selectedDifficulty == difficulty;
+                                          return GestureDetector(
+                                            onTap: () {
+                                              setState(() {
+                                                selectedDifficulty = difficulty;
+                                              });
+                                            },
+                                            child: Image.asset(
+                                              assetName,
+                                              height: 67,
+                                              width: 67,
+                                              color:
+                                                  isSelected
+                                                      ? const Color.fromARGB(
+                                                        255,
+                                                        0,
+                                                        255,
+                                                        8,
+                                                      )
+                                                      : Colors.white,
+                                            ),
+                                          );
+                                        }).toList(),
+                                  ),
+                                  const SizedBox(height: 30),
+                                  GestureDetector(
+                                    onTap:
+                                        () => {
+                                          _setDifficulty(selectedDifficulty),
+                                          Navigator.pop(context),
+                                        },
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(15),
+                                        color: const Color.fromARGB(
+                                          255,
+                                          45,
+                                          190,
+                                          49,
+                                        ),
+                                      ),
+                                      height: 50,
+                                      width: 150,
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Text(
+                                            "Save",
+                                            style: TextStyle(fontSize: 22),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        );
+                      },
                     ),
                     Positioned(
                       top: -37.5,
                       left: (250 - 75) / 2,
                       child: Image.asset(
-                        'assets/images/difficulty.png',
+                        'assets/images/difficulties/difficulty.png',
                         width: 75,
                         height: 75,
                       ),
@@ -763,91 +882,12 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
       transitionBuilder: (context, animation, secondaryAnimation, child) {
         final curved = CurvedAnimation(
           parent: animation,
-          curve: Curves.easeOut, // ingen studs
+          curve: Curves.easeOut,
           reverseCurve: Curves.easeIn,
         );
         return ScaleTransition(
           scale: Tween<double>(begin: 0.7, end: 1.0).animate(curved),
           child: FadeTransition(opacity: animation, child: child),
-        );
-      },
-    );
-  }
-
-  void _showDifficultyDialog1(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                'Choose Difficulty',
-                style: TextStyle(
-                  color:
-                      context.watch<SettingsProvider>().isDarkMode
-                          ? Colors.white
-                          : const Color.fromARGB(255, 39, 39, 39),
-                ),
-              ),
-            ],
-          ),
-          content: Container(
-            constraints: BoxConstraints(maxHeight: 300),
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text.rich(
-                    TextSpan(
-                      children: [
-                        TextSpan(
-                          text: "Note: ",
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 18,
-                          ),
-                        ),
-                        TextSpan(
-                          text:
-                              "This will restart your current progress and start a new game!",
-                          style: TextStyle(fontWeight: FontWeight.normal),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  ListTile(
-                    title: Text('Chill'),
-                    onTap: () {
-                      _setDifficulty(Difficulty.chill);
-                      Navigator.of(context).pop();
-                    },
-                    trailing: IconWidget(icon: Icons.ac_unit),
-                  ),
-                  const Divider(),
-                  ListTile(
-                    title: Text('Normal'),
-                    onTap: () {
-                      _setDifficulty(Difficulty.normal);
-                      Navigator.of(context).pop();
-                    },
-                    trailing: IconWidget(icon: Icons.headphones_rounded),
-                  ),
-                  const Divider(),
-                  ListTile(
-                    title: Text('Max'),
-                    onTap: () {
-                      _setDifficulty(Difficulty.max);
-                      Navigator.of(context).pop();
-                    },
-                    trailing: IconWidget(icon: Icons.flash_on),
-                  ),
-                ],
-              ),
-            ),
-          ),
         );
       },
     );
@@ -1035,7 +1075,7 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
           },
         ),
         centerTitle: true,
-        title: const Text("CheckGrid", style: TextStyle(fontSize: 34)),
+        title: const Text("CheckGrid", style: TextStyle(fontSize: 26)),
         actions: [
           MenuAnchor(
             builder:
@@ -1076,7 +1116,7 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            SizedBox(height: 20),
+            SizedBox(height: 10),
             _buildScore(),
             SizedBox(height: 20),
             _buildPlayArea(),
