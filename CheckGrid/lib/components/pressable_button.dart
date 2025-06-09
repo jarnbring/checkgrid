@@ -12,34 +12,43 @@ class PressableButton extends StatefulWidget {
 }
 
 class _PressableButtonState extends State<PressableButton> {
+  bool isPressed = false;
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTapUp: (_) {
+        setState(() => isPressed = false);
         context.pushNamed(widget.route);
       },
-      child: Container(
-        width: 200,
-        height: 60,
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Colors.blue, Colors.purple],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          borderRadius: BorderRadius.circular(25),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.2),
-              blurRadius: 5,
-              offset: const Offset(0, 3),
+      onTapDown: (_) => setState(() => isPressed = true),
+      onTapCancel: () => setState(() => isPressed = false),
+      child: AnimatedScale(
+        scale: isPressed ? 0.95 : 1.0,
+        duration: const Duration(milliseconds: 100),
+        child: Container(
+          width: 200,
+          height: 60,
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Colors.blue, Colors.purple],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
             ),
-          ],
-        ),
-        alignment: Alignment.center,
-        child: Text(
-          widget.title,
-          style: const TextStyle(color: Colors.white, fontSize: 18),
+            borderRadius: BorderRadius.circular(25),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.2),
+                blurRadius: 5,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          alignment: Alignment.center,
+          child: Text(
+            widget.title,
+            style: const TextStyle(color: Colors.white, fontSize: 18),
+          ),
         ),
       ),
     );
