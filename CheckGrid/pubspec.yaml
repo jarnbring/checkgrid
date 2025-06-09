@@ -55,4 +55,6 @@ flutter:
   assets:
     - assets/images/
     - assets/images/difficulties/
+    - assets/images/pieces/white/
+    - assets/images/pieces/black/
     - assets/audio/

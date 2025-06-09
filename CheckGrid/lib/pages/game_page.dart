@@ -487,7 +487,14 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
                                         feedback:
                                             dragStartLocalPosition == null
                                                 ? Image.asset(
-                                                  'assets/images/white_${p.name}.png',
+                                                  context
+                                                          .watch<
+                                                            SettingsProvider
+                                                          >()
+                                                          .isDarkPieces
+                                                      ? 'assets/images/pieces/black/black_${p.name}.png'
+                                                      : 'assets/images/pieces/white/white_${p.name}.png',
+
                                                   width: imageWidth,
                                                   height: imageHeight,
                                                 )
@@ -496,7 +503,14 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
                                                       -dragStartLocalPosition! +
                                                       extraVisualOffset,
                                                   child: Image.asset(
-                                                    'assets/images/white_${p.name}.png',
+                                                    context
+                                                            .watch<
+                                                              SettingsProvider
+                                                            >()
+                                                            .isDarkPieces
+                                                        ? 'assets/images/pieces/black/black_${p.name}.png'
+                                                        : 'assets/images/pieces/white/white_${p.name}.png',
+
                                                     width: imageWidth,
                                                     height: imageHeight,
                                                   ),
@@ -509,7 +523,12 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
                                         childWhenDragging: Opacity(
                                           opacity: 0.2,
                                           child: Image.asset(
-                                            'assets/images/white_${p.name}.png',
+                                            context
+                                                    .watch<SettingsProvider>()
+                                                    .isDarkPieces
+                                                ? 'assets/images/pieces/black/black_${p.name}.png'
+                                                : 'assets/images/pieces/white/white_${p.name}.png',
+
                                             width: iconSize,
                                             height: iconSize,
                                           ),
@@ -529,7 +548,12 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
                                           });
                                         },
                                         child: Image.asset(
-                                          'assets/images/white_${p.name}.png',
+                                          context
+                                                  .watch<SettingsProvider>()
+                                                  .isDarkPieces
+                                              ? 'assets/images/pieces/black/black_${p.name}.png'
+                                              : 'assets/images/pieces/white/white_${p.name}.png',
+
                                           width: iconSize,
                                           height: iconSize,
                                         ),
@@ -633,7 +657,11 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
                                   ? null
                                   : b.piece != null
                                   ? Image.asset(
-                                    'assets/images/white_${b.piece!.name}.png',
+                                    context
+                                            .watch<SettingsProvider>()
+                                            .isDarkPieces
+                                        ? 'assets/images/pieces/black/black_${b.piece!.name}.png'
+                                        : 'assets/images/pieces/white/white_${b.piece!.name}.png',
                                     fit: BoxFit.contain,
                                   )
                                   : b.isTargeted
@@ -717,6 +745,7 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
 
   void _showDifficultyDialog(BuildContext context) {
     Difficulty selectedDifficulty = _difficulty;
+    Color selectedColor = const Color.fromARGB(255, 0, 255, 0);
 
     showGeneralDialog(
       context: context,
@@ -739,7 +768,7 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
                       builder: (context, setState) {
                         return Container(
                           height: 350,
-                          width: 250,
+                          width: 275,
                           decoration: BoxDecoration(
                             color: Color.fromARGB(255, 41, 107, 161),
                             borderRadius: BorderRadius.circular(15),
@@ -757,7 +786,10 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
                                   SizedBox(height: 20),
                                   Text(
                                     "Choose Difficulty",
-                                    style: TextStyle(fontSize: 20),
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                   SizedBox(height: 10),
                                   Text.rich(
@@ -772,7 +804,7 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
                                         ),
                                         TextSpan(
                                           text:
-                                              "This will restart your current progress and start a new game!",
+                                              "This will restart your current progress and start a new game.",
                                           style: TextStyle(
                                             fontWeight: FontWeight.normal,
                                           ),
@@ -782,6 +814,7 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
                                   ),
                                   SizedBox(height: 30),
                                   Row(
+                                    spacing: 10,
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children:
                                         Difficulty.values.map((difficulty) {
@@ -814,12 +847,7 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
                                               width: 67,
                                               color:
                                                   isSelected
-                                                      ? const Color.fromARGB(
-                                                        255,
-                                                        0,
-                                                        255,
-                                                        8,
-                                                      )
+                                                      ? selectedColor
                                                       : Colors.white,
                                             ),
                                           );
@@ -849,8 +877,11 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
                                             MainAxisAlignment.center,
                                         children: [
                                           Text(
-                                            "Save",
-                                            style: TextStyle(fontSize: 22),
+                                            "Restart",
+                                            style: TextStyle(
+                                              fontSize: 22,
+                                              fontWeight: FontWeight.bold,
+                                            ),
                                           ),
                                         ],
                                       ),
@@ -865,7 +896,7 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
                     ),
                     Positioned(
                       top: -37.5,
-                      left: (250 - 75) / 2,
+                      left: (275 - 75) / 2,
                       child: Image.asset(
                         'assets/images/difficulties/difficulty.png',
                         width: 75,

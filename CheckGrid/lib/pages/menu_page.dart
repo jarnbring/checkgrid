@@ -141,6 +141,8 @@ class _MenuPageState extends State<MenuPage> {
                 SizedBox(height: screenHeight / scaleFactorHeight * 0.5),
                 PressableButton(title: "Settings", route: "/settings"),
                 SizedBox(height: screenHeight / scaleFactorHeight * 0.5),
+                PressableButton(title: "Statistics", route: "/statistics"),
+                SizedBox(height: screenHeight / scaleFactorHeight * 0.5),
                 PressableButton(title: "Feedback", route: "/feedback"),
                 SizedBox(height: screenHeight / scaleFactorHeight * 0.5),
 
@@ -157,9 +159,6 @@ class _MenuPageState extends State<MenuPage> {
             ),
           ),
         ),
-
-        // Bottom banner ad
-        bottomNavigationBar: const BannerAdWidget(),
       ),
     );
   }
