@@ -119,7 +119,7 @@ class SettingsPageState extends State<SettingsPage> {
 
   Widget _buildDarkPieces() {
     return SwitchListTile(
-      title: const Text('Dark Pieces'),
+      title: const Text('Dark pieces'),
       secondary: AnimatedSwitcher(
         duration: const Duration(milliseconds: 300),
         transitionBuilder:
@@ -129,8 +129,11 @@ class SettingsPageState extends State<SettingsPage> {
             ),
         child:
             context.watch<SettingsProvider>().isDarkPieces
-                ? IconWidget(key: ValueKey('dark'), icon: Icons.dark_mode)
-                : IconWidget(key: ValueKey('light'), icon: Icons.light_mode),
+                ? IconWidget(key: ValueKey('dark'), icon: Icons.circle)
+                : IconWidget(
+                  key: ValueKey('light'),
+                  icon: Icons.circle_outlined,
+                ),
       ),
       value: context.watch<SettingsProvider>().isDarkPieces,
       activeTrackColor: Colors.lightBlue,

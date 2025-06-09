@@ -38,7 +38,7 @@ class _PressableButtonState extends State<PressableButton> {
             borderRadius: BorderRadius.circular(25),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.2),
+                color: const Color.fromARGB(200, 0, 0, 0),
                 blurRadius: 5,
                 offset: const Offset(0, 3),
               ),

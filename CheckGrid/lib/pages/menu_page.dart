@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:CheckGrid/ads/banner_ad.dart';
 import 'package:CheckGrid/components/pressable_button.dart';
 import 'package:CheckGrid/providers/general_provider.dart';
 import 'package:provider/provider.dart';

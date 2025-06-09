@@ -23,8 +23,19 @@ class _StatsiticsPageState extends State<StatsiticsPage> {
       height: 125,
       width: isWide == null ? 150 : 315,
       decoration: BoxDecoration(
+        boxShadow: [
+          BoxShadow(
+            color: const Color.fromARGB(200, 0, 0, 0),
+            blurRadius: 8,
+            offset: Offset(4, 4),
+          ),
+        ],
         gradient: LinearGradient(
-          colors: [Colors.blueAccent, Colors.blue, Colors.lightBlue],
+          colors: [
+            Colors.blueAccent,
+            Colors.lightBlue,
+            const Color.fromARGB(255, 3, 212, 244),
+          ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -75,19 +86,10 @@ class _StatsiticsPageState extends State<StatsiticsPage> {
                 runSpacing: 15,
                 alignment: WrapAlignment.center,
                 children: [
-                  _buildStatistic("Rounds", 2398429324323222.0),
-
-                  _buildStatistic(
-                    "Time played",
-                    23984224323222.0,
-                    isTime: true,
-                  ),
-                  _buildStatistic(
-                    "Highscore",
-                    2398429324323222.0,
-                    isWide: true,
-                  ),
-                  _buildStatistic("Restarts", 2398429324323222.0),
+                  _buildStatistic("Rounds", 194.0),
+                  _buildStatistic("Time played", 358.0, isTime: true),
+                  _buildStatistic("Highscore", 9999999999999.0, isWide: true),
+                  _buildStatistic("Restarts", 194.0),
                 ],
               ),
             ),
