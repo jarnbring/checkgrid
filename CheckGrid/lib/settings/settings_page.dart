@@ -45,6 +45,7 @@ class SettingsPageState extends State<SettingsPage> {
               header: "General",
               children: [
                 _buildDarkmode(),
+                _buildDarkPieces(),
                 _buildGlossEffect(),
                 _buildVibration(),
                 _buildPrivacyPolicy(),
@@ -112,6 +113,29 @@ class SettingsPageState extends State<SettingsPage> {
       activeTrackColor: Colors.lightBlue,
       onChanged: (bool value) {
         context.read<SettingsProvider>().setDarkMode(value);
+      },
+    );
+  }
+
+  Widget _buildDarkPieces() {
+    return SwitchListTile(
+      title: const Text('Dark Pieces'),
+      secondary: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 300),
+        transitionBuilder:
+            (child, animation) => FadeTransition(
+              opacity: animation,
+              child: ScaleTransition(scale: animation, child: child),
+            ),
+        child:
+            context.watch<SettingsProvider>().isDarkPieces
+                ? IconWidget(key: ValueKey('dark'), icon: Icons.dark_mode)
+                : IconWidget(key: ValueKey('light'), icon: Icons.light_mode),
+      ),
+      value: context.watch<SettingsProvider>().isDarkPieces,
+      activeTrackColor: Colors.lightBlue,
+      onChanged: (bool value) {
+        context.read<SettingsProvider>().setDarkPieces(value);
       },
     );
   }

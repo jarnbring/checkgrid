@@ -3,11 +3,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class SettingsProvider with ChangeNotifier {
   bool _isBoldText = false;
-  bool _isDarkMode = false;
-  bool _isVibrationOn = false;
+  bool _isDarkMode = true;
+  bool _isVibrationOn = true;
   bool _isSoundOn = true;
   bool _notificationReminder = true;
   bool _useGlossEffect = true;
+  bool _isDarkPieces = false;
   ThemeMode _themeMode = ThemeMode.system;
 
   bool get isBoldText => _isBoldText;
@@ -16,6 +17,7 @@ class SettingsProvider with ChangeNotifier {
   bool get isSoundOn => _isSoundOn;
   bool get notificationReminder => _notificationReminder;
   bool get useGlossEffect => _useGlossEffect;
+  bool get isDarkPieces => _isDarkPieces;
   ThemeMode get themeMode => _themeMode;
 
   SettingsProvider() {
@@ -26,11 +28,12 @@ class SettingsProvider with ChangeNotifier {
     try {
       final prefs = await SharedPreferences.getInstance();
       _isBoldText = prefs.getBool('isBoldText') ?? false;
-      _isDarkMode = prefs.getBool('isDarkMode') ?? false;
-      _isVibrationOn = prefs.getBool('isVibrationOn') ?? false;
+      _isDarkMode = prefs.getBool('isDarkMode') ?? true;
+      _isVibrationOn = prefs.getBool('isVibrationOn') ?? true;
       _isSoundOn = prefs.getBool('isSoundOn') ?? true;
-      _notificationReminder = prefs.getBool('notificationReminder') ?? false;
+      _notificationReminder = prefs.getBool('notificationReminder') ?? true;
       _useGlossEffect = prefs.getBool('useGlossEffect') ?? true;
+      _isDarkPieces = prefs.getBool('isDarkPieces') ?? false;
       _themeMode = _isDarkMode ? ThemeMode.dark : ThemeMode.light;
 
       notifyListeners();
@@ -48,13 +51,9 @@ class SettingsProvider with ChangeNotifier {
       await prefs.setBool('isSoundOn', _isSoundOn);
       await prefs.setBool('notificationReminder', _notificationReminder);
       await prefs.setBool('useGlossEffect', _useGlossEffect);
-      print(
-        'Saved settings: isBoldText=$_isBoldText, isDarkMode=$_isDarkMode, '
-        'isVibrationOn=$_isVibrationOn, isSoundOn=$_isSoundOn, '
-        'notificationReminder=$_notificationReminder, useGlossEffect=$_useGlossEffect',
-      );
+      await prefs.setBool('isDarkPieces', _isDarkPieces);
     } catch (e) {
-      print('Error saving settings: $e');
+      debugPrint('Error saving settings: $e');
     }
   }
 
@@ -97,6 +96,12 @@ class SettingsProvider with ChangeNotifier {
 
   void toggleGlossEffect() {
     _useGlossEffect = !_useGlossEffect;
+    _saveSettings();
+    notifyListeners();
+  }
+
+  void setDarkPieces(bool value) {
+    _isDarkPieces = value;
     _saveSettings();
     notifyListeners();
   }
