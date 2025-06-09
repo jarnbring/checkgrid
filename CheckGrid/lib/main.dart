@@ -126,7 +126,7 @@ class _MyAppState extends State<MyApp> {
         menuTheme: MenuThemeData(
           style: MenuStyle(
             backgroundColor: WidgetStatePropertyAll(
-              const Color.fromARGB(255, 68, 68, 68),
+              const Color.fromARGB(255, 189, 189, 189),
             ),
             shape: WidgetStatePropertyAll(
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
