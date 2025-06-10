@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:CheckGrid/components/pressable_button.dart';
-import 'package:CheckGrid/providers/general_provider.dart';
+import 'package:checkgrid/components/pressable_button.dart';
+import 'package:checkgrid/providers/general_provider.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:shimmer/shimmer.dart';
@@ -14,13 +15,13 @@ class MenuPage extends StatefulWidget {
 }
 
 class _MenuPageState extends State<MenuPage> {
+  late String appVersion = '';
   bool _showContent = false;
-  final double iconSize = 25;
-  final String appVersion = "Beta 1.0.0";
 
   @override
   void initState() {
     super.initState();
+    _loadVersion();
     // Delayed animation trigger for fading in content
     Future.delayed(const Duration(milliseconds: 300), () {
       if (mounted) {
@@ -28,6 +29,14 @@ class _MenuPageState extends State<MenuPage> {
           _showContent = true;
         });
       }
+    });
+  }
+
+  Future<void> _loadVersion() async {
+    final info = await PackageInfo.fromPlatform();
+    if (!mounted) return;
+    setState(() {
+      appVersion = info.version;
     });
   }
 
@@ -69,7 +78,7 @@ class _MenuPageState extends State<MenuPage> {
                 padding: const EdgeInsets.symmetric(horizontal: 4.0),
                 child: IconButton(
                   icon: FaIcon(link['icon'] as IconData),
-                  iconSize: iconSize,
+                  iconSize: 25,
                   onPressed: () => _launchURL(link['url'] as String),
                 ),
               );
@@ -151,9 +160,6 @@ class _MenuPageState extends State<MenuPage> {
 
                 // App version text
                 Text(appVersion),
-
-                // Extra spacing if needed
-                // SizedBox(height: screenHeight / (scaleFactorHeight)),
               ],
             ),
           ),

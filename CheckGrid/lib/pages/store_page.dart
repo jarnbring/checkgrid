@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:CheckGrid/providers/general_provider.dart';
+import 'package:checkgrid/providers/general_provider.dart';
 import 'package:provider/provider.dart';
 
 class StorePage extends StatefulWidget {
@@ -41,17 +41,14 @@ class _StorePageState extends State<StorePage> {
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.2),
+              color: const Color.fromARGB(64, 0, 0, 0),
               blurRadius: 8,
               offset: const Offset(0, 4),
             ),
           ],
         ),
         child: ElevatedButton(
-          onPressed: () {
-            print("Purchased $title for £$price");
-            // TODO: Implementera köplogik (t.ex. in_app_purchase)
-          },
+          onPressed: () {},
           style: ElevatedButton.styleFrom(
             padding: EdgeInsets.zero,
             shape: RoundedRectangleBorder(

@@ -1,9 +1,9 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:CheckGrid/components/photopicker.dart';
-import 'package:CheckGrid/components/textfield.dart';
-import 'package:CheckGrid/providers/general_provider.dart';
+import 'package:checkgrid/components/photopicker.dart';
+import 'package:checkgrid/components/textfield.dart';
+import 'package:checkgrid/providers/general_provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
@@ -31,14 +31,12 @@ class _FeedbackPageState extends State<FeedbackPage>
     "Other": false,
   };
 
-  // Animation controllers för varje check item
   final Map<String, AnimationController> _animationControllers = {};
   final Map<String, Animation<double>> _scaleAnimations = {};
 
   @override
   void initState() {
     super.initState();
-    // Initiera animation controllers för varje item
     for (var title in _selectedItems.keys) {
       final controller = AnimationController(
         vsync: this,
@@ -55,8 +53,10 @@ class _FeedbackPageState extends State<FeedbackPage>
   @override
   void dispose() {
     _emailController.dispose();
-    // Disposa animation controllers
-    _animationControllers.values.forEach((controller) => controller.dispose());
+    // Dispose all animation controllers
+    for (var controller in _animationControllers.values) {
+      controller.dispose();
+    }
     super.dispose();
   }
 
@@ -67,7 +67,7 @@ class _FeedbackPageState extends State<FeedbackPage>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           InputFieldOutsideApp(
-            labelText: "Email",
+            labelText: "Email*",
             hintText: "Enter your email address",
             icon: Icons.email_outlined,
             fontSize: 16.0,

@@ -1,11 +1,11 @@
-import 'package:CheckGrid/pages/statistics_page.dart';
+import 'package:checkgrid/pages/statistics_page.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:go_router/go_router.dart';
-import 'package:CheckGrid/pages/game_page.dart';
-import 'package:CheckGrid/pages/store_page.dart';
-import 'package:CheckGrid/pages/feedback_page.dart';
-import 'package:CheckGrid/pages/menu_page.dart';
-import 'package:CheckGrid/pages/settings_page.dart';
+import 'package:checkgrid/pages/game_page.dart';
+import 'package:checkgrid/pages/store_page.dart';
+import 'package:checkgrid/pages/feedback_page.dart';
+import 'package:checkgrid/pages/menu_page.dart';
+import 'package:checkgrid/pages/settings_page.dart';
 
 final GoRouter router = GoRouter(
   initialLocation: "/menu",
@@ -43,7 +43,7 @@ final GoRouter router = GoRouter(
       path: '/statistics',
       pageBuilder:
           (context, state) =>
-              CupertinoPage(key: state.pageKey, child: const StatsiticsPage()),
+              CupertinoPage(key: state.pageKey, child: const StatisticsPage()),
     ),
     GoRoute(
       name: '/feedback',

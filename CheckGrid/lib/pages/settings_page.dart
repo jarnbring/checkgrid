@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:CheckGrid/components/group_settings.dart';
-import 'package:CheckGrid/components/icon_widget.dart';
-import 'package:CheckGrid/providers/settings_provider.dart';
-import 'package:CheckGrid/settings/noti_service.dart';
-import 'package:CheckGrid/settings/privacy_policy.dart';
+import 'package:checkgrid/components/group_settings.dart';
+import 'package:checkgrid/components/icon_widget.dart';
+import 'package:checkgrid/providers/settings_provider.dart';
+import 'package:checkgrid/settings/noti_service.dart';
+import 'package:checkgrid/settings/privacy_policy.dart';
 import 'package:provider/provider.dart';
 
 class SettingsPage extends StatefulWidget {

@@ -5,11 +5,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:CheckGrid/pages/menu_page.dart';
-import 'package:CheckGrid/providers/general_provider.dart';
-import 'package:CheckGrid/providers/settings_provider.dart';
-import 'package:CheckGrid/router.dart';
-import 'package:CheckGrid/settings/noti_service.dart';
+import 'package:checkgrid/pages/menu_page.dart';
+import 'package:checkgrid/providers/general_provider.dart';
+import 'package:checkgrid/providers/settings_provider.dart';
+import 'package:checkgrid/router.dart';
+import 'package:checkgrid/settings/noti_service.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:provider/provider.dart';
 

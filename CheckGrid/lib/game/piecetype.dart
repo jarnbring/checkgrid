@@ -1,5 +1,5 @@
 import 'package:flame/image_composition.dart';
-import 'package:CheckGrid/game/move_pattern.dart';
+import 'package:checkgrid/game/move_pattern.dart';
 
 enum PieceType { king, queen, rook, bishop, knight, pawn }
 
