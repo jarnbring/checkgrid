@@ -89,7 +89,7 @@ class _StatsiticsPageState extends State<StatsiticsPage> {
                   _buildStatistic("Rounds", 194.0),
                   _buildStatistic("Time played", 358.0, isTime: true),
                   _buildStatistic("Highscore", 9999999999999.0, isWide: true),
-                  _buildStatistic("Restarts", 194.0),
+                  _buildStatistic("Pieces placed", 19867.0),
                 ],
               ),
             ),

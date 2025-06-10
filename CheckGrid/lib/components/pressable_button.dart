@@ -39,7 +39,7 @@ class _PressableButtonState extends State<PressableButton> {
             boxShadow: [
               BoxShadow(
                 color: const Color.fromARGB(200, 0, 0, 0),
-                blurRadius: 5,
+                blurRadius: 3,
                 offset: const Offset(0, 3),
               ),
             ],
