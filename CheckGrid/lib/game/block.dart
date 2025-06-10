@@ -1,7 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:CheckGrid/game/piecetype.dart';
+import 'package:checkgrid/game/piecetype.dart';
 
 class Block {
   Point<int> position;
@@ -31,6 +31,7 @@ class Block {
     'isPreview': isPreview,
     'hasPiece': hasPiece,
     'piece': piece?.name,
+    // ignore: deprecated_member_use
     'color': fallbackColor?.value,
   };
 
@@ -85,7 +86,7 @@ class GlossyBlockPainter extends CustomPainter {
     if (gradient != null) {
       final glossPaint =
           Paint()
-            ..color = Colors.white.withOpacity(0.4)
+            ..color = const Color.fromARGB(108, 255, 255, 255)
             ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5);
       canvas.drawCircle(
         Offset(size.width * glossPosition, size.height * glossPosition),

@@ -1,12 +1,13 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
-import 'package:CheckGrid/ads/reward_ad.dart';
+import 'package:checkgrid/ads/reward_ad.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class CountdownLoading extends StatefulWidget {
-  final VoidCallback onRestart; // Callback för att anropa restartGame
+  final VoidCallback onRestart;
   final VoidCallback afterAd;
-  final bool isReviveShowing; // Kontrollera om revive-dialogen ska visas
+  final bool isReviveShowing;
 
   const CountdownLoading({
     super.key,
@@ -22,23 +23,29 @@ class CountdownLoading extends StatefulWidget {
 class _CountdownLoadingState extends State<CountdownLoading> {
   int _counter = 5;
   late Timer _timer;
-  bool _isDialogOpen = false;
-  bool hasRevived = false; // NY FLAGGA
-  RewardedAdService _rewardedAdService = RewardedAdService();
-  bool isAdBeingShown = false; // NY
+  bool hasRevived = false;
+  final RewardedAdService _rewardedAdService = RewardedAdService();
+  bool isAdBeingShown = false;
+  late int amountOfRoundsPlayed;
+  late SharedPreferences prefs;
 
   @override
   void initState() {
     super.initState();
-
-    hasRevived = false; // Lägg till detta
-    isAdBeingShown = false; // Och detta
-
+    hasRevived = false;
+    isAdBeingShown = false;
     _rewardedAdService.loadAd();
+    _initPrefsAndStartTimer();
+  }
+
+  Future<void> _initPrefsAndStartTimer() async {
+    prefs = await SharedPreferences.getInstance();
+    _loadRoundsPlayed();
 
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_counter == 0) {
         timer.cancel();
+        _saveRoundsPlayed();
         if (!hasRevived && !isAdBeingShown && mounted) {
           widget.onRestart();
           if (Navigator.canPop(context)) {
@@ -51,6 +58,16 @@ class _CountdownLoadingState extends State<CountdownLoading> {
         });
       }
     });
+  }
+
+  void _loadRoundsPlayed() {
+    String? roundsPlayed = prefs.getString('rounds_played');
+    amountOfRoundsPlayed = roundsPlayed != null ? int.parse(roundsPlayed) : 0;
+  }
+
+  void _saveRoundsPlayed() {
+    amountOfRoundsPlayed++;
+    prefs.setString('rounds_played', amountOfRoundsPlayed.toString());
   }
 
   @override
@@ -111,9 +128,7 @@ class _CountdownLoadingState extends State<CountdownLoading> {
                         if (!hasRevived) {
                           widget.onRestart();
                         }
-                        setState(() {
-                          _isDialogOpen = false;
-                        });
+                        setState(() {});
                       },
                     );
                   },

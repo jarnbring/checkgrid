@@ -1,16 +1,39 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-class StatsiticsPage extends StatefulWidget {
-  const StatsiticsPage({super.key});
+class StatisticsPage extends StatefulWidget {
+  const StatisticsPage({super.key});
 
   @override
-  State<StatsiticsPage> createState() => _StatsiticsPageState();
+  State<StatisticsPage> createState() => _StatisticsPageState();
 }
 
-class _StatsiticsPageState extends State<StatsiticsPage> {
+class _StatisticsPageState extends State<StatisticsPage> {
+  BigInt? highscore;
+  BigInt? longestComboStreak;
+  int? amountOfRounds;
+  bool isLoading = true;
+
   @override
   void initState() {
     super.initState();
+    _loadStatistics();
+  }
+
+  Future<void> _loadStatistics() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    final hs = prefs.getString('highscore');
+    final comboStreak = prefs.getString('longest_combo_streak');
+    final roundsPlayed = prefs.getString('rounds_played');
+
+    setState(() {
+      highscore = hs != null ? BigInt.parse(hs) : BigInt.zero;
+      longestComboStreak =
+          comboStreak != null ? BigInt.parse(comboStreak) : BigInt.zero;
+      amountOfRounds = roundsPlayed != null ? int.parse(roundsPlayed) : 0;
+      isLoading = false;
+    });
   }
 
   Widget _buildStatistic(
@@ -21,13 +44,13 @@ class _StatsiticsPageState extends State<StatsiticsPage> {
   }) {
     return Container(
       height: 125,
-      width: isWide == null ? 150 : 315,
+      width: isWide == true ? 315 : 150,
       decoration: BoxDecoration(
         boxShadow: [
           BoxShadow(
             color: const Color.fromARGB(200, 0, 0, 0),
             blurRadius: 8,
-            offset: Offset(4, 4),
+            offset: Offset(2, 2),
           ),
         ],
         gradient: LinearGradient(
@@ -41,7 +64,6 @@ class _StatsiticsPageState extends State<StatsiticsPage> {
         ),
         borderRadius: BorderRadius.circular(20),
       ),
-
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
         child: Column(
@@ -57,7 +79,6 @@ class _StatsiticsPageState extends State<StatsiticsPage> {
               '${data.toInt()}${isTime == true ? ' h' : ''}',
               style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
             ),
-
             const Spacer(),
           ],
         ),
@@ -69,7 +90,7 @@ class _StatsiticsPageState extends State<StatsiticsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Statistics", style: TextStyle(fontSize: 22)),
+        title: const Text("Statistics", style: TextStyle(fontSize: 22)),
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -77,24 +98,43 @@ class _StatsiticsPageState extends State<StatsiticsPage> {
         ),
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          child: Center(
-            child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-              child: Wrap(
-                spacing: 15,
-                runSpacing: 15,
-                alignment: WrapAlignment.center,
-                children: [
-                  _buildStatistic("Rounds", 194.0),
-                  _buildStatistic("Time played", 358.0, isTime: true),
-                  _buildStatistic("Highscore", 9999999999999.0, isWide: true),
-                  _buildStatistic("Pieces placed", 19867.0),
-                ],
-              ),
-            ),
-          ),
-        ),
+        child:
+            isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : SingleChildScrollView(
+                  child: Center(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 20,
+                      ),
+                      child: Wrap(
+                        spacing: 15,
+                        runSpacing: 15,
+                        alignment: WrapAlignment.center,
+                        children: [
+                          _buildStatistic("Rounds", amountOfRounds!.toDouble()),
+
+                          _buildStatistic("Time played", 0, isTime: true),
+                          _buildStatistic(
+                            "Highscore",
+                            highscore!.toDouble(),
+                            isWide: true,
+                          ),
+                          _buildStatistic("Pieces placed", 0),
+                          _buildStatistic(
+                            "Highest combo",
+                            longestComboStreak!.toDouble(),
+                          ),
+                          _buildStatistic(
+                            "Revives",
+                            amountOfRounds!.toDouble(),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
       ),
     );
   }

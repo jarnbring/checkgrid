@@ -1,16 +1,15 @@
 import 'dart:convert';
 import 'dart:math';
-import 'package:CheckGrid/providers/general_provider.dart';
+import 'package:checkgrid/game/difficulty_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:CheckGrid/animations/game_animations.dart';
-import 'package:CheckGrid/ads/banner_ad.dart';
-import 'package:CheckGrid/components/countdown_loading.dart';
-import 'package:CheckGrid/components/icon_widget.dart';
-import 'package:CheckGrid/game/block.dart';
-import 'package:CheckGrid/game/difficulty.dart';
-import 'package:CheckGrid/game/piecetype.dart';
-import 'package:CheckGrid/providers/settings_provider.dart';
+import 'package:checkgrid/animations/game_animations.dart';
+import 'package:checkgrid/ads/banner_ad.dart';
+import 'package:checkgrid/components/countdown_loading.dart';
+import 'package:checkgrid/game/block.dart';
+import 'package:checkgrid/game/difficulty.dart';
+import 'package:checkgrid/game/piecetype.dart';
+import 'package:checkgrid/providers/settings_provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -26,6 +25,10 @@ class GamePage extends StatefulWidget {
 class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
   late GameAnimations _animations;
   late bool useGlossEffect;
+
+  // Init statistics
+  late BigInt longestComboStreak;
+  late int piecesPlaced;
 
   final imageWidth = 50.0, imageHeight = 50.0;
   final boardWidth = 8, boardHeight = 8, comboRequirement = 6;
@@ -49,11 +52,9 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-
     _animations = GameAnimations(this);
-
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await _loadGameState();
+    _loadData();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       if (selectedPieces.isEmpty &&
           board.every((row) => row.every((block) => block == null))) {
         initKillingCells(_difficulty);
@@ -62,6 +63,7 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
           selectedPiecesPositions.isNotEmpty) {
         _animations.animationController.forward(from: 0.0);
       }
+
       update();
       setState(() {});
     });
@@ -75,7 +77,9 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
   }
 
   void update() {
+    // Check if the game is over
     if (loseCondition()) return;
+
     setState(() {
       // Updating colors
       for (var row = 0; row < boardHeight; row++) {
@@ -152,6 +156,26 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
     });
   }
 
+  void _saveStatistic({
+    BigInt? comboStreak,
+    BigInt? highScore,
+    int? roundsPlayed,
+  }) async {
+    final prefs = await SharedPreferences.getInstance();
+
+    if (comboStreak != null) {
+      await prefs.setString('longest_combo_streak', comboStreak.toString());
+    }
+
+    if (highScore != null) {
+      await prefs.setString('highscore', highScore.toString());
+    }
+
+    if (roundsPlayed != null) {
+      await prefs.setInt('rounds_played', roundsPlayed);
+    }
+  }
+
   void _restartGame() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('game_board');
@@ -220,27 +244,47 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
   void addScore() async {
     final allTargetedCells =
         targetedCellsMap.values.expand((cells) => cells).toSet().toList();
+
+    // Handle combo
     final count = allTargetedCells.length;
     comboCount =
-        count >= comboRequirement ? comboCount + BigInt.one : BigInt.zero;
+        count >= comboRequirement
+            ? comboCount +
+                BigInt
+                    .one // Increase combocount
+            : BigInt
+                .zero; // Reset combocount if the amount of targeted cells are not acquired
+
+    // Save if it is a new longest streak
+    if (comboCount > longestComboStreak) {
+      _saveStatistic(comboStreak: comboCount);
+    }
+
+    // Increase score
     final base = BigInt.from(10) * BigInt.from(count);
     final totalScore = base * (comboCount + BigInt.one);
 
     final oldScore = currentScore;
-    final newScore = oldScore + totalScore;
+    final newScore = currentScore + totalScore;
 
     final oldHigh = latestHighScore;
     final newHigh = newScore > oldHigh ? newScore : oldHigh;
+
+    // New highscore
     if (newScore > oldHigh) {
       await _saveHighscore(newScore);
+      _saveStatistic(highScore: newScore);
       latestHighScore = newHigh;
     }
 
+    // Play increase score animation
     final scoreAnim = _animations.animateBigInt(
       oldScore,
       newScore,
       (v) => setState(() => currentScore = v),
     );
+
+    // Play animation for highscore
     final highAnim =
         (newScore > oldHigh)
             ? _animations.animateBigInt(
@@ -290,11 +334,13 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
   }) {
     setState(() {
       if (isPreviewMode) {
+        // Clear previous preview highlights
         for (var block in previewCells) {
           block.isPreview = false;
         }
         previewCells.clear();
       } else {
+        // Find and mark targetable blocks based on the piece's movement pattern
         List<Block> currentTargeted = [];
         for (var dir in d.data.movementPattern.directions) {
           for (var off in dir.offsets) {
@@ -303,13 +349,14 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
             for (var i = 0; i < steps; i++) {
               nr += off.dy.toInt();
               nc += off.dx.toInt();
-              if (nr < 0 || nr >= boardHeight || nc < 0 || nc >= boardWidth)
-                break;
+              if (nr < 0 || nr >= boardHeight || nc < 0 || nc >= boardWidth) {
+                break; // Stop if out of bounds
+              }
               final b = board[nr][nc];
               if (b != null && b.isActive) {
-                b.isTargeted = true;
+                b.isTargeted = true; // Mark as targeted
                 currentTargeted.add(b);
-                break;
+                break; // Only target the first active block in this direction
               }
             }
           }
@@ -318,6 +365,7 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
       }
 
       if (isPreviewMode) {
+        // Show preview highlights for piece placement
         for (var dir in d.data.movementPattern.directions) {
           for (var off in dir.offsets) {
             var nr = row, nc = col;
@@ -325,11 +373,12 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
             for (var i = 0; i < steps; i++) {
               nr += off.dy.toInt();
               nc += off.dx.toInt();
-              if (nr < 0 || nr >= boardHeight || nc < 0 || nc >= boardWidth)
+              if (nr < 0 || nr >= boardHeight || nc < 0 || nc >= boardWidth) {
                 break;
+              }
               final b = board[nr][nc];
               if (b != null && b.isActive) {
-                b.isPreview = true;
+                b.isPreview = true; // Mark as preview
                 previewCells.add(b);
                 break;
               }
@@ -380,6 +429,277 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
     }
   }
 
+  void _showLoseDialog() {
+    if (!isReviveShowing && mounted) {
+      isReviveShowing = true;
+
+      showGeneralDialog(
+        context: context,
+        barrierDismissible: false,
+        barrierColor: Colors.black54,
+        transitionDuration: const Duration(milliseconds: 500),
+        pageBuilder: (_, _, _) {
+          return CountdownLoading(
+            afterAd: () {
+              board = List.generate(8, (_) => List.filled(8, null));
+              selectedPiecesPositions.clear();
+              targetedCellsMap.clear();
+              setPieces();
+              initKillingCells(_difficulty);
+              previewCells.clear();
+              isGameOver = false;
+              isReviveShowing = false;
+            },
+            onRestart: _restartGame,
+            isReviveShowing: isReviveShowing,
+          );
+        },
+      ).then((_) {
+        isReviveShowing = false;
+      });
+    }
+  }
+
+  Future<void> _saveHighscore(BigInt score) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('highscore', score.toString());
+  }
+
+  Future<void> _saveGameState() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    final boardJson =
+        board
+            .asMap()
+            .map(
+              (row, cols) => MapEntry(
+                row.toString(),
+                cols.asMap().map(
+                  (col, block) => MapEntry(col.toString(), block?.toJson()),
+                ),
+              ),
+            )
+            .values
+            .toList();
+    await prefs.setString('game_board', jsonEncode(boardJson));
+
+    final piecesToSave = selectedPieces.map((p) => p.name).toList();
+    await prefs.setStringList('selected_pieces', piecesToSave);
+
+    await prefs.setString('current_score', currentScore.toString());
+    await prefs.setString('combo_count', comboCount.toString());
+
+    final positionsJson =
+        selectedPiecesPositions.map((p) => {'x': p.x, 'y': p.y}).toList();
+    await prefs.setString(
+      'selected_pieces_positions',
+      jsonEncode(positionsJson),
+    );
+
+    final targetedCellsJson = targetedCellsMap.map(
+      (pos, cells) =>
+          MapEntry('${pos.x},${pos.y}', cells.map((b) => b.toJson()).toList()),
+    );
+    await prefs.setString('targeted_cells_map', jsonEncode(targetedCellsJson));
+
+    final previewJson = previewCells.map((b) => b.toJson()).toList();
+    await prefs.setString('preview_cells', jsonEncode(previewJson));
+  }
+
+  Future<void> _loadData() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    // Load the board
+    final boardJson = prefs.getString('game_board');
+
+    // Load a saved board
+    if (boardJson != null) {
+      try {
+        final List<dynamic> boardData = jsonDecode(boardJson);
+        board = List.generate(
+          8,
+          (row) => List.generate(8, (col) {
+            final blockJson = boardData[row][col.toString()];
+            return blockJson != null ? Block.fromJson(blockJson) : null;
+          }),
+        );
+      } catch (e) {
+        board = List.generate(8, (_) => List.filled(8, null));
+      }
+    }
+
+    // Load selected pieces
+    final pieces = prefs.getStringList('selected_pieces');
+    if (pieces != null && pieces.isNotEmpty) {
+      try {
+        selectedPieces =
+            pieces
+                .map(
+                  (name) => PieceType.values.firstWhere(
+                    (e) => e.name == name,
+                    orElse: () => throw Exception('Invalid PieceType: $name'),
+                  ),
+                )
+                .toList();
+      } catch (e) {
+        debugPrint('Error loading selected pieces: $e');
+        selectedPieces = [];
+      }
+    } else {
+      selectedPieces = [];
+    }
+
+    // Load placed pieces
+    final positionsJson = prefs.getString('selected_pieces_positions');
+    if (positionsJson != null) {
+      try {
+        final List<dynamic> positionsData = jsonDecode(positionsJson);
+        selectedPiecesPositions =
+            positionsData
+                .map((p) => Point<int>(p['x'] as int, p['y'] as int))
+                .toList();
+      } catch (e) {
+        debugPrint('Error loading selected pieces positions: $e');
+        selectedPiecesPositions = [];
+      }
+    }
+
+    // Load targeted cells
+    final targetedCellsJson = prefs.getString('targeted_cells_map');
+    if (targetedCellsJson != null) {
+      try {
+        final Map<String, dynamic> targetedData = jsonDecode(targetedCellsJson);
+        targetedCellsMap = targetedData.map((key, value) {
+          final posParts = key.split(',');
+          final pos = Point<int>(
+            int.parse(posParts[0]),
+            int.parse(posParts[1]),
+          );
+          final cells =
+              (value as List<dynamic>)
+                  .map((json) => Block.fromJson(json))
+                  .toList();
+          return MapEntry(pos, cells);
+        });
+        for (var cells in targetedCellsMap.values) {
+          for (var block in cells) {
+            if (board[block.position.x][block.position.y] != null) {
+              board[block.position.x][block.position.y]!.isTargeted = true;
+            }
+          }
+        }
+      } catch (e) {
+        targetedCellsMap = {};
+      }
+    }
+
+    // Load current score
+    final score = prefs.getString('current_score');
+    currentScore = score != null ? BigInt.parse(score) : BigInt.zero;
+
+    // Load highscore
+    final hs = prefs.getString('highscore');
+    BigInt highscore = hs != null ? BigInt.parse(hs) : BigInt.zero;
+    latestHighScore = highscore;
+    displayedHighscore = highscore;
+
+    // Load current combo
+    final combo = prefs.getString('combo_count');
+    comboCount = combo != null ? BigInt.parse(combo) : BigInt.zero;
+
+    // Load longest streak
+    final comboStreak = prefs.getString('longest_combo_streak');
+    longestComboStreak =
+        comboStreak != null ? BigInt.parse(comboStreak) : BigInt.zero;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    useGlossEffect = context.watch<SettingsProvider>().useGlossEffect;
+
+    if (loseCondition() && !isReviveShowing) {
+      Future.delayed(const Duration(milliseconds: 100), _showLoseDialog);
+    }
+
+    return Scaffold(
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            _saveGameState().then((_) {
+              if (!mounted) return;
+              // ignore: use_build_context_synchronously
+              context.goNamed('/menu');
+            });
+          },
+        ),
+        centerTitle: true,
+        title: const Text("CheckGrid", style: TextStyle(fontSize: 26)),
+        actions: [
+          MenuAnchor(
+            builder:
+                (context, controller, child) => IconButton(
+                  icon: const Icon(Icons.settings),
+                  onPressed: () {
+                    if (controller.isOpen) {
+                      controller.close();
+                    } else {
+                      controller.open();
+                    }
+                  },
+                ),
+            menuChildren: [
+              MenuItemButton(
+                onPressed: () {
+                  _restartGame();
+                },
+                child: const Text('Restart game'),
+              ),
+              MenuItemButton(
+                onPressed: () async {
+                  context.pushNamed("/settings").then((_) => update());
+                },
+                child: const Text('Settings'),
+              ),
+              MenuItemButton(
+                onPressed: () {
+                  // Displays the difficulty dialog
+                  showDifficultyDialog(
+                    context: context,
+                    currentDifficulty: _difficulty,
+                    onDifficultySelected: (newDifficulty) {
+                      setState(() {
+                        _difficulty = newDifficulty;
+                        _restartGame();
+                      });
+                    },
+                  );
+                },
+                child: const Text('Difficulty'),
+              ),
+            ],
+          ),
+        ],
+      ),
+      body: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(height: 10),
+            _buildScore(),
+            SizedBox(height: 20),
+            _buildPlayArea(),
+            SizedBox(height: 20),
+            _buildHighscoreAndCombo(),
+            SizedBox(height: 20),
+            _buildSelectedPieces(),
+          ],
+        ),
+      ),
+      bottomNavigationBar: const BannerAdWidget(),
+    );
+  }
+
   Widget _buildSelectedPieces() {
     const iconSize = 75.0;
     const extraVisualOffset = Offset(0, -20);
@@ -388,6 +708,7 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
       height: iconSize + 28,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
+        // Maybe use gradient?
         color: useGlossEffect ? null : const Color.fromARGB(255, 57, 159, 255),
         gradient:
             useGlossEffect
@@ -405,12 +726,11 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
             useGlossEffect
                 ? [
                   BoxShadow(
-                    color: Colors.white.withOpacity(0.3),
-                    blurRadius: 10,
-                    offset: const Offset(0, -2),
+                    color: const Color.fromARGB(82, 0, 229, 255),
+                    blurRadius: 20,
                   ),
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.2),
+                    color: const Color.fromARGB(82, 0, 0, 0),
                     blurRadius: 5,
                     offset: const Offset(0, 2),
                   ),
@@ -420,7 +740,7 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
       child: AnimatedBuilder(
         animation: _animations.fadeAnimation,
         builder:
-            (_, __) => Opacity(
+            (_, _) => Opacity(
               opacity: _animations.fadeAnimation.value,
               child:
                   selectedPieces.isEmpty && selectedPiecesPositions.isNotEmpty
@@ -694,471 +1014,19 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildCombo() {
-    return Text("Combo: $comboCount", style: const TextStyle(fontSize: 20));
-  }
-
-  Widget _buildHighscore() {
-    return Text(
-      "Highscore: ${NumberFormat('#,###').format(displayedHighscore.toInt())}",
-      style: const TextStyle(fontSize: 20),
-    );
-  }
-
-  Widget _buildScoreAndCombo() {
+  Widget _buildHighscoreAndCombo() {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
-      children: [_buildHighscore()],
-    );
-  }
-
-  void _showLoseDialogSafe() {
-    if (!isReviveShowing && mounted) {
-      isReviveShowing = true;
-
-      showGeneralDialog(
-        context: context,
-        barrierDismissible: false,
-        barrierColor: Colors.black54,
-        transitionDuration: const Duration(milliseconds: 500),
-        pageBuilder: (_, _, _) {
-          return CountdownLoading(
-            afterAd: () {
-              board = List.generate(8, (_) => List.filled(8, null));
-              selectedPiecesPositions.clear();
-              targetedCellsMap.clear();
-              setPieces();
-              initKillingCells(_difficulty);
-              previewCells.clear();
-              isGameOver = false;
-              isReviveShowing = false;
-            },
-            onRestart: _restartGame,
-            isReviveShowing: isReviveShowing,
-          );
-        },
-      ).then((_) {
-        isReviveShowing = false;
-      });
-    }
-  }
-
-  void _showDifficultyDialog(BuildContext context) {
-    Difficulty selectedDifficulty = _difficulty;
-    Color selectedColor = const Color.fromARGB(255, 0, 255, 0);
-
-    showGeneralDialog(
-      context: context,
-      barrierDismissible: true,
-      barrierLabel: "Dismiss",
-      barrierColor: Colors.black54,
-      transitionDuration: Duration(milliseconds: 300),
-      pageBuilder: (context, animation, secondaryAnimation) {
-        return GestureDetector(
-          onTap: () => Navigator.of(context).pop(),
-          child: Scaffold(
-            backgroundColor: Colors.transparent,
-            body: Center(
-              child: GestureDetector(
-                onTap: () {},
-                child: Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    StatefulBuilder(
-                      builder: (context, setState) {
-                        return Container(
-                          height: 350,
-                          width: 275,
-                          decoration: BoxDecoration(
-                            color: Color.fromARGB(255, 41, 107, 161),
-                            borderRadius: BorderRadius.circular(15),
-                            border: Border.all(
-                              width: 4,
-                              color: const Color.fromARGB(255, 124, 137, 154),
-                            ),
-                          ),
-                          child: Center(
-                            child: Padding(
-                              padding: EdgeInsets.all(20),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  SizedBox(height: 20),
-                                  Text(
-                                    "Choose Difficulty",
-                                    style: TextStyle(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  SizedBox(height: 10),
-                                  Text.rich(
-                                    TextSpan(
-                                      children: [
-                                        TextSpan(
-                                          text: "Note: ",
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 18,
-                                          ),
-                                        ),
-                                        TextSpan(
-                                          text:
-                                              "This will restart your current progress and start a new game.",
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.normal,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  SizedBox(height: 30),
-                                  Row(
-                                    spacing: 10,
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children:
-                                        Difficulty.values.map((difficulty) {
-                                          String assetName;
-                                          switch (difficulty) {
-                                            case Difficulty.easy:
-                                              assetName =
-                                                  'assets/images/difficulties/easy_icon.png';
-                                              break;
-                                            case Difficulty.medium:
-                                              assetName =
-                                                  'assets/images/difficulties/medium_icon.png';
-                                              break;
-                                            case Difficulty.hard:
-                                              assetName =
-                                                  'assets/images/difficulties/hard_icon.png';
-                                              break;
-                                          }
-                                          final isSelected =
-                                              selectedDifficulty == difficulty;
-                                          return GestureDetector(
-                                            onTap: () {
-                                              setState(() {
-                                                selectedDifficulty = difficulty;
-                                              });
-                                            },
-                                            child: Image.asset(
-                                              assetName,
-                                              height: 67,
-                                              width: 67,
-                                              color:
-                                                  isSelected
-                                                      ? selectedColor
-                                                      : Colors.white,
-                                            ),
-                                          );
-                                        }).toList(),
-                                  ),
-                                  const SizedBox(height: 30),
-                                  GestureDetector(
-                                    onTap:
-                                        () => {
-                                          _setDifficulty(selectedDifficulty),
-                                          Navigator.pop(context),
-                                        },
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(15),
-                                        color: const Color.fromARGB(
-                                          255,
-                                          45,
-                                          190,
-                                          49,
-                                        ),
-                                      ),
-                                      height: 50,
-                                      width: 150,
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          Text(
-                                            "Restart",
-                                            style: TextStyle(
-                                              fontSize: 22,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                    Positioned(
-                      top: -37.5,
-                      left: (275 - 75) / 2,
-                      child: Image.asset(
-                        'assets/images/difficulties/difficulty.png',
-                        width: 75,
-                        height: 75,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        );
-      },
-      transitionBuilder: (context, animation, secondaryAnimation, child) {
-        final curved = CurvedAnimation(
-          parent: animation,
-          curve: Curves.easeOut,
-          reverseCurve: Curves.easeIn,
-        );
-        return ScaleTransition(
-          scale: Tween<double>(begin: 0.7, end: 1.0).animate(curved),
-          child: FadeTransition(opacity: animation, child: child),
-        );
-      },
-    );
-  }
-
-  void _setDifficulty(Difficulty difficulty) {
-    setState(() {
-      _difficulty = difficulty;
-      _restartGame();
-    });
-  }
-
-  Future<BigInt> _loadHighscore() async {
-    final prefs = await SharedPreferences.getInstance();
-    final s = prefs.getString('highscore');
-    return s != null ? BigInt.parse(s) : BigInt.zero;
-  }
-
-  Future<void> _saveHighscore(BigInt score) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('highscore', score.toString());
-  }
-
-  Future<void> _saveGameState() async {
-    final prefs = await SharedPreferences.getInstance();
-
-    final boardJson =
-        board
-            .asMap()
-            .map(
-              (row, cols) => MapEntry(
-                row.toString(),
-                cols.asMap().map(
-                  (col, block) => MapEntry(col.toString(), block?.toJson()),
-                ),
-              ),
-            )
-            .values
-            .toList();
-    await prefs.setString('game_board', jsonEncode(boardJson));
-
-    final piecesToSave = selectedPieces.map((p) => p.name).toList();
-    await prefs.setStringList('selected_pieces', piecesToSave);
-
-    await prefs.setString('current_score', currentScore.toString());
-    await prefs.setString('combo_count', comboCount.toString());
-
-    final positionsJson =
-        selectedPiecesPositions.map((p) => {'x': p.x, 'y': p.y}).toList();
-    await prefs.setString(
-      'selected_pieces_positions',
-      jsonEncode(positionsJson),
-    );
-
-    final targetedCellsJson = targetedCellsMap.map(
-      (pos, cells) =>
-          MapEntry('${pos.x},${pos.y}', cells.map((b) => b.toJson()).toList()),
-    );
-    await prefs.setString('targeted_cells_map', jsonEncode(targetedCellsJson));
-
-    final previewJson = previewCells.map((b) => b.toJson()).toList();
-    await prefs.setString('preview_cells', jsonEncode(previewJson));
-  }
-
-  Future<void> _loadGameState() async {
-    final prefs = await SharedPreferences.getInstance();
-
-    final boardJson = prefs.getString('game_board');
-    if (boardJson != null) {
-      try {
-        final List<dynamic> boardData = jsonDecode(boardJson);
-        board = List.generate(
-          8,
-          (row) => List.generate(8, (col) {
-            final blockJson = boardData[row][col.toString()];
-            return blockJson != null ? Block.fromJson(blockJson) : null;
-          }),
-        );
-      } catch (e) {
-        board = List.generate(8, (_) => List.filled(8, null));
-      }
-    }
-
-    final pieces = prefs.getStringList('selected_pieces');
-    if (pieces != null && pieces.isNotEmpty) {
-      try {
-        selectedPieces =
-            pieces
-                .map(
-                  (name) => PieceType.values.firstWhere(
-                    (e) => e.name == name,
-                    orElse: () => throw Exception('Invalid PieceType: $name'),
-                  ),
-                )
-                .toList();
-      } catch (e) {
-        debugPrint('Error loading selected pieces: $e');
-        selectedPieces = [];
-      }
-    } else {
-      selectedPieces = [];
-    }
-
-    final score = prefs.getString('current_score');
-    currentScore = score != null ? BigInt.parse(score) : BigInt.zero;
-
-    final combo = prefs.getString('combo_count');
-    comboCount = combo != null ? BigInt.parse(combo) : BigInt.zero;
-
-    final positionsJson = prefs.getString('selected_pieces_positions');
-    if (positionsJson != null) {
-      try {
-        final List<dynamic> positionsData = jsonDecode(positionsJson);
-        selectedPiecesPositions =
-            positionsData
-                .map((p) => Point<int>(p['x'] as int, p['y'] as int))
-                .toList();
-      } catch (e) {
-        debugPrint('Error loading selected pieces positions: $e');
-        selectedPiecesPositions = [];
-      }
-    }
-
-    final targetedCellsJson = prefs.getString('targeted_cells_map');
-    if (targetedCellsJson != null) {
-      try {
-        final Map<String, dynamic> targetedData = jsonDecode(targetedCellsJson);
-        targetedCellsMap = targetedData.map((key, value) {
-          final posParts = key.split(',');
-          final pos = Point<int>(
-            int.parse(posParts[0]),
-            int.parse(posParts[1]),
-          );
-          final cells =
-              (value as List<dynamic>)
-                  .map((json) => Block.fromJson(json))
-                  .toList();
-          return MapEntry(pos, cells);
-        });
-        for (var cells in targetedCellsMap.values) {
-          for (var block in cells) {
-            if (board[block.position.x][block.position.y] != null) {
-              board[block.position.x][block.position.y]!.isTargeted = true;
-            }
-          }
-        }
-      } catch (e) {
-        targetedCellsMap = {};
-      }
-    }
-
-    final previewJson = prefs.getString('preview_cells');
-    if (previewJson != null) {
-      try {
-        final List<dynamic> previewData = jsonDecode(previewJson);
-        previewCells = previewData.map((json) => Block.fromJson(json)).toList();
-      } catch (e) {
-        debugPrint('Error loading preview cells: $e');
-        previewCells = [];
-      }
-    }
-
-    final hs = await _loadHighscore();
-    latestHighScore = hs;
-    displayedHighscore = hs;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    useGlossEffect = context.watch<SettingsProvider>().useGlossEffect;
-
-    if (loseCondition() && !isReviveShowing) {
-      Future.delayed(const Duration(milliseconds: 100), _showLoseDialogSafe);
-    }
-
-    return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () async {
-            _saveGameState().then((_) {
-              if (!mounted) return;
-              context.goNamed('/menu');
-            });
-          },
+      children: [
+        // Highscore
+        Text(
+          "Highscore: ${NumberFormat('#,###').format(displayedHighscore.toInt())}",
+          style: const TextStyle(fontSize: 20),
         ),
-        centerTitle: true,
-        title: const Text("CheckGrid", style: TextStyle(fontSize: 26)),
-        actions: [
-          MenuAnchor(
-            builder:
-                (context, controller, child) => IconButton(
-                  icon: const Icon(Icons.settings),
-                  onPressed: () {
-                    if (controller.isOpen) {
-                      controller.close();
-                    } else {
-                      controller.open();
-                    }
-                  },
-                ),
-            menuChildren: [
-              MenuItemButton(
-                onPressed: () {
-                  _restartGame();
-                },
-                child: const Text('Restart game'),
-              ),
-              MenuItemButton(
-                onPressed: () async {
-                  context.pushNamed("/settings").then((_) => update());
-                },
-                child: const Text('Settings'),
-              ),
-              MenuItemButton(
-                onPressed: () {
-                  _showDifficultyDialog(context);
-                },
-                child: const Text('Difficulty'),
-              ),
-            ],
-          ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            SizedBox(height: 10),
-            _buildScore(),
-            SizedBox(height: 20),
-            _buildPlayArea(),
-            SizedBox(height: 20),
-            _buildScoreAndCombo(),
-            SizedBox(height: 20),
-            _buildSelectedPieces(),
-          ],
-        ),
-      ),
-      bottomNavigationBar: const BannerAdWidget(),
+
+        // Combo
+        Text("Combo: $comboCount", style: const TextStyle(fontSize: 20)),
+      ],
     );
   }
 }

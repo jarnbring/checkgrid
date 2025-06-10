@@ -1,5 +1,5 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:CheckGrid/providers/settings_provider.dart';
+import 'package:checkgrid/providers/settings_provider.dart';
 import 'package:timezone/data/latest_all.dart' as tz show initializeTimeZones;
 import 'package:timezone/timezone.dart' as tz;
 import 'package:flutter_timezone/flutter_timezone.dart';
@@ -7,6 +7,7 @@ import 'package:flutter_timezone/flutter_timezone.dart';
 class NotiService {
   final notificationsPlugin = FlutterLocalNotificationsPlugin();
 
+  // ignore: prefer_final_fields
   bool _isInitialized = false;
 
   bool get isInitialized => _isInitialized;
@@ -65,10 +66,8 @@ class NotiService {
     required SettingsProvider settingsProvider,
   }) async {
     await settingsProvider.loadSettings();
-    if (!settingsProvider.notificationReminder) {
-      print("User has denied notifications through the app!");
-      return;
-    }
+    if (!settingsProvider.notificationReminder) return;
+
     return notificationsPlugin.show(id, title, body, notificationDetails());
   }
 
@@ -89,10 +88,7 @@ class NotiService {
     required SettingsProvider settingsProvider,
   }) async {
     await settingsProvider.loadSettings();
-    if (!settingsProvider.notificationReminder) {
-      print("User has denied notifications through the app!");
-      return;
-    }
+    if (!settingsProvider.notificationReminder) return;
 
     // Get the current date/time in device's local timezone
     final now = tz.TZDateTime.now(tz.local);
@@ -121,8 +117,6 @@ class NotiService {
       // Make notification repeat DAILY at same time
       matchDateTimeComponents: DateTimeComponents.time,
     );
-
-    print("Notification scheduled!: $scheduleDate");
   }
 
   // Cancel all notifications
@@ -135,10 +129,7 @@ class NotiService {
     SettingsProvider settingsProvider,
   ) async {
     await settingsProvider.loadSettings();
-    if (!settingsProvider.notificationReminder) {
-      print("User has denied notifications through the app!");
-      return;
-    }
+    if (!settingsProvider.notificationReminder) return;
 
     final List<Map<String, String>> weeklyMessages = [
       {"title": "Monday Boost", "body": "Start your week strong!"},
