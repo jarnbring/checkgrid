@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:CheckGrid/components/photopicker.dart';
 import 'package:CheckGrid/components/textfield.dart';
@@ -18,6 +20,7 @@ class _FeedbackPageState extends State<FeedbackPage>
   final TextEditingController _emailController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   XFile? userScreenshot;
+  List<XFile> screenshots = [];
 
   final Map<String, bool> _selectedItems = {
     "Report a Bug": false,
@@ -108,44 +111,51 @@ class _FeedbackPageState extends State<FeedbackPage>
               ),
               decoration: InputDecoration(
                 hintText: "Please briefly describe the issue",
-                hintStyle: TextStyle(
-                  fontSize: screenWidth * 0.035,
-                  color: Colors.grey,
-                ),
+                hintStyle: TextStyle(fontSize: 15, color: Colors.grey),
                 enabledBorder: const OutlineInputBorder(
                   borderSide: BorderSide(color: Colors.black),
                 ),
                 focusedBorder: const OutlineInputBorder(
-                  borderSide: BorderSide(width: 1.0, color: Colors.black),
+                  borderSide: BorderSide(width: 1.0, color: Colors.blue),
                 ),
                 border: const OutlineInputBorder(),
-                contentPadding: EdgeInsets.all(screenWidth * 0.02),
+                contentPadding: EdgeInsets.all(10),
               ),
             ),
           ),
+          const SizedBox(height: 5),
           GestureDetector(
-            onTap: () => {print("HEJ")},
+            onTap:
+                () => PhotoPicker.pickImages(context, screenshots, (list) {
+                  setState(() {
+                    screenshots = list;
+                  });
+                }),
             child: Container(
-              decoration: const BoxDecoration(
-                border: Border(top: BorderSide(width: 1.0, color: Colors.grey)),
-              ),
-              padding: EdgeInsets.all(screenWidth * 0.02),
+              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 5),
               child: Row(
                 children: [
-                  PhotoPicker(
-                    onImagePicked: (XFile? image) {
-                      setState(() {
-                        userScreenshot = image;
-                      });
-                    },
-                    radius: 300.0,
+                  Container(
+                    decoration: BoxDecoration(
+                      color: const Color.fromARGB(255, 84, 84, 84),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Padding(
+                      padding: EdgeInsetsGeometry.all(5),
+                      child: const Icon(
+                        Icons.add,
+                        color: Colors.white,
+                        size: 25,
+                      ),
+                    ),
                   ),
-                  SizedBox(width: screenWidth * 0.025),
-                  Text(
-                    "Upload screenshot (optional)",
+                  SizedBox(width: 15),
+                  const Text(
+                    "Upload screenshots (optional)",
                     style: TextStyle(
                       color: Colors.blueAccent,
-                      fontSize: screenWidth * 0.035,
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                 ],
@@ -157,14 +167,54 @@ class _FeedbackPageState extends State<FeedbackPage>
     );
   }
 
-  Widget buildCheckItem(String title, double screenWidth) {
-    return Padding(
-      padding: EdgeInsets.only(bottom: screenWidth * 0.04),
-      child: Row(
-        children: [
-          const Icon(Icons.check_circle, color: Colors.blue),
-          SizedBox(width: screenWidth * 0.025),
-        ],
+  Widget _buildScreenshots(List<XFile> screenshotList) {
+    // Add an animation that plays when the user removes an image.
+    // Add the option to press an image and show a preview.
+    return SizedBox(
+      height: 120,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: screenshotList.length,
+        itemBuilder: (context, index) {
+          return Stack(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(4.0),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image.file(
+                    File(screenshotList[index].path),
+                    width: 120,
+                    height: 120,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
+              Positioned(
+                top: 0,
+                right: 0,
+                child: GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      screenshotList.removeAt(index);
+                    });
+                  },
+                  child: Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: const Color.fromARGB(164, 158, 158, 158),
+                    ),
+                    child: const Icon(
+                      Icons.close,
+                      size: 22,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -258,37 +308,46 @@ class _FeedbackPageState extends State<FeedbackPage>
                 _buildCheckItem("In-App Purchase Issues", screenWidth),
                 _buildCheckItem("Feature Suggestion", screenWidth),
                 _buildCheckItem("Other", screenWidth),
-                SizedBox(height: adjustedScreenHeight * 0.03),
+                SizedBox(height: 30),
                 _buildFeedbackForm(screenWidth, adjustedScreenHeight),
-                SizedBox(height: adjustedScreenHeight * 0.1),
+                SizedBox(height: adjustedScreenHeight * 0.03),
+                if (screenshots.isNotEmpty) _buildScreenshots(screenshots),
+                SizedBox(height: adjustedScreenHeight * 0.03),
                 _buildEmailField(),
-                SizedBox(height: adjustedScreenHeight * 0.1),
-                Row(
-                  children: [
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: () {
-                          if (_formKey.currentState!.validate()) {
-                            print(
-                              "Feedback submitted: ${_emailController.text}",
-                            );
-                          }
-                        },
-                        child: Text(
-                          "Submit",
-                          style: TextStyle(fontSize: screenWidth * 0.04),
-                        ),
+                SizedBox(height: 50),
+                GestureDetector(
+                  onTap: () => {},
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.blue,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Padding(
+                      padding: EdgeInsetsGeometry.all(20),
+                      child: Row(
+                        children: [
+                          const Spacer(),
+                          Text(
+                            "Submit feedback",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const Spacer(),
+                        ],
                       ),
                     ),
-                  ],
+                  ),
                 ),
+
                 SizedBox(height: adjustedScreenHeight * 0.02),
               ],
             ),
           ),
         ),
       ),
-      // bottomNavigationBar: const BannerAdWidget(),
     );
   }
 }

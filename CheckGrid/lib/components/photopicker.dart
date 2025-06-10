@@ -1,70 +1,26 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
-class PhotoPicker extends StatefulWidget {
-  final Function(XFile?) onImagePicked; 
-  final double radius;
+class PhotoPicker {
+  static final ImagePicker _picker = ImagePicker();
 
-  const PhotoPicker({super.key, required this.onImagePicked, required this.radius});
-
-  @override
-  State<PhotoPicker> createState() => _PhotoPickerState();
-}
-
-class _PhotoPickerState extends State<PhotoPicker> {
-  bool isTapped = true;
-  XFile? _pickedFile;
-  final ImagePicker _picker = ImagePicker();
-
-  Future<void> _pickImage() async {
+  static Future<void> pickImages(
+    BuildContext context,
+    List<XFile> existing,
+    Function(List<XFile>) onImagesPicked,
+  ) async {
     try {
-      final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
-      if (pickedFile != null) {
-        setState(() {
-          _pickedFile = pickedFile;
-          isTapped = false;
-        });
-        widget.onImagePicked(pickedFile); 
+      final List<XFile> pickedFiles = await _picker.pickMultiImage();
+      if (pickedFiles.isNotEmpty) {
+        final existingPaths = existing.map((e) => e.path).toSet();
+        final newFiles = pickedFiles.where(
+          (f) => !existingPaths.contains(f.path),
+        );
+        final updated = List<XFile>.from(existing)..addAll(newFiles);
+        onImagesPicked(updated);
       }
     } catch (e) {
-      // Handle errors
+      debugPrint("Could not pick images: $e");
     }
-  }
-
-  XFile? getPickedImage() {
-    if (_pickedFile != null) {
-    return _pickedFile;
-    } else {
-      return null;
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: _pickImage,
-      child: isTapped
-          ? Container(
-                    decoration: BoxDecoration(
-                      color: Colors.grey,
-                      borderRadius: BorderRadius.circular(30.0),
-                    ),
-                    child: Padding(
-                      padding: EdgeInsets.all(widget.radius * 0.02),
-                      child: const Icon(Icons.add, color: Colors.black),
-                    ),
-                  )
-          : _pickedFile != null
-              ? CircleAvatar(
-                  radius: widget.radius,
-                  backgroundImage: FileImage(File(_pickedFile!.path)),
-                )
-              :  CircleAvatar(
-                  backgroundColor: Colors.grey,
-                  radius: widget.radius,
-                  child: Text("No image"),
-                ),
-    );
   }
 }

@@ -35,6 +35,9 @@ class _InputFieldOutsideAppState extends State<InputFieldOutsideApp> {
 
   @override
   Widget build(BuildContext context) {
+    final textColor =
+        Theme.of(context).textTheme.bodyMedium?.color ?? Colors.black;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -51,9 +54,10 @@ class _InputFieldOutsideAppState extends State<InputFieldOutsideApp> {
           alignment: Alignment.centerLeft,
           decoration: BoxDecoration(
             border: Border.all(
-              color: _errorText != null
-                  ? const Color.fromARGB(255, 255, 0, 0)
-                  : Colors.white,
+              color:
+                  _errorText != null
+                      ? const Color.fromARGB(255, 255, 0, 0)
+                      : textColor,
             ),
             borderRadius: BorderRadius.circular(10),
           ),
@@ -63,10 +67,9 @@ class _InputFieldOutsideAppState extends State<InputFieldOutsideApp> {
               return TextField(
                 onTap: widget.onTap,
                 controller: widget.controller,
-                autofocus: true,
                 autocorrect: true,
                 obscureText: widget.obscureText,
-                cursorColor: Colors.white,
+                cursorColor: textColor,
                 keyboardType: widget.keyboardType,
                 style: TextStyle(
                   color: Theme.of(context).textTheme.bodyMedium!.color,
@@ -81,10 +84,10 @@ class _InputFieldOutsideAppState extends State<InputFieldOutsideApp> {
                 decoration: InputDecoration(
                   border: InputBorder.none,
                   contentPadding: const EdgeInsets.only(top: 14),
-                  prefixIcon: Icon(widget.icon, color: Colors.white),
+                  prefixIcon: Icon(widget.icon, color: textColor),
                   hintText: widget.hintText,
                   hintStyle: TextStyle(
-                    color: Colors.white70,
+                    color: textColor,
                     fontFamily: widget.fontFamily,
                   ),
                 ),
