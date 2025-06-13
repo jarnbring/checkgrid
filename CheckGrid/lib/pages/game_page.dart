@@ -297,16 +297,43 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
     await Future.wait([scoreAnim, highAnim]);
   }
 
-  void spawnNewRows(Difficulty difficulty) {
-    if (isReviveShowing) return;
+  bool isAnimating = false;
+
+  Future<void> spawnNewRows(Difficulty difficulty) async {
+    if (isReviveShowing || isAnimating) return;
+
+    isAnimating = true;
+
+    // 1. Spela animation för borttagning (t.ex. fade out)
+    await animateRowsRemoval();
+
+    // 2. Flytta ner rader
     for (var row = boardHeight - 1; row > 0; row--) {
       board[row] = List.from(board[row - 1]);
     }
     board[0] = List.filled(boardWidth, null);
+
     addScore();
     initKillingCells(_difficulty);
     targetedCellsMap.clear();
+
+    // 3. Spela animation för nya rader (t.ex. fade in)
+    await animateRowsSpawn();
+
     update();
+
+    isAnimating = false;
+  }
+
+  // Placeholder för animationer, implementera i UI-kod med t.ex. AnimationController
+  Future<void> animateRowsRemoval() async {
+    // Kör t.ex. fade out animation på rader
+    await Future.delayed(Duration(milliseconds: 300));
+  }
+
+  Future<void> animateRowsSpawn() async {
+    // Kör t.ex. fade in animation på nya rader
+    await Future.delayed(Duration(milliseconds: 300));
   }
 
   void setPiecesAndRemoveBlocks() {
