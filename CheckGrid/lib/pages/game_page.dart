@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:math';
-import 'package:checkgrid/game/difficulty_dialog.dart';
 import 'package:checkgrid/game/settings_dropdown.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
