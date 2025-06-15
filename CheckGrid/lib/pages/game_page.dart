@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:math';
 import 'package:checkgrid/game/difficulty_dialog.dart';
+import 'package:checkgrid/game/settings_dropdown.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:checkgrid/animations/game_animations.dart';
@@ -663,6 +664,7 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
         centerTitle: true,
         title: const Text("CheckGrid", style: TextStyle(fontSize: 26)),
         actions: [
+          /**
           MenuAnchor(
             builder:
                 (context, controller, child) => IconButton(
@@ -706,6 +708,30 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
               ),
             ],
           ),
+        */
+          SizedBox(
+            width: 56,
+            height: 56,
+            child: GestureDetector(
+              onTap: () {
+                showSettingsDialog(
+                  context: context,
+                  onRestart: _restartGame,
+                  onSettingsPage: () {
+                    context.pushNamed("/settings").then((_) => update());
+                  },
+                  currentDifficulty: _difficulty,
+                  onDifficultySelected: (newDifficulty) {
+                      setState(() {
+                        _difficulty = newDifficulty;
+                        _restartGame();
+                      });
+                    },
+                );
+              },
+              child: const Icon(Icons.settings),
+            ),
+          ),
         ],
       ),
       body: SingleChildScrollView(
@@ -736,25 +762,21 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         // Maybe use gradient?
-        color: useGlossEffect ? null : const Color.fromARGB(255, 57, 159, 255),
-        gradient:
-            useGlossEffect
-                ? const LinearGradient(
-                  colors: [
-                    Color.fromARGB(255, 57, 159, 255),
-                    Color.fromARGB(255, 100, 180, 255),
-                  ],
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                )
-                : null,
+        gradient: const LinearGradient(
+          colors: [
+            Color.fromARGB(255, 57, 159, 255),
+            Color.fromARGB(255, 111, 185, 255),
+          ],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+        ),
         borderRadius: BorderRadius.circular(30),
         boxShadow:
             useGlossEffect
                 ? [
                   BoxShadow(
                     color: const Color.fromARGB(82, 0, 229, 255),
-                    blurRadius: 20,
+                    blurRadius: 10,
                   ),
                   BoxShadow(
                     color: const Color.fromARGB(82, 0, 0, 0),
@@ -779,24 +801,7 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
                         child: Container(
                           width: 250,
                           height: 50,
-                          decoration: BoxDecoration(
-                            color:
-                                useGlossEffect
-                                    ? null
-                                    : const Color.fromARGB(255, 57, 159, 255),
-                            gradient:
-                                useGlossEffect
-                                    ? const LinearGradient(
-                                      colors: [
-                                        Color.fromARGB(255, 57, 159, 255),
-                                        Color.fromARGB(255, 100, 180, 255),
-                                      ],
-                                      begin: Alignment.topCenter,
-                                      end: Alignment.bottomCenter,
-                                    )
-                                    : null,
-                            borderRadius: BorderRadius.circular(30),
-                          ),
+                          decoration: BoxDecoration(color: Colors.transparent),
                           alignment: Alignment.center,
                           child: const Text(
                             "Continue",

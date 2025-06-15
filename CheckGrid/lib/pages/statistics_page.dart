@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class StatisticsPage extends StatefulWidget {
@@ -76,7 +77,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
             ),
             const Spacer(),
             Text(
-              '${data.toInt()}${isTime == true ? ' h' : ''}',
+              '${NumberFormat('#,###').format(data.toInt())}${isTime == true ? ' h' : ''}',
               style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
             ),
             const Spacer(),

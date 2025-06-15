@@ -3,9 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:checkgrid/components/photopicker.dart';
 import 'package:checkgrid/components/textfield.dart';
-import 'package:checkgrid/providers/general_provider.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:provider/provider.dart';
 
 class FeedbackPage extends StatefulWidget {
   const FeedbackPage({super.key});
@@ -90,9 +88,9 @@ class _FeedbackPageState extends State<FeedbackPage>
     );
   }
 
-  Widget _buildFeedbackForm(double screenWidth, double adjustedScreenHeight) {
+  Widget _buildFeedbackForm() {
     return Container(
-      padding: EdgeInsets.all(screenWidth * 0.02),
+      padding: EdgeInsets.all(10),
       decoration: BoxDecoration(
         border: Border.all(color: Colors.grey),
         borderRadius: BorderRadius.circular(8),
@@ -101,11 +99,11 @@ class _FeedbackPageState extends State<FeedbackPage>
         mainAxisSize: MainAxisSize.min,
         children: [
           SizedBox(
-            height: adjustedScreenHeight * 0.25, // Begränsad höjd för TextField
+            height: 300,
             child: TextField(
-              maxLines: null, // Låter TextField växa inom SizedBox
-              expands: true, // Fyller tillgänglig höjd
-              textAlignVertical: TextAlignVertical.top, // Text börjar högst upp
+              maxLines: null,
+              expands: true,
+              textAlignVertical: TextAlignVertical.top,
               style: TextStyle(
                 color: Theme.of(context).textTheme.bodyMedium!.color,
               ),
@@ -152,11 +150,7 @@ class _FeedbackPageState extends State<FeedbackPage>
                   SizedBox(width: 15),
                   const Text(
                     "Upload screenshots (optional)",
-                    style: TextStyle(
-                      color: Colors.blueAccent,
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(color: Colors.blueAccent, fontSize: 16),
                   ),
                 ],
               ),
@@ -167,59 +161,181 @@ class _FeedbackPageState extends State<FeedbackPage>
     );
   }
 
+  void _buildPreview(List<XFile> screenshotList, int startIndex) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        int currentIndex = startIndex;
+
+        return StatefulBuilder(
+          builder: (context, setState) {
+            // Loop runt
+            if (currentIndex >= screenshotList.length) currentIndex = 0;
+            if (currentIndex < 0) currentIndex = screenshotList.length - 1;
+
+            return Dialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Container(
+                    width: 400,
+                    height: 600,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(25),
+                      color: Colors.black,
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Image.file(
+                        File(screenshotList[currentIndex].path),
+                        fit: BoxFit.contain,
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    top: -10,
+                    right: -10,
+                    child: GestureDetector(
+                      onTap: () => Navigator.of(context).pop(),
+                      child: Container(
+                        decoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Color.fromARGB(164, 158, 158, 158),
+                        ),
+                        child: const Icon(
+                          Icons.close,
+                          size: 30,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    top: (600 - 30) / 2,
+                    right: -15,
+                    child: GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          currentIndex++;
+                          if (currentIndex >= screenshotList.length) {
+                            currentIndex = 0;
+                          }
+                        });
+                      },
+                      child: Container(
+                        decoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Color.fromARGB(164, 158, 158, 158),
+                        ),
+                        child: const Padding(
+                          padding: EdgeInsets.all(3),
+                          child: Icon(
+                            Icons.arrow_forward_ios,
+                            size: 30,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    top: (600 - 30) / 2,
+                    left: -15,
+                    child: GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          currentIndex--;
+                          if (currentIndex < 0) {
+                            currentIndex = screenshotList.length - 1;
+                          }
+                        });
+                      },
+                      child: Container(
+                        decoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Color.fromARGB(164, 158, 158, 158),
+                        ),
+                        child: const Padding(
+                          padding: EdgeInsets.all(3),
+                          child: Icon(
+                            Icons.arrow_back_ios_new,
+                            size: 30,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   Widget _buildScreenshots(List<XFile> screenshotList) {
     // Add an animation that plays when the user removes an image.
-    // Add the option to press an image and show a preview.
+
     return SizedBox(
       height: 120,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         itemCount: screenshotList.length,
         itemBuilder: (context, index) {
-          return Stack(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(4.0),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: Image.file(
-                    File(screenshotList[index].path),
-                    width: 120,
-                    height: 120,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-              ),
-              Positioned(
-                top: 0,
-                right: 0,
-                child: GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      screenshotList.removeAt(index);
-                    });
-                  },
-                  child: Container(
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: const Color.fromARGB(164, 158, 158, 158),
-                    ),
-                    child: const Icon(
-                      Icons.close,
-                      size: 22,
-                      color: Colors.white,
+          return GestureDetector(
+            onTap: () => _buildPreview(screenshotList, index),
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(4.0),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Image.file(
+                      File(screenshotList[index].path),
+                      width: 120,
+                      height: 120,
+                      fit: BoxFit.contain,
                     ),
                   ),
                 ),
-              ),
-            ],
+                Positioned(
+                  top: 0,
+                  right: 0,
+                  child: GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        screenshotList.removeAt(index);
+                      });
+                    },
+                    child: Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: const Color.fromARGB(164, 158, 158, 158),
+                      ),
+                      child: const Icon(
+                        Icons.close,
+                        size: 22,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           );
         },
       ),
     );
   }
 
-  Widget _buildCheckItem(String title, double screenWidth) {
+  Widget _buildCheckItem(String title) {
     bool isSelected = _selectedItems[title] ?? false;
     final animationController = _animationControllers[title];
     final scaleAnimation = _scaleAnimations[title];
@@ -239,7 +355,7 @@ class _FeedbackPageState extends State<FeedbackPage>
         });
       },
       child: Padding(
-        padding: EdgeInsets.only(bottom: screenWidth * 0.04),
+        padding: EdgeInsets.only(bottom: 20),
         child: Row(
           children: [
             AnimatedBuilder(
@@ -254,13 +370,13 @@ class _FeedbackPageState extends State<FeedbackPage>
                 );
               },
             ),
-            SizedBox(width: screenWidth * 0.025),
+            SizedBox(width: 10),
             Text(
               title,
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 color: Colors.blue,
-                fontSize: screenWidth * 0.04,
+                fontSize: 18,
               ),
             ),
           ],
@@ -271,15 +387,9 @@ class _FeedbackPageState extends State<FeedbackPage>
 
   @override
   Widget build(BuildContext context) {
-    final generalProvider = context.watch<GeneralProvider>();
-    final screenWidth = generalProvider.getScreenWidth(context);
-    final screenHeight = generalProvider.getScreenHeight(context);
-    final bannerAdHeight = generalProvider.getBannerAdHeight();
-    final adjustedScreenHeight = screenHeight - bannerAdHeight;
-
     return Scaffold(
       appBar: AppBar(
-        title: Text("Feedback", style: TextStyle(fontSize: screenWidth * 0.05)),
+        title: Text("Feedback", style: TextStyle(fontSize: 20)),
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -289,62 +399,65 @@ class _FeedbackPageState extends State<FeedbackPage>
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
-            padding: EdgeInsets.all(screenWidth * 0.04),
+            padding: EdgeInsets.all(20),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SizedBox(height: adjustedScreenHeight * 0.02),
+                SizedBox(height: 20),
                 Text(
                   "Please select the type of feedback:",
-                  style: TextStyle(
-                    color: Colors.grey,
-                    fontSize: screenWidth * 0.04,
-                  ),
+                  style: TextStyle(color: Colors.grey, fontSize: 18),
                 ),
-                SizedBox(height: adjustedScreenHeight * 0.02),
-                _buildCheckItem("Report a Bug", screenWidth),
-                _buildCheckItem("Performance Issues", screenWidth),
-                _buildCheckItem("UI/UX Problems", screenWidth),
-                _buildCheckItem("In-App Purchase Issues", screenWidth),
-                _buildCheckItem("Feature Suggestion", screenWidth),
-                _buildCheckItem("Other", screenWidth),
+                SizedBox(height: 20),
+                _buildCheckItem("Report a Bug"),
+                _buildCheckItem("Performance Issues"),
+                _buildCheckItem("UI/UX Problems"),
+                _buildCheckItem("In-App Purchase Issues"),
+                _buildCheckItem("Feature Suggestion"),
+                _buildCheckItem("Other"),
                 SizedBox(height: 30),
-                _buildFeedbackForm(screenWidth, adjustedScreenHeight),
-                SizedBox(height: adjustedScreenHeight * 0.03),
+                _buildFeedbackForm(),
+                SizedBox(height: 30),
                 if (screenshots.isNotEmpty) _buildScreenshots(screenshots),
-                SizedBox(height: adjustedScreenHeight * 0.03),
+                SizedBox(height: 30),
                 _buildEmailField(),
                 SizedBox(height: 50),
-                GestureDetector(
-                  onTap: () => {},
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.blue,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Padding(
-                      padding: EdgeInsetsGeometry.all(20),
-                      child: Row(
-                        children: [
-                          const Spacer(),
-                          Text(
-                            "Submit feedback",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const Spacer(),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-
-                SizedBox(height: adjustedScreenHeight * 0.02),
+                _buildSubmitButton(),
+                SizedBox(height: 10),
               ],
             ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSubmitButton() {
+    return GestureDetector(
+      onTap:
+          () => {
+            // Request the database, i.e ApiClient() from data.dart
+          },
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.blue,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Padding(
+          padding: EdgeInsetsGeometry.all(20),
+          child: Row(
+            children: [
+              const Spacer(),
+              Text(
+                "Submit feedback",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const Spacer(),
+            ],
           ),
         ),
       ),

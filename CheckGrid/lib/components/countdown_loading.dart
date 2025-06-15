@@ -116,6 +116,7 @@ class _CountdownLoadingState extends State<CountdownLoading> {
                 GestureDetector(
                   onTap: () {
                     isAdBeingShown = true;
+                    // Add handling no internet connection
                     _rewardedAdService.showAd(
                       onUserEarnedReward: () {
                         hasRevived = true;
@@ -128,9 +129,9 @@ class _CountdownLoadingState extends State<CountdownLoading> {
                         if (!hasRevived) {
                           widget.onRestart();
                         }
-                        setState(() {});
                       },
                     );
+                    
                   },
                   child: Container(
                     width: 200,
