@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:checkgrid/game/difficulty.dart';
+import 'package:checkgrid/new_game/utilities/difficulty.dart';
 
 void showDifficultyDialog({
   required BuildContext context,

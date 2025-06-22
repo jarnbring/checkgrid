@@ -1,7 +1,16 @@
 import 'package:flame/image_composition.dart';
-import 'package:checkgrid/game/move_pattern.dart';
+import 'package:checkgrid/new_game/utilities/move_pattern.dart';
 
 enum PieceType { king, queen, rook, bishop, knight, pawn }
+
+class PlacedPiece {
+  final PieceType type;
+  final int row;
+  final int col;
+
+  PlacedPiece({required this.type, required this.row, required this.col});
+}
+
 
 extension PieceProperties on PieceType {
   MovePattern get movementPattern {

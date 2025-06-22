@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SettingsProvider with ChangeNotifier {
@@ -76,6 +77,27 @@ class SettingsProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  void doVibration(int impact) {
+    if (!isVibrationOn) {
+      return;
+    }
+
+    switch (impact) {
+      case 1:
+        HapticFeedback.lightImpact();
+        break;
+      case 2:
+        HapticFeedback.mediumImpact();
+        break;
+      case 3:
+        HapticFeedback.heavyImpact();
+        break;
+      case 4:
+        HapticFeedback.vibrate();
+        break;
+    }
+  }
+
   void setSound(bool value) {
     _isSoundOn = value;
     _saveSettings();
@@ -84,12 +106,6 @@ class SettingsProvider with ChangeNotifier {
 
   void setNotificationReminder(bool value) {
     _notificationReminder = value;
-    _saveSettings();
-    notifyListeners();
-  }
-
-  void setGlossEffect(bool value) {
-    _useGlossEffect = value;
     _saveSettings();
     notifyListeners();
   }

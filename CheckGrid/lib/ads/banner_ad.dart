@@ -50,7 +50,6 @@ class _BannerAdWidgetState extends State<BannerAdWidget> {
       size: _adSize!,
       listener: BannerAdListener(
         onAdLoaded: (ad) {
-          debugPrint('BannerAd loaded with height: ${_bannerAd!.size.height}');
           setState(() {
             _isBannerAdLoaded = true;
           });

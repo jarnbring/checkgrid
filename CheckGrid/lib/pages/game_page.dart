@@ -1,14 +1,16 @@
+// ignore_for_file: unused_import
+
 import 'dart:convert';
 import 'dart:math';
-import 'package:checkgrid/game/settings_dropdown.dart';
+import 'package:checkgrid/new_game/dialogs/settings_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:checkgrid/animations/game_animations.dart';
 import 'package:checkgrid/ads/banner_ad.dart';
 import 'package:checkgrid/components/countdown_loading.dart';
-import 'package:checkgrid/game/block.dart';
-import 'package:checkgrid/game/difficulty.dart';
-import 'package:checkgrid/game/piecetype.dart';
+import 'package:checkgrid/new_game/utilities/cell.dart';
+import 'package:checkgrid/new_game/utilities/difficulty.dart';
+import 'package:checkgrid/new_game/utilities/piecetype.dart';
 import 'package:checkgrid/providers/settings_provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -34,11 +36,11 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
   final boardWidth = 8, boardHeight = 8, comboRequirement = 6;
 
   // Initialize an empty board and pieces
-  List<List<Block?>> board = List.generate(8, (_) => List.filled(8, null));
+  List<List<Cell?>> board = List.generate(8, (_) => List.filled(8, null));
   List<PieceType> selectedPieces = [];
   List<Point<int>> selectedPiecesPositions = [];
-  Map<Point<int>, List<Block>> targetedCellsMap = {};
-  List<Block> previewCells = [];
+  Map<Point<int>, List<Cell>> targetedCellsMap = {};
+  List<Cell> previewCells = [];
 
   BigInt currentScore = BigInt.zero, comboCount = BigInt.zero;
   BigInt latestHighScore = BigInt.zero, displayedHighscore = BigInt.zero;
@@ -56,7 +58,7 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
     _loadData();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (selectedPieces.isEmpty &&
-          board.every((row) => row.every((block) => block == null))) {
+          board.every((row) => row.every((Cell) => Cell == null))) {
         initKillingCells(_difficulty);
         setPieces();
       } else if (selectedPieces.isNotEmpty ||
@@ -78,82 +80,10 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
 
   void update() {
     // Check if the game is over
-    if (loseCondition()) return;
-
-    setState(() {
-      // Updating colors
-      for (var row = 0; row < boardHeight; row++) {
-        for (var col = 0; col < boardWidth; col++) {
-          final cell = board[row][col];
-          if (row >= 6) {
-            if (cell == null) {
-              board[row][col] = Block(
-                position: Point<int>(row, col),
-                isActive: false,
-                hasPiece: false,
-                fallbackColor: Colors.blueGrey,
-              );
-            }
-          } else if (cell != null) {
-            if (cell.hasPiece || cell.piece != null) {
-              cell.gradient =
-                  useGlossEffect
-                      ? const LinearGradient(
-                        colors: [
-                          Colors.blue,
-                          Color.fromARGB(255, 100, 180, 255),
-                        ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      )
-                      : null;
-              cell.fallbackColor = Colors.blue;
-            } else if (cell.isActive) {
-              if (row < 2) {
-                cell.gradient =
-                    useGlossEffect
-                        ? const LinearGradient(
-                          colors: [
-                            Colors.green,
-                            Color.fromARGB(255, 150, 255, 150),
-                          ],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        )
-                        : null;
-                cell.fallbackColor = Colors.green;
-              } else if (row < 4) {
-                cell.gradient =
-                    useGlossEffect
-                        ? const LinearGradient(
-                          colors: [
-                            Colors.orange,
-                            Color.fromARGB(255, 255, 200, 100),
-                          ],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        )
-                        : null;
-                cell.fallbackColor = Colors.orange;
-              } else {
-                cell.gradient =
-                    useGlossEffect
-                        ? const LinearGradient(
-                          colors: [
-                            Colors.red,
-                            Color.fromARGB(255, 255, 100, 100),
-                          ],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        )
-                        : null;
-                cell.fallbackColor = Colors.red;
-              }
-            }
-          }
-        }
-      }
-    });
+    if (_checkGameOver()) {
+      _showLoseDialog();
+      return;
+    }
   }
 
   void _saveStatistic({
@@ -201,6 +131,7 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
     });
   }
 
+  // Klar
   void setPieces() {
     final all = List.of(PieceType.values)..shuffle();
     selectedPieces = all.take(3).toList();
@@ -208,6 +139,7 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
       _animations.animationController.forward(from: 0.0);
     });
   }
+
 
   void initKillingCells(Difficulty difficulty) {
     assert(difficulty.spawnRate >= 0.0 && difficulty.spawnRate <= 1.0);
@@ -219,21 +151,9 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
     for (var row = 0; row < newRows; row++) {
       for (var col = 0; col < boardWidth; col++) {
         if (rng.nextDouble() < difficulty.spawnRate) {
-          board[row][col] = Block(
+          board[row][col] = Cell(
             position: Point<int>(row, col),
             isActive: true,
-            gradient:
-                useGlossEffect
-                    ? const LinearGradient(
-                      colors: [
-                        Colors.green,
-                        Color.fromARGB(255, 150, 255, 150),
-                      ],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    )
-                    : null,
-            fallbackColor: Colors.green,
           );
         }
       }
@@ -299,6 +219,7 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
 
   bool isAnimating = false;
 
+  // Klar
   Future<void> spawnNewRows(Difficulty difficulty) async {
     if (isReviveShowing || isAnimating) return;
 
@@ -336,7 +257,7 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
     await Future.delayed(Duration(milliseconds: 300));
   }
 
-  void setPiecesAndRemoveBlocks() {
+  void setPiecesAndRemoveCells() {
     setState(() {
       update();
       for (var r = 0; r < boardHeight; r++) {
@@ -362,13 +283,13 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
     setState(() {
       if (isPreviewMode) {
         // Clear previous preview highlights
-        for (var block in previewCells) {
-          block.isPreview = false;
+        for (var Cell in previewCells) {
+          Cell.isPreview = false;
         }
         previewCells.clear();
       } else {
-        // Find and mark targetable blocks based on the piece's movement pattern
-        List<Block> currentTargeted = [];
+        // Find and mark targetable Cells based on the piece's movement pattern
+        List<Cell> currentTargeted = [];
         for (var dir in d.data.movementPattern.directions) {
           for (var off in dir.offsets) {
             var nr = row, nc = col;
@@ -383,7 +304,7 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
               if (b != null && b.isActive) {
                 b.isTargeted = true; // Mark as targeted
                 currentTargeted.add(b);
-                break; // Only target the first active block in this direction
+                break; // Only target the first active Cell in this direction
               }
             }
           }
@@ -416,7 +337,7 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
     });
   }
 
-  bool loseCondition() {
+  bool _checkGameOver() {
     for (int row = 0; row < boardHeight; row++) {
       for (int col = 0; col < boardWidth; col++) {
         if (board[row][col] != null &&
@@ -502,7 +423,7 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
               (row, cols) => MapEntry(
                 row.toString(),
                 cols.asMap().map(
-                  (col, block) => MapEntry(col.toString(), block?.toJson()),
+                  (col, Cell) => MapEntry(col.toString(), Cell?.toJson()),
                 ),
               ),
             )
@@ -546,8 +467,8 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
         board = List.generate(
           8,
           (row) => List.generate(8, (col) {
-            final blockJson = boardData[row][col.toString()];
-            return blockJson != null ? Block.fromJson(blockJson) : null;
+            final CellJson = boardData[row][col.toString()];
+            return CellJson != null ? Cell.fromJson(CellJson) : null;
           }),
         );
       } catch (e) {
@@ -604,14 +525,14 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
           );
           final cells =
               (value as List<dynamic>)
-                  .map((json) => Block.fromJson(json))
+                  .map((json) => Cell.fromJson(json))
                   .toList();
           return MapEntry(pos, cells);
         });
         for (var cells in targetedCellsMap.values) {
-          for (var block in cells) {
-            if (board[block.position.x][block.position.y] != null) {
-              board[block.position.x][block.position.y]!.isTargeted = true;
+          for (var Cell in cells) {
+            if (board[Cell.position.x][Cell.position.y] != null) {
+              board[Cell.position.x][Cell.position.y]!.isTargeted = true;
             }
           }
         }
@@ -644,7 +565,7 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     useGlossEffect = context.watch<SettingsProvider>().useGlossEffect;
 
-    if (loseCondition() && !isReviveShowing) {
+    if (_checkGameOver() && !isReviveShowing) {
       Future.delayed(const Duration(milliseconds: 100), _showLoseDialog);
     }
 
@@ -663,51 +584,6 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
         centerTitle: true,
         title: const Text("CheckGrid", style: TextStyle(fontSize: 26)),
         actions: [
-          /**
-          MenuAnchor(
-            builder:
-                (context, controller, child) => IconButton(
-                  icon: const Icon(Icons.settings),
-                  onPressed: () {
-                    if (controller.isOpen) {
-                      controller.close();
-                    } else {
-                      controller.open();
-                    }
-                  },
-                ),
-            menuChildren: [
-              MenuItemButton(
-                onPressed: () {
-                  _restartGame();
-                },
-                child: const Text('Restart game'),
-              ),
-              MenuItemButton(
-                onPressed: () async {
-                  context.pushNamed("/settings").then((_) => update());
-                },
-                child: const Text('Settings'),
-              ),
-              MenuItemButton(
-                onPressed: () {
-                  // Displays the difficulty dialog
-                  showDifficultyDialog(
-                    context: context,
-                    currentDifficulty: _difficulty,
-                    onDifficultySelected: (newDifficulty) {
-                      setState(() {
-                        _difficulty = newDifficulty;
-                        _restartGame();
-                      });
-                    },
-                  );
-                },
-                child: const Text('Difficulty'),
-              ),
-            ],
-          ),
-        */
           SizedBox(
             width: 56,
             height: 56,
@@ -721,11 +597,11 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
                   },
                   currentDifficulty: _difficulty,
                   onDifficultySelected: (newDifficulty) {
-                      setState(() {
-                        _difficulty = newDifficulty;
-                        _restartGame();
-                      });
-                    },
+                    setState(() {
+                      _difficulty = newDifficulty;
+                      _restartGame();
+                    });
+                  },
                 );
               },
               child: const Icon(Icons.settings),
@@ -794,7 +670,7 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
                   selectedPieces.isEmpty && selectedPiecesPositions.isNotEmpty
                       ? GestureDetector(
                         onTap: () {
-                          setPiecesAndRemoveBlocks();
+                          setPiecesAndRemoveCells();
                           _doVibration(2);
                         },
                         child: Container(
@@ -886,8 +762,8 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
                                         ),
                                         onDragEnd: (d) {
                                           setState(() {
-                                            for (var block in previewCells) {
-                                              block.isPreview = false;
+                                            for (var Cell in previewCells) {
+                                              Cell.isPreview = false;
                                             }
                                             previewCells.clear();
                                             if (d.wasAccepted) {
@@ -941,23 +817,11 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
             onAcceptWithDetails: (d) {
               if (b == null || (!b.hasPiece && !b.isActive)) {
                 setState(() {
-                  board[r][c] = Block(
+                  board[r][c] = Cell(
                     position: Point<int>(r, c),
                     piece: d.data,
                     isActive: false,
                     hasPiece: true,
-                    gradient:
-                        useGlossEffect
-                            ? const LinearGradient(
-                              colors: [
-                                Colors.blue,
-                                Color.fromARGB(255, 100, 180, 255),
-                              ],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            )
-                            : null,
-                    fallbackColor: Colors.blue,
                   );
                   showTargetedCells(d, r, c, isPreviewMode: false);
                   selectedPiecesPositions.add(Point<int>(r, c));
@@ -974,8 +838,8 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
             },
             onLeave: (_) {
               setState(() {
-                for (var block in previewCells) {
-                  block.isPreview = false;
+                for (var Cell in previewCells) {
+                  Cell.isPreview = false;
                 }
                 previewCells.clear();
               });
@@ -988,17 +852,6 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
                           : Listenable.merge([]),
                   builder:
                       (context, child) => CustomPaint(
-                        painter: GlossyBlockPainter(
-                          gradient: b?.gradient,
-                          glossPosition:
-                              useGlossEffect
-                                  ? _animations.glossAnimation.value
-                                  : 0.0,
-                          fallbackColor:
-                              b == null
-                                  ? (r >= 6 ? Colors.blueGrey : Colors.grey)
-                                  : b.fallbackColor,
-                        ),
                         child: Container(
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(5),

@@ -1,9 +1,21 @@
+import 'package:checkgrid/new_game/utilities/piecetype.dart';
+import 'package:checkgrid/providers/settings_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 
 class GeneralProvider with ChangeNotifier {
   double _bannerAdHeight = 90.0;
   double fontSizeInAppbar = 20.0;
+  final double pieceInSelectorSize = 75.0;
+  // General constants
+  final double iconSize = 50.0;
+  final int boardSize = 8;
+
+  // Game constants
+  final int comboRequirement = 6;
+
+
 
   String getUserCurrencyCode(BuildContext context) {
     final locale = Localizations.localeOf(context);
@@ -23,18 +35,6 @@ class GeneralProvider with ChangeNotifier {
     return formatter.format(price);
   }
 
-  double getScreenHeight(BuildContext context) {
-    return MediaQuery.of(context).size.height;
-  }
-
-  double getScreenWidth(BuildContext context) {
-    return MediaQuery.of(context).size.width;
-  }
-
-  bool getLandscapeMode(BuildContext context) {
-    return MediaQuery.of(context).orientation == Orientation.landscape;
-  }
-
   bool isTablet(BuildContext context) {
     return MediaQuery.of(context).size.shortestSide >= 600;
   }
@@ -48,10 +48,20 @@ class GeneralProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  // General constants
-  final double iconSize = 50.0;
-  final int boardSize = 8;
-
-  // Game constants
-  final int comboRequirement = 6;
+  Widget pieceImage(
+    double? size,
+    PieceType pieceType,
+    BoxFit? boxFit,
+    BuildContext context
+  ) {
+    final isDarkPieces = context.watch<SettingsProvider>().isDarkPieces;
+    return Image.asset(
+      isDarkPieces
+          ? 'assets/images/pieces/black/black_${pieceType.name}.png'
+          : 'assets/images/pieces/white/white_${pieceType.name}.png',
+      width: size,
+      height: size,
+      fit: boxFit,
+    );
+  }
 }

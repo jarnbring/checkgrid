@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:checkgrid/components/pressable_button.dart';
-import 'package:checkgrid/providers/general_provider.dart';
-import 'package:package_info_plus/package_info_plus.dart';
-import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:shimmer/shimmer.dart';
 
@@ -23,7 +20,7 @@ class _MenuPageState extends State<MenuPage> {
     super.initState();
     _loadVersion();
     // Delayed animation trigger for fading in content
-    Future.delayed(const Duration(milliseconds: 300), () {
+    Future.delayed(const Duration(milliseconds: 0), () {
       if (mounted) {
         setState(() {
           _showContent = true;
@@ -32,12 +29,9 @@ class _MenuPageState extends State<MenuPage> {
     });
   }
 
-  Future<void> _loadVersion() async {
-    final info = await PackageInfo.fromPlatform();
-    if (!mounted) return;
-    setState(() {
-      appVersion = info.version;
-    });
+  // Loads the app version
+  void _loadVersion() {
+    appVersion = '0.0.1'; // Default version
   }
 
   Widget _buildSocials() {
@@ -117,46 +111,40 @@ class _MenuPageState extends State<MenuPage> {
 
   @override
   Widget build(BuildContext context) {
-    final generalProvider = context.watch<GeneralProvider>();
-    double bannerAdHeight = generalProvider.getBannerAdHeight();
-    double screenHeight =
-        generalProvider.getScreenHeight(context) - bannerAdHeight;
-    double scaleFactorHeight = 13.3;
-
-    return AnimatedOpacity(
-      opacity: _showContent ? 1.0 : 0.0,
-      duration: const Duration(milliseconds: 3000),
-      curve: Curves.easeIn,
-      child: Scaffold(
-        body: SingleChildScrollView(
-          child: Center(
+    return Scaffold(
+      body: SingleChildScrollView(
+        child: Center(
+          child: AnimatedOpacity(
+            opacity: _showContent ? 1.0 : 0.0,
+            duration: const Duration(
+              milliseconds: 500,
+            ), // Samma som fade-out på splash
+            curve: Curves.easeIn,
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 // Top spacing
-                SizedBox(height: screenHeight / scaleFactorHeight * 1.75),
+                const SizedBox(height: 100),
 
-                // Game title with shimmer effect
                 _buildCheckGridText(),
-                SizedBox(height: screenHeight / scaleFactorHeight * 0.5),
+                const SizedBox(height: 60),
 
                 // Main menu buttons using PressableButton
-                const SizedBox(height: 20),
                 PressableButton(title: "Play", route: "/play"),
-                SizedBox(height: screenHeight / scaleFactorHeight * 0.5),
+                const SizedBox(height: 40),
                 PressableButton(title: "Store", route: "/store"),
-                SizedBox(height: screenHeight / scaleFactorHeight * 0.5),
+                const SizedBox(height: 40),
                 PressableButton(title: "Settings", route: "/settings"),
-                SizedBox(height: screenHeight / scaleFactorHeight * 0.5),
+                const SizedBox(height: 40),
                 PressableButton(title: "Statistics", route: "/statistics"),
-                SizedBox(height: screenHeight / scaleFactorHeight * 0.5),
+                const SizedBox(height: 40),
                 PressableButton(title: "Feedback", route: "/feedback"),
-                SizedBox(height: screenHeight / scaleFactorHeight * 0.5),
+                const SizedBox(height: 40),
 
                 // Social icons row
                 _buildSocials(),
-                SizedBox(height: screenHeight / (scaleFactorHeight * 2)),
+                SizedBox(height: 40),
 
                 // App version text
                 Text(appVersion),

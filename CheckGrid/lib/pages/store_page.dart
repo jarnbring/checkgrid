@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:checkgrid/providers/general_provider.dart';
-import 'package:provider/provider.dart';
 
 class StorePage extends StatefulWidget {
   const StorePage({super.key});
@@ -27,7 +25,6 @@ class _StorePageState extends State<StorePage> {
     required double price,
     required IconData icon,
     required double screenWidth,
-    required bool isTablet,
     bool isHighlighted = false,
     String? discountText,
   }) {
@@ -79,17 +76,13 @@ class _StorePageState extends State<StorePage> {
                     children: [
                       Row(
                         children: [
-                          Icon(
-                            icon,
-                            color: Colors.white,
-                            size: isTablet ? 28 : 24,
-                          ),
+                          Icon(icon, color: Colors.white, size: 24),
                           const SizedBox(width: 8),
                           Text(
                             title,
                             style: TextStyle(
                               color: Colors.white,
-                              fontSize: isTablet ? 18 : 16,
+                              fontSize: 16,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -99,7 +92,7 @@ class _StorePageState extends State<StorePage> {
                         "£$price",
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: isTablet ? 16 : 14,
+                          fontSize: 14,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -111,7 +104,7 @@ class _StorePageState extends State<StorePage> {
                       discountText,
                       style: TextStyle(
                         color: Colors.yellowAccent,
-                        fontSize: isTablet ? 14 : 12,
+                        fontSize: 12,
                         fontStyle: FontStyle.italic,
                       ),
                     ),
@@ -127,16 +120,9 @@ class _StorePageState extends State<StorePage> {
 
   @override
   Widget build(BuildContext context) {
-    final generalProvider = context.watch<GeneralProvider>();
-    final screenWidth = generalProvider.getScreenWidth(context);
-    final screenHeight = generalProvider.getScreenHeight(context);
-    final bannerAdHeight = generalProvider.getBannerAdHeight();
-    final isTablet = generalProvider.isTablet(context);
-    final adjustedScreenHeight = screenHeight - bannerAdHeight;
-
     return Scaffold(
       appBar: AppBar(
-        title: Text("Store", style: TextStyle(fontSize: isTablet ? 26 : 22)),
+        title: Text("Store", style: TextStyle(fontSize: 22)),
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -147,12 +133,9 @@ class _StorePageState extends State<StorePage> {
         child: SingleChildScrollView(
           child: Center(
             child: ConstrainedBox(
-              constraints: BoxConstraints(maxWidth: isTablet ? 1000 : 600),
+              constraints: BoxConstraints(maxWidth: 600),
               child: Padding(
-                padding: EdgeInsets.symmetric(
-                  horizontal: screenWidth * 0.05,
-                  vertical: adjustedScreenHeight * 0.03,
-                ),
+                padding: EdgeInsets.symmetric(horizontal: 20, vertical: 20),
                 child: Column(
                   children: [
                     AnimatedOpacity(
@@ -161,25 +144,24 @@ class _StorePageState extends State<StorePage> {
                       child: Text(
                         "Unlock Amazing Features!",
                         style: TextStyle(
-                          fontSize: isTablet ? 28 : 24,
+                          fontSize: 24,
                           fontWeight: FontWeight.bold,
                           color: Colors.green.shade900,
                         ),
                         textAlign: TextAlign.center,
                       ),
                     ),
-                    SizedBox(height: adjustedScreenHeight * 0.03),
+                    SizedBox(height: 20),
                     Wrap(
-                      spacing: screenWidth * 0.05,
-                      runSpacing: adjustedScreenHeight * 0.02,
+                      spacing: 10,
+                      runSpacing: 10,
                       alignment: WrapAlignment.center,
                       children: [
                         purchaseableItem(
                           title: "Remove Ads",
                           price: 9.99,
                           icon: Icons.block,
-                          screenWidth: screenWidth,
-                          isTablet: isTablet,
+                          screenWidth: 400,
                           discountText: "Enjoy ad-free gaming!",
                         ),
                       ],

@@ -1,43 +1,11 @@
-// ignore_for_file: unused_import, slash_for_doc_comments
-
-import 'package:device_preview/device_preview.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:checkgrid/pages/menu_page.dart';
 import 'package:checkgrid/providers/general_provider.dart';
 import 'package:checkgrid/providers/settings_provider.dart';
-import 'package:checkgrid/router.dart';
+import 'package:checkgrid/providers/router.dart';
 import 'package:checkgrid/settings/noti_service.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:provider/provider.dart';
-
-/**
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  runApp(
-    kReleaseMode
-        ? MultiProvider(
-            providers: [
-              ChangeNotifierProvider(create: (_) => SettingsProvider()),
-              ChangeNotifierProvider(create: (_) => GeneralProvider()),
-            ],
-            child: const MyApp(),
-          )
-        : DevicePreview(
-            enabled: true,
-            builder: (context) => MultiProvider(
-              providers: [
-                ChangeNotifierProvider(create: (_) => SettingsProvider()),
-                ChangeNotifierProvider(create: (_) => GeneralProvider()),
-              ],
-              child: const MyApp(),
-            ),
-          ),
-  );
-}
-*/
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -52,16 +20,19 @@ void main() async {
   final settingsProvider = SettingsProvider();
   await settingsProvider.loadSettings();
 
-  // Initialisera NotificationService
+  // Init NotificationService
   final notiService = NotiService();
 
   await notiService.initNotification();
+
+  // Schedule daily notifications
   //await notiService.scheduleWeeklyRotatingNotifications(settingsProvider);
 
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider.value(value: settingsProvider),
+        // Initialize providers
+        ChangeNotifierProvider.value(value: settingsProvider), // Use value to avoid re-creating the provider
         ChangeNotifierProvider(create: (_) => GeneralProvider()),
       ],
       child: const MyApp(),
@@ -77,38 +48,32 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  // Darkmode & Lightmode colors
+  // Darkmode colors
   final Color darkmodeBackgroundColor = const Color.fromARGB(255, 39, 39, 39);
   final Color darkmodeTextColor = Colors.white;
-  final Color dialogColor = Color.fromARGB(255, 83, 83, 83);
+
+  // Lightmode colors
   final Color lightmodeBackgroundColor = Colors.white;
   final Color lightmodeTextColor = const Color.fromARGB(255, 39, 39, 39);
 
   @override
   void initState() {
     super.initState();
+    _setOrientations();
   }
 
-  void setOrientations() {
-    final generalProvider = context.watch<GeneralProvider>();
-    bool isTablet = generalProvider.isTablet(context);
-
-    // Set orientations depending on device
-    SystemChrome.setPreferredOrientations(
-      isTablet
-          ? [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]
-          : [
-            DeviceOrientation.portraitUp,
-            DeviceOrientation.portraitDown,
-          ], // Only able to use portrait mode if on mobile
-    );
+  void _setOrientations() {
+    // Set orientations to be allowed, can be changed later depending on tablet
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
   }
 
   @override
   Widget build(BuildContext context) {
-    setOrientations();
-
     return MaterialApp.router(
+      title: 'CheckGrid',
       routerConfig: router,
       theme: ThemeData(
         appBarTheme: AppBarTheme(
