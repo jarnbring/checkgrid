@@ -8,6 +8,7 @@ class GeneralProvider with ChangeNotifier {
   double _bannerAdHeight = 90.0;
   double fontSizeInAppbar = 20.0;
   final double pieceInSelectorSize = 75.0;
+
   // General constants
   final double iconSize = 50.0;
   final int boardSize = 8;
@@ -15,7 +16,8 @@ class GeneralProvider with ChangeNotifier {
   // Game constants
   final int comboRequirement = 6;
 
-
+  // Ad constants
+  final int countdownTime = 5;
 
   String getUserCurrencyCode(BuildContext context) {
     final locale = Localizations.localeOf(context);
@@ -52,7 +54,7 @@ class GeneralProvider with ChangeNotifier {
     double? size,
     PieceType pieceType,
     BoxFit? boxFit,
-    BuildContext context
+    BuildContext context,
   ) {
     final isDarkPieces = context.watch<SettingsProvider>().isDarkPieces;
     return Image.asset(

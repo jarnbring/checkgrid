@@ -2,6 +2,7 @@
 
 import 'dart:convert';
 import 'dart:math';
+import 'package:checkgrid/new_game/board.dart';
 import 'package:checkgrid/new_game/dialogs/settings_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -58,7 +59,7 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
     _loadData();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (selectedPieces.isEmpty &&
-          board.every((row) => row.every((Cell) => Cell == null))) {
+          board.every((row) => row.every((cell) => cell == null))) {
         initKillingCells(_difficulty);
         setPieces();
       } else if (selectedPieces.isNotEmpty ||
@@ -139,7 +140,6 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
       _animations.animationController.forward(from: 0.0);
     });
   }
-
 
   void initKillingCells(Difficulty difficulty) {
     assert(difficulty.spawnRate >= 0.0 && difficulty.spawnRate <= 1.0);
@@ -283,8 +283,8 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
     setState(() {
       if (isPreviewMode) {
         // Clear previous preview highlights
-        for (var Cell in previewCells) {
-          Cell.isPreview = false;
+        for (var cell in previewCells) {
+          cell.isPreview = false;
         }
         previewCells.clear();
       } else {
@@ -388,6 +388,7 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
         transitionDuration: const Duration(milliseconds: 500),
         pageBuilder: (_, _, _) {
           return CountdownLoading(
+            board: Board(),
             afterAd: () {
               board = List.generate(8, (_) => List.filled(8, null));
               selectedPiecesPositions.clear();
@@ -398,8 +399,6 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
               isGameOver = false;
               isReviveShowing = false;
             },
-            onRestart: _restartGame,
-            isReviveShowing: isReviveShowing,
           );
         },
       ).then((_) {
@@ -423,7 +422,7 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
               (row, cols) => MapEntry(
                 row.toString(),
                 cols.asMap().map(
-                  (col, Cell) => MapEntry(col.toString(), Cell?.toJson()),
+                  (col, cell) => MapEntry(col.toString(), cell?.toJson()),
                 ),
               ),
             )
@@ -467,8 +466,8 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
         board = List.generate(
           8,
           (row) => List.generate(8, (col) {
-            final CellJson = boardData[row][col.toString()];
-            return CellJson != null ? Cell.fromJson(CellJson) : null;
+            final cellJson = boardData[row][col.toString()];
+            return cellJson != null ? Cell.fromJson(cellJson) : null;
           }),
         );
       } catch (e) {
@@ -530,9 +529,9 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
           return MapEntry(pos, cells);
         });
         for (var cells in targetedCellsMap.values) {
-          for (var Cell in cells) {
-            if (board[Cell.position.x][Cell.position.y] != null) {
-              board[Cell.position.x][Cell.position.y]!.isTargeted = true;
+          for (var cell in cells) {
+            if (board[cell.position.x][cell.position.y] != null) {
+              board[cell.position.x][cell.position.y]!.isTargeted = true;
             }
           }
         }
@@ -762,8 +761,8 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
                                         ),
                                         onDragEnd: (d) {
                                           setState(() {
-                                            for (var Cell in previewCells) {
-                                              Cell.isPreview = false;
+                                            for (var cell in previewCells) {
+                                              cell.isPreview = false;
                                             }
                                             previewCells.clear();
                                             if (d.wasAccepted) {
@@ -838,8 +837,8 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
             },
             onLeave: (_) {
               setState(() {
-                for (var Cell in previewCells) {
-                  Cell.isPreview = false;
+                for (var cell in previewCells) {
+                  cell.isPreview = false;
                 }
                 previewCells.clear();
               });

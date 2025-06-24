@@ -154,7 +154,8 @@ class _PieceSelectorState extends State<PieceSelector> {
         // Check if the game is over
         widget.board.checkGameOver();
         
-        if (widget.board.isGameOver) showGameOverDialog(context, widget.board);
+        // If the game was over, show the dialog
+        if (widget.board.isGameOver && mounted) showGameOverDialog(context, widget.board);
       },
       child: Container(
         width: boxWidth,

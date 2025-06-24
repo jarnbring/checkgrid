@@ -1,19 +1,20 @@
 import 'dart:async';
+import 'package:checkgrid/new_game/board.dart';
+import 'package:checkgrid/providers/ad_provider.dart';
+import 'package:checkgrid/providers/general_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:checkgrid/ads/reward_ad.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:provider/provider.dart';
 
 class CountdownLoading extends StatefulWidget {
-  final VoidCallback onRestart;
   final VoidCallback afterAd;
-  final bool isReviveShowing;
+  final Board board;
 
   const CountdownLoading({
     super.key,
-    required this.onRestart,
     required this.afterAd,
-    required this.isReviveShowing,
+    required this.board,
   });
 
   @override
@@ -21,37 +22,54 @@ class CountdownLoading extends StatefulWidget {
 }
 
 class _CountdownLoadingState extends State<CountdownLoading> {
-  int _counter = 5;
-  late Timer _timer;
-  bool hasRevived = false;
-  final RewardedAdService _rewardedAdService = RewardedAdService();
+  // Ad
+  late RewardedAdService adToShow;
+
+  // Time
+  late int _counter;
+  Timer? _timer;
+
+  // Bools to keep track of what's showing at the moment
+  bool isRevived = false;
   bool isAdBeingShown = false;
-  late int amountOfRoundsPlayed;
-  late SharedPreferences prefs;
+  bool isPressed = false;
 
   @override
   void initState() {
     super.initState();
-    hasRevived = false;
-    isAdBeingShown = false;
-    _rewardedAdService.loadAd();
-    _initPrefsAndStartTimer();
+    _initialize();
   }
 
-  Future<void> _initPrefsAndStartTimer() async {
-    prefs = await SharedPreferences.getInstance();
-    _loadRoundsPlayed();
+  @override
+  void dispose() {
+    _timer
+        ?.cancel(); // Good habit to dispose this, otherwise it will be in the background after the ad
+    super.dispose();
+  }
 
+  /// Loads the ad and starts the countdown timer.
+  Future<void> _initialize() async {
+    // Load providers
+    final generalProvider = Provider.of<GeneralProvider>(
+      context,
+      listen: false,
+    );
+    final adProvider = Provider.of<AdProvider>(context, listen: false);
+
+    // Set and start the timer
+    _counter = generalProvider.countdownTime;
+    _startCountdown();
+
+    // Get the ad ready
+    adToShow = adProvider.rewardedAdService;
+  }
+
+  /// Starts the countdown timer.
+  void _startCountdown() {
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_counter == 0) {
         timer.cancel();
-        _saveRoundsPlayed();
-        if (!hasRevived && !isAdBeingShown && mounted) {
-          widget.onRestart();
-          if (Navigator.canPop(context)) {
-            Navigator.pop(context);
-          }
-        }
+        _onCountdownFinished();
       } else {
         setState(() {
           _counter--;
@@ -60,100 +78,121 @@ class _CountdownLoadingState extends State<CountdownLoading> {
     });
   }
 
-  void _loadRoundsPlayed() {
-    String? roundsPlayed = prefs.getString('rounds_played');
-    amountOfRoundsPlayed = roundsPlayed != null ? int.parse(roundsPlayed) : 0;
+  /// Handles what happens when the countdown reaches zero.
+  void _onCountdownFinished() {
+    // The user did not watch the ad
+    if (isRevived) return;
+    if (isAdBeingShown) return;
+    if (!mounted) return;
+
+    widget.board.restartGame();
+    if (Navigator.canPop(context)) {
+      Navigator.pop(context);
+    }
   }
 
-  void _saveRoundsPlayed() {
-    amountOfRoundsPlayed++;
-    prefs.setString('rounds_played', amountOfRoundsPlayed.toString());
-  }
+  /// Handles the revive action via rewarded ad.
+  void _onRevivePressed() {
+    // These are necessary to avoid bugs, ex spam-clicking "Revive?"
+    if (isAdBeingShown) return;
+    if (isRevived) return;
 
-  @override
-  void dispose() {
-    _timer.cancel();
-    super.dispose();
+    isAdBeingShown = true;
+    setState(() {});
+
+    adToShow.showAd(
+      onUserEarnedReward: () {
+        if (isRevived) return;
+
+        isRevived = true;
+        widget.afterAd();
+        Navigator.pop(context);
+      },
+      onAdDismissed: () {
+        if (isRevived) return;
+
+        widget.board.restartGame();
+
+        setState(() {
+          isAdBeingShown = false;
+        });
+      },
+    );
+    adToShow.loadAd();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromARGB(153, 0, 0, 0),
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        color: const Color.fromARGB(153, 0, 0, 0),
-        child: Center(
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text(
-                  'Game Over',
-                  style: TextStyle(
-                    fontSize: 40,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
+      backgroundColor: const Color.fromARGB(107, 0, 0, 0),
+      body: Center(
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Text(
+                'Game Over',
+                style: TextStyle(
+                  fontSize: 40,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(height: 50),
+              Stack(
+                alignment: Alignment.center,
+                children: [
+                  const SpinKitCircle(color: Colors.blue, size: 250.0),
+                  Text(
+                    '$_counter',
+                    style: const TextStyle(
+                      fontSize: 60,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 50),
-                Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    const SpinKitDoubleBounce(color: Colors.blue, size: 250.0),
-                    Text(
-                      '$_counter',
-                      style: const TextStyle(
-                        fontSize: 50,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 60),
-                GestureDetector(
-                  onTap: () {
-                    isAdBeingShown = true;
-                    // Add handling no internet connection
-                    _rewardedAdService.showAd(
-                      onUserEarnedReward: () {
-                        hasRevived = true;
-                        widget.afterAd();
-                        if (Navigator.canPop(context)) {
-                          Navigator.pop(context);
-                        }
-                      },
-                      onAdDismissed: () {
-                        if (!hasRevived) {
-                          widget.onRestart();
-                        }
-                      },
-                    );
-                    
-                  },
-                  child: Container(
-                    width: 200,
-                    height: 55,
-                    decoration: BoxDecoration(
-                      color: const Color.fromARGB(255, 40, 188, 45),
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                    child: const Center(
-                      child: Text(
-                        "Revive?",
-                        style: TextStyle(
-                          fontSize: 30,
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
+                ],
+              ),
+              const SizedBox(height: 60),
+              StatefulBuilder(
+                builder: (context, setLocalState) {
+                  return GestureDetector(
+                    onTap: () {
+                      if (isAdBeingShown) return;
+                      _onRevivePressed();
+                    },
+                    onTapDown: (_) => setState(() => isPressed = true),
+                    onTapUp: (_) => setState(() => isPressed = false),
+                    onTapCancel: () => setState(() => isPressed = false),
+                    child: AnimatedScale(
+                      scale: isPressed ? 0.95 : 1.0,
+                      duration: const Duration(milliseconds: 100),
+                      child: Container(
+                        width: 200,
+                        height: 55,
+                        decoration: BoxDecoration(
+                          color:
+                              isPressed
+                                  ? const Color.fromARGB(255, 30, 140, 35)
+                                  : const Color.fromARGB(255, 40, 188, 45),
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                        child: const Center(
+                          child: Text(
+                            "Revive?",
+                            style: TextStyle(
+                              fontSize: 30,
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                ),
-              ],
-            ),
+                  );
+                },
+              ),
+            ],
           ),
         ),
       ),

@@ -30,7 +30,7 @@ class GameBoard extends StatelessWidget {
           final col = index % Board.boardSide;
           return ChangeNotifierProvider<Cell>.value(
             value: board.board[row][col],
-            child: BoardCell(row: row, col: col, board: board,), // Cell
+            child: BoardCell(row: row, col: col, board: board), // Cell
           );
         },
       ),
@@ -42,7 +42,12 @@ class BoardCell extends StatelessWidget {
   final int row, col;
   final Board board;
 
-  const BoardCell({super.key, required this.row, required this.col, required this.board});
+  const BoardCell({
+    super.key,
+    required this.row,
+    required this.col,
+    required this.board,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -58,7 +63,7 @@ class BoardCell extends StatelessWidget {
             // Returnera true/false beroende på om cellen är tillgänglig
             return !cell.hasPiece && !cell.isActive;
           },
-          onLeave: (_) {    
+          onLeave: (_) {
             board.clearPreview();
           },
           onAcceptWithDetails: (details) {

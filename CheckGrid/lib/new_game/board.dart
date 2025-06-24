@@ -1,8 +1,8 @@
 import 'dart:math';
+import 'package:checkgrid/new_game/dialogs/gameover_dialog.dart';
 import 'package:checkgrid/new_game/utilities/cell.dart';
 import 'package:checkgrid/new_game/utilities/piecetype.dart';
 import 'package:checkgrid/new_game/utilities/difficulty.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 // Handle board logic, ex clearBoard etc.
@@ -46,7 +46,6 @@ class Board extends ChangeNotifier {
             List.generate(boardSide, (col) => Cell(position: Point(row, col))),
       );
 
-
   // Update every cells color
   void updateColors() {
     for (int row = 0; row < boardSide; row++) {
@@ -85,27 +84,20 @@ class Board extends ChangeNotifier {
     notifyListeners();
   }
 
-  // 
-  bool checkGameOver() {
-    for (int row = 0; row < boardSide; row++) {
-      for (int col = 0; col < boardSide;) {
+  // Check if the game is over, change boardSide - x to change when
+  // the game is over.
+  void checkGameOver() {
+    // Kolla sista och näst sista raden
+    for (int row = boardSide - 2; row < boardSide; row++) {
+      for (int col = 0; col < boardSide; col++) {
         final Cell cell = board[row][col];
-        // If the cell is not active, we can move to the next cell
-        if (!cell.isActive) break;
-
-        // If the cell is on the wrong row, we can move to the next cell
-        if (row != (boardSide - 1) || row != (boardSide - 2)) break;
-
-        // We have reached a cell that fires the game over condition
-        isGameOver = true;
-        
-        return true;
+        if (cell.isActive) {
+          isGameOver = true;
+          return; // Avsluta direkt om vi hittar en aktiv cell
+        }
       }
     }
-    // No cells fires the game over condition
     isGameOver = false;
-
-    return false;
   }
 
   Cell? getCell(int row, int col) {
@@ -126,7 +118,7 @@ class Board extends ChangeNotifier {
   }
 
   void markTargetedCells(PieceType piece, int row, int col) {
-    // Markera targeted cells och spara i targetedCellsMap
+    // Mark targeted cells and save in targetedCellsMap
     final targetedCells = getTargetedCells(piece, row, col);
     for (final cell in targetedCells) {
       cell.isTargeted = true;
@@ -136,12 +128,26 @@ class Board extends ChangeNotifier {
     notifyListeners();
   }
 
+  // Resets the board and all game state to start a new game.
+  // Clears all placed pieces, selected pieces, targeted cells, and resets flags.
+  // Spawns new initial active cells and selects new pieces for the player.
+  // Notifies listeners so the UI can update.
   void restartGame() {
     clearBoard();
     placedPieces.clear();
+    selectedPieces.clear();
+    targetedCellsMap.clear();
+    selectedPiecesPositions.clear();
+    isGameOver = false;
+    isReviveShowing = false;
+    spawnInitialActiveCells();
+    setNewSelectedPieces();
+
     notifyListeners();
   }
 
+  /// Clears all cells on the board (removes pieces, active and targeted states).
+  /// Does not notify listeners directly; used as a helper in other methods.
   void clearBoard() {
     for (var row = 0; row < boardSide; row++) {
       for (var col = 0; col < boardSide; col++) {
@@ -318,6 +324,12 @@ class Board extends ChangeNotifier {
     }
 
     targetedCellsMap.clear();
+    notifyListeners();
+  }
+
+  // Debug: Sätt game over och notifiera
+  void debugSetGameOver(BuildContext context) {
+    showGameOverDialog(context, this);
     notifyListeners();
   }
 }

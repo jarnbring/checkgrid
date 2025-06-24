@@ -42,11 +42,13 @@ class _SplashScreenState extends State<SplashScreen>
         }
       }
     });
+
     _load();
   }
 
   Future<void> _load() async {
     await Future.delayed(const Duration(seconds: 1)); // Simulerad laddning
+
     _loadingDone = true;
     _shouldRepeat = false;
     // Om Lottie redan är klar, starta fade direkt

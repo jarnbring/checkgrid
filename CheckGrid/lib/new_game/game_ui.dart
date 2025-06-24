@@ -3,6 +3,7 @@ import 'package:checkgrid/new_game/game_board.dart';
 import 'package:checkgrid/new_game/utilities/score.dart';
 import 'package:checkgrid/new_game/board.dart';
 import 'package:checkgrid/new_game/piece_selector.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -16,8 +17,7 @@ class Game extends StatefulWidget {
 }
 
 class _GameState extends State<Game> {
-  late final Board board = Board();
-
+  final Board board = Board();
   BigInt currentScore = BigInt.zero;
 
   @override
@@ -44,12 +44,44 @@ class _GameState extends State<Game> {
               Consumer<Board>(
                 builder: (context, board, _) => PieceSelector(board: board),
               ),
+              const SizedBox(height: 30),
+              _buildGameOverButton() ?? const SizedBox(),
             ],
           ),
         ),
-        // bottomNavigationBar: const BannerAdWidget(),
+        bottomNavigationBar: const BannerAdWidget(),
       ),
     );
+  }
+
+  Widget? _buildGameOverButton() {
+    if (kDebugMode) {
+      return Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: SizedBox(
+          height: 36,
+          child: TextButton(
+            style: TextButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+              minimumSize: const Size(80, 36),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+            ),
+            onPressed: () {
+              board.debugSetGameOver(context);
+            },
+            child: const Text(
+              'Game Over',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+            ),
+          ),
+        ),
+      );
+    }
+    return null;
   }
 
   Widget _buildScore() {

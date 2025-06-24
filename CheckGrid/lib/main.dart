@@ -1,3 +1,4 @@
+import 'package:checkgrid/providers/ad_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:checkgrid/providers/general_provider.dart';
@@ -6,6 +7,7 @@ import 'package:checkgrid/providers/router.dart';
 import 'package:checkgrid/settings/noti_service.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:provider/provider.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -32,8 +34,11 @@ void main() async {
     MultiProvider(
       providers: [
         // Initialize providers
-        ChangeNotifierProvider.value(value: settingsProvider), // Use value to avoid re-creating the provider
+        ChangeNotifierProvider.value(
+          value: settingsProvider,
+        ), // Use value to avoid re-creating the provider
         ChangeNotifierProvider(create: (_) => GeneralProvider()),
+        ChangeNotifierProvider(create: (_) => AdProvider()),
       ],
       child: const MyApp(),
     ),
@@ -79,7 +84,7 @@ class _MyAppState extends State<MyApp> {
         appBarTheme: AppBarTheme(
           iconTheme: IconThemeData(color: lightmodeTextColor),
           backgroundColor: lightmodeBackgroundColor,
-          titleTextStyle: TextStyle(
+          titleTextStyle: GoogleFonts.poppins(
             color: lightmodeTextColor,
             fontWeight:
                 context.watch<SettingsProvider>().isBoldText
@@ -99,7 +104,7 @@ class _MyAppState extends State<MyApp> {
           ),
         ),
         listTileTheme: ListTileThemeData(
-          titleTextStyle: TextStyle(
+          titleTextStyle: GoogleFonts.poppins(
             color: lightmodeTextColor,
             fontSize: 16,
             fontWeight:
@@ -115,7 +120,7 @@ class _MyAppState extends State<MyApp> {
         hoverColor: Colors.transparent,
         iconTheme: IconThemeData(color: darkmodeBackgroundColor),
         textTheme: TextTheme(
-          bodyMedium: TextStyle(
+          bodyMedium: GoogleFonts.poppins(
             color: lightmodeTextColor,
             fontWeight:
                 context.watch<SettingsProvider>().isBoldText
@@ -128,7 +133,7 @@ class _MyAppState extends State<MyApp> {
         appBarTheme: AppBarTheme(
           iconTheme: IconThemeData(color: darkmodeTextColor),
           backgroundColor: darkmodeBackgroundColor,
-          titleTextStyle: TextStyle(
+          titleTextStyle: GoogleFonts.poppins(
             color: darkmodeTextColor,
             fontWeight:
                 context.watch<SettingsProvider>().isBoldText
@@ -148,7 +153,7 @@ class _MyAppState extends State<MyApp> {
           ),
         ),
         listTileTheme: ListTileThemeData(
-          titleTextStyle: TextStyle(
+          titleTextStyle: GoogleFonts.poppins(
             color: darkmodeTextColor,
             fontSize: 16,
             fontWeight:
@@ -164,7 +169,7 @@ class _MyAppState extends State<MyApp> {
         hoverColor: Colors.transparent,
         iconTheme: IconThemeData(color: lightmodeBackgroundColor),
         textTheme: TextTheme(
-          bodyMedium: TextStyle(
+          bodyMedium: GoogleFonts.poppins(
             color: darkmodeTextColor,
             fontWeight:
                 context.watch<SettingsProvider>().isBoldText
