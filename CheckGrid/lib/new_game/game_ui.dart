@@ -41,11 +41,10 @@ class _GameState extends State<Game> {
             behavior: HitTestBehavior.opaque,
             onTap: () {
               // Save game
-              // Go back to menu
               if (context.canPop()) {
                 context.pop();
               } else {
-                context.go('/menu'); // eller vilken "startsida" du vill
+                context.go('/menu');
               }
             },
             child: const Padding(
@@ -85,15 +84,11 @@ class _GameState extends State<Game> {
         body: SafeArea(
           child: Column(
             children: [
-              _buildScore(),
+              Consumer<Board>(builder: (context, board, _) => Score()),
               const SizedBox(height: 30),
-              Consumer<Board>(
-                builder: (context, board, _) => GameBoard(board: board),
-              ),
+              Consumer<Board>(builder: (context, board, _) => GameBoard()),
               const SizedBox(height: 30),
-              Consumer<Board>(
-                builder: (context, board, _) => PieceSelector(board: board),
-              ),
+              Consumer<Board>(builder: (context, board, _) => PieceSelector()),
               const SizedBox(height: 30),
               _buildGameOverButton() ?? const SizedBox(),
             ],
@@ -133,9 +128,5 @@ class _GameState extends State<Game> {
       );
     }
     return null;
-  }
-
-  Widget _buildScore() {
-    return Score(score: currentScore);
   }
 }

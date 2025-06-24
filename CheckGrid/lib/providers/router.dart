@@ -16,18 +16,8 @@ final GoRouter router = GoRouter(
       name: '/menu',
       path: '/menu',
       pageBuilder:
-          (context, state) => CustomTransitionPage(
-            key: state.pageKey,
-            child: GameMenu(),
-            transitionsBuilder: (
-              context,
-              animation,
-              secondaryAnimation,
-              child,
-            ) {
-              return FadeTransition(opacity: animation, child: child);
-            },
-          ),
+          (context, state) =>
+              CupertinoPage(key: state.pageKey, child: GameMenu()),
     ),
     GoRoute(
       name: '/splash',
@@ -67,86 +57,35 @@ final GoRouter router = GoRouter(
       name: '/play',
       path: '/play',
       pageBuilder:
-          (context, state) => CustomTransitionPage(
-            key: state.pageKey,
-            child: const Game(),
-            transitionsBuilder: (
-              context,
-              animation,
-              secondaryAnimation,
-              child,
-            ) {
-              return FadeTransition(opacity: animation, child: child);
-            },
-          ),
+          (context, state) => CupertinoPage(key: state.pageKey, child: Game()),
     ),
     GoRoute(
       name: '/store',
       path: '/store',
       pageBuilder:
-          (context, state) => CustomTransitionPage(
-            key: state.pageKey,
-            child: const StorePage(),
-            transitionsBuilder: (
-              context,
-              animation,
-              secondaryAnimation,
-              child,
-            ) {
-              return FadeTransition(opacity: animation, child: child);
-            },
-          ),
+          (context, state) =>
+              CupertinoPage(key: state.pageKey, child: StorePage()),
     ),
     GoRoute(
       name: '/settings',
       path: '/settings',
       pageBuilder:
-          (context, state) => CustomTransitionPage(
-            key: state.pageKey,
-            child: const SettingsPage(),
-            transitionsBuilder: (
-              context,
-              animation,
-              secondaryAnimation,
-              child,
-            ) {
-              return FadeTransition(opacity: animation, child: child);
-            },
-          ),
+          (context, state) =>
+              CupertinoPage(key: state.pageKey, child: SettingsPage()),
     ),
     GoRoute(
       name: '/statistics',
       path: '/statistics',
       pageBuilder:
-          (context, state) => CustomTransitionPage(
-            key: state.pageKey,
-            child: const StatisticsPage(),
-            transitionsBuilder: (
-              context,
-              animation,
-              secondaryAnimation,
-              child,
-            ) {
-              return FadeTransition(opacity: animation, child: child);
-            },
-          ),
+          (context, state) =>
+              CupertinoPage(key: state.pageKey, child: StatisticsPage()),
     ),
     GoRoute(
       name: '/feedback',
       path: '/feedback',
       pageBuilder:
-          (context, state) => CustomTransitionPage(
-            key: state.pageKey,
-            child: const FeedbackPage(),
-            transitionsBuilder: (
-              context,
-              animation,
-              secondaryAnimation,
-              child,
-            ) {
-              return FadeTransition(opacity: animation, child: child);
-            },
-          ),
+          (context, state) =>
+              CupertinoPage(key: state.pageKey, child: FeedbackPage()),
     ),
   ],
 );

@@ -394,13 +394,13 @@ class _FeedbackPageState extends State<FeedbackPage>
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed:
-              () => {
-                if (context.canPop())
-                  {context.pop()}
-                else
-                  {context.go('/menu')},
-              },
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go('/menu');
+            }
+          },
         ),
       ),
       body: SafeArea(

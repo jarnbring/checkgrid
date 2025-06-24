@@ -96,13 +96,13 @@ class _StatisticsPageState extends State<StatisticsPage> {
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed:
-              () => {
-                if (context.canPop())
-                  {context.pop()}
-                else
-                  {context.go('/menu')},
-              },
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go('/menu');
+            }
+          },
         ),
       ),
       body: SafeArea(

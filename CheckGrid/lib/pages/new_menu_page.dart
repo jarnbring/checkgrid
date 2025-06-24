@@ -14,6 +14,7 @@ class GameMenu extends StatefulWidget {
 class _GameMenuState extends State<GameMenu> {
   late String appVersion = 'ALPHA';
   static const int _infinitePageCount = 10000;
+
   static const int _initialPage = _infinitePageCount ~/ 2;
   late PageController _pageController;
 
@@ -88,6 +89,69 @@ class _GameMenuState extends State<GameMenu> {
     super.dispose();
   }
 
+  Future<void> _launchURL(String url) async {
+    final Uri uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Column(
+          children: [
+            const SizedBox(height: 120),
+            _buildShimmerTitle(),
+            const SizedBox(height: 75),
+            // Menu slide
+            SizedBox(
+              height: 250,
+              child: PageView.builder(
+                controller: _pageController,
+                itemCount: _infinitePageCount,
+                itemBuilder: (context, index) {
+                  final realIndex = index % items.length;
+                  return AnimatedBuilder(
+                    animation: _pageController,
+                    builder: (context, child) {
+                      double value = 1.0;
+                      if (_pageController.hasClients &&
+                          _pageController.position.haveDimensions) {
+                        value =
+                            ((_pageController.page ??
+                                        _pageController.initialPage) -
+                                    index)
+                                .toDouble();
+                        value = (1 - (value.abs() * 0.3)).clamp(0.7, 1.0);
+                      } else {
+                        value = (index == _initialPage) ? 1.0 : 0.7;
+                      }
+                      return Transform.scale(
+                        scale: value,
+                        child: MenuCard(
+                          item: items[realIndex],
+                          onTap: () {
+                            context.pushNamed(items[realIndex].route);
+                          },
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 80),
+            _buildSocialIcons(),
+            Text(appVersion),
+            const Spacer(),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildShimmerTitle() {
     return Shimmer.fromColors(
       baseColor: Theme.of(context).textTheme.bodyMedium!.color!,
@@ -138,6 +202,8 @@ class _GameMenuState extends State<GameMenu> {
                         child: IconButton(
                           icon: FaIcon(link['icon'] as IconData),
                           iconSize: 25,
+                          splashColor: Colors.transparent,
+                          highlightColor: Colors.transparent,
                           onPressed: () => _launchURL(link['url'] as String),
                         ),
                       );
@@ -145,69 +211,6 @@ class _GameMenuState extends State<GameMenu> {
               ),
             );
           }).toList(),
-    );
-  }
-
-  Future<void> _launchURL(String url) async {
-    final Uri uri = Uri.parse(url);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: Column(
-          children: [
-            const SizedBox(height: 120),
-            _buildShimmerTitle(),
-            const SizedBox(height: 75),
-            // Menu slide
-            SizedBox(
-              height: 250,
-              child: PageView.builder(
-                controller: _pageController,
-                itemCount: _infinitePageCount,
-                itemBuilder: (context, index) {
-                  final realIndex = index % items.length;
-                  return AnimatedBuilder(
-                    animation: _pageController,
-                    builder: (context, child) {
-                      double value = 1.0;
-                      if (_pageController.hasClients &&
-                          _pageController.position.haveDimensions) {
-                        value =
-                            ((_pageController.page ??
-                                        _pageController.initialPage) -
-                                    index)
-                                .toDouble();
-                        value = (1 - (value.abs() * 0.3)).clamp(0.7, 1.0);
-                      } else {
-                        value = (index == _initialPage) ? 1.0 : 0.7;
-                      }
-                      return Transform.scale(
-                        scale: value,
-                        child: MenuCard(
-                          item: items[realIndex],
-                          onTap: () {
-                            context.go(items[realIndex].route);
-                          },
-                        ),
-                      );
-                    },
-                  );
-                },
-              ),
-            ),
-            const SizedBox(height: 80),
-            _buildSocialIcons(),
-            Text(appVersion),
-            const Spacer(),
-          ],
-        ),
-      ),
     );
   }
 }

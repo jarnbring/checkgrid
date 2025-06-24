@@ -3,13 +3,13 @@ import 'package:checkgrid/new_game/dialogs/gameover_dialog.dart';
 import 'package:checkgrid/new_game/utilities/cell.dart';
 import 'package:checkgrid/new_game/utilities/piecetype.dart';
 import 'package:checkgrid/new_game/utilities/difficulty.dart';
+import 'package:checkgrid/providers/general_provider.dart';
 import 'package:flutter/material.dart';
 
 // Handle board logic, ex clearBoard etc.
 
 class Board extends ChangeNotifier {
   // Board vars
-  static const int boardSide = 8;
   final List<List<Cell>> board;
   final List<PlacedPiece> placedPieces = [];
 
@@ -22,6 +22,13 @@ class Board extends ChangeNotifier {
   Difficulty _difficulty;
   bool isGameOver = false;
   bool isReviveShowing = false;
+
+  // Score vars
+  BigInt currentScore = BigInt.zero;
+  BigInt highScore = BigInt.from(1000000000);
+
+  int currentCombo = 0;
+  final int comboRequirement = 6;
 
   // Helpers
   final Random rng = Random();
@@ -41,15 +48,68 @@ class Board extends ChangeNotifier {
   Board({Difficulty initialDifficulty = Difficulty.medium})
     : _difficulty = initialDifficulty,
       board = List.generate(
-        boardSide,
-        (row) =>
-            List.generate(boardSide, (col) => Cell(position: Point(row, col))),
+        GeneralProvider.boardHeight,
+        (row) => List.generate(
+          GeneralProvider.boardWidth,
+          (col) => Cell(position: Point(row, col)),
+        ),
       );
+
+  void addScore() async {
+    final allTargetedCells =
+        targetedCellsMap.values.expand((cells) => cells).toSet().toList();
+
+    // Handle combo
+    final removedCells = allTargetedCells.length;
+    currentCombo = removedCells >= comboRequirement ? currentCombo + 1 : 0;
+
+    // Increase score
+    final comboFormula = BigInt.from(20) * BigInt.from(removedCells);
+    final scoreToAdd = comboFormula * BigInt.from(currentCombo);
+
+    // Load scores
+    currentScore = currentScore + scoreToAdd;
+    final newHigh = currentScore > highScore ? currentScore : highScore;
+
+    // New highscore
+    if (currentScore > highScore) {
+      //await _saveHighscore(newScore);
+      //_saveStatistic(highScore: newScore);
+      highScore = newHigh;
+    }
+
+    // SAVE STATS
+
+    // Save if it is a new longest streak
+    // if (comboCount > longestComboStreak) {
+    //   _saveStatistic(comboStreak: comboCount);
+    // }
+
+    // Play increase score animation
+    // final scoreAnim = _animations.animateBigInt(
+    //   oldScore,
+    //   newScore,
+    //   (v) => setState(() => currentScore = v),
+    // );
+
+    // Play animation for highscore
+    // final highAnim =
+    //     (newScore > oldHigh)
+    //         ? _animations.animateBigInt(
+    //           oldHigh,
+    //           newHigh,
+    //           (v) => setState(() => displayedHighscore = v),
+    //         )
+    //         : Future.value();
+
+    // await Future.wait([scoreAnim, highAnim]);
+    notifyListeners();
+  }
 
   // Update every cells color
   void updateColors() {
-    for (int row = 0; row < boardSide; row++) {
-      for (int col = 0; col < boardSide; col++) {
+    for (int row = 0; row < GeneralProvider.boardHeight; row++) {
+      for (int col = 0; col < GeneralProvider.boardWidth; col++) {
         final cell = board[row][col];
         final activeCondition =
             cell.hasPiece || cell.isActive || cell.piece != null;
@@ -88,8 +148,12 @@ class Board extends ChangeNotifier {
   // the game is over.
   void checkGameOver() {
     // Kolla sista och näst sista raden
-    for (int row = boardSide - 2; row < boardSide; row++) {
-      for (int col = 0; col < boardSide; col++) {
+    for (
+      int row = GeneralProvider.boardHeight - 2;
+      row < GeneralProvider.boardHeight;
+      row++
+    ) {
+      for (int col = 0; col < GeneralProvider.boardWidth; col++) {
         final Cell cell = board[row][col];
         if (cell.isActive) {
           isGameOver = true;
@@ -101,7 +165,12 @@ class Board extends ChangeNotifier {
   }
 
   Cell? getCell(int row, int col) {
-    if (row < 0 || row >= boardSide || col < 0 || col >= boardSide) return null;
+    if (row < 0 ||
+        row >= GeneralProvider.boardHeight ||
+        col < 0 ||
+        col >= GeneralProvider.boardWidth) {
+      return null;
+    }
     return board[row][col];
   }
 
@@ -158,8 +227,8 @@ class Board extends ChangeNotifier {
   /// Clears all cells on the board (removes pieces, active and targeted states).
   /// Does not notify listeners directly; used as a helper in other methods.
   void clearBoard() {
-    for (var row = 0; row < boardSide; row++) {
-      for (var col = 0; col < boardSide; col++) {
+    for (var row = 0; row < GeneralProvider.boardHeight; row++) {
+      for (var col = 0; col < GeneralProvider.boardWidth; col++) {
         final block = board[row][col];
         if (block.piece != null ||
             block.hasPiece ||
@@ -175,8 +244,8 @@ class Board extends ChangeNotifier {
   }
 
   void clearPiecesOnBoard() {
-    for (var row = 0; row < boardSide; row++) {
-      for (var col = 0; col < boardSide; col++) {
+    for (var row = 0; row < GeneralProvider.boardHeight; row++) {
+      for (var col = 0; col < GeneralProvider.boardWidth; col++) {
         final cell = board[row][col];
         if (cell.hasPiece) {
           cell.piece = null;
@@ -191,13 +260,13 @@ class Board extends ChangeNotifier {
 
   Future<void> spawnActiveCells() async {
     // 1. Flytta ner rader
-    for (var row = boardSide - 1; row > 0; row--) {
-      for (var col = 0; col < boardSide; col++) {
+    for (var row = GeneralProvider.boardHeight - 1; row > 0; row--) {
+      for (var col = 0; col < GeneralProvider.boardWidth; col++) {
         board[row][col] = board[row - 1][col];
       }
     }
     // 2. Skapa ny rad överst
-    for (var col = 0; col < boardSide; col++) {
+    for (var col = 0; col < GeneralProvider.boardWidth; col++) {
       board[0][col] = Cell(position: Point(0, col));
       if (rng.nextDouble() < _difficulty.spawnRate) {
         board[0][col].isActive = true;
@@ -228,7 +297,7 @@ class Board extends ChangeNotifier {
 
     for (var row = 0; row < _difficulty.spawnRows; row++) {
       // Kollar hur många rows som ska spawnas beroende på difficulty
-      for (var col = 0; col < boardSide; col++) {
+      for (var col = 0; col < GeneralProvider.boardWidth; col++) {
         if (rng.nextDouble() < _difficulty.spawnRate) {
           // Kollar hur hög chans varje cell ska ha vara aktiv
           final cell = board[row][col];
@@ -248,18 +317,18 @@ class Board extends ChangeNotifier {
     final movement = piece.movementPattern;
     for (var dir in movement.directions) {
       for (var off in dir.offsets) {
-        var nr = row, nc = col;
-        final steps = movement.canMoveMultipleSquares ? Board.boardSide : 1;
+        var newRow = row, newCol = col;
+        final steps = movement.canMoveMultipleSquares ? 1000 : 1;
         for (var i = 0; i < steps; i++) {
-          nr += off.dy.toInt();
-          nc += off.dx.toInt();
-          if (nr < 0 ||
-              nr >= Board.boardSide ||
-              nc < 0 ||
-              nc >= Board.boardSide) {
+          newRow += off.dy.toInt();
+          newCol += off.dx.toInt();
+          if (newRow < 0 ||
+              newRow >= GeneralProvider.boardHeight ||
+              newCol < 0 ||
+              newCol >= GeneralProvider.boardWidth) {
             break;
           }
-          final block = board[nr][nc];
+          final block = board[newRow][newCol];
           if (block.isActive) {
             targeted.add(block);
             break; // Endast första aktiva blocket i riktningen
@@ -274,9 +343,9 @@ class Board extends ChangeNotifier {
   void previewTargetedCells(PieceType piece, int row, int col) {
     // Behövs denna????
     // Nollställ endast isPreview
-    for (var r = 0; r < boardSide; r++) {
-      for (var c = 0; c < boardSide; c++) {
-        board[r][c].isPreview = false;
+    for (var row = 0; row < GeneralProvider.boardHeight; row++) {
+      for (var col = 0; col < GeneralProvider.boardWidth; col++) {
+        board[row][col].isPreview = false;
       }
     }
 
@@ -298,9 +367,9 @@ class Board extends ChangeNotifier {
 
   /// Nollställer preview-markeringar
   void clearPreview() {
-    for (var r = 0; r < boardSide; r++) {
-      for (var c = 0; c < boardSide; c++) {
-        board[r][c].isPreview = false;
+    for (var row = 0; row < GeneralProvider.boardHeight; row++) {
+      for (var col = 0; col < GeneralProvider.boardWidth; col++) {
+        board[row][col].isPreview = false;
       }
     }
     notifyListeners();

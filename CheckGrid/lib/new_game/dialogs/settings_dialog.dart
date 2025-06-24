@@ -93,13 +93,13 @@ void showSettingsDialog({
                                       const Spacer(),
                                       _BackButtonWidget(
                                         text: "Back",
-                                        onPressed:
-                                            () => {
-                                              if (context.canPop())
-                                                {context.pop()}
-                                              else
-                                                {context.go('/menu')},
-                                            },
+                                        onPressed: () {
+                                          if (context.canPop()) {
+                                            context.pop();
+                                          } else {
+                                            context.go('/menu');
+                                          }
+                                        },
                                       ),
                                     ],
                                   )

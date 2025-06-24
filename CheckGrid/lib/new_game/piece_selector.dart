@@ -6,8 +6,7 @@ import 'package:checkgrid/new_game/utilities/piecetype.dart';
 import 'package:provider/provider.dart';
 
 class PieceSelector extends StatefulWidget {
-  final Board board;
-  const PieceSelector({super.key, required this.board});
+  const PieceSelector({super.key});
 
   @override
   State<PieceSelector> createState() => _PieceSelectorState();
@@ -39,7 +38,7 @@ class _PieceSelectorState extends State<PieceSelector> {
       ),
       child:
           selectedPieces.isEmpty
-              ? _buildContinue()
+              ? _buildContinue(board)
               : _buildPieceSelector(selectedPieces),
     );
   }
@@ -136,27 +135,30 @@ class _PieceSelectorState extends State<PieceSelector> {
     );
   }
 
-  Widget _buildContinue() {
+  Widget _buildContinue(Board board) {
     return GestureDetector(
       onTap: () async {
+        // Add score
+        board.addScore();
+
         // Clear old state
-        widget.board.removeTargetedCells();
-        widget.board.removePlacedPieces();
+        board.removeTargetedCells();
+        board.removePlacedPieces();
 
         // Create a new state
-        widget.board.setNewSelectedPieces();
-        await widget.board.spawnActiveCells();
-        // widget.board.updateColors();
+        board.setNewSelectedPieces();
+        await board.spawnActiveCells();
+        // board.updateColors();
 
         // Update colors on the board
-        widget.board.updateColors();
+        board.updateColors();
 
         // Check if the game is over
-        widget.board.checkGameOver();
+        board.checkGameOver();
 
         // If the game was over, show the dialog
-        if (widget.board.isGameOver && mounted) {
-          showGameOverDialog(context, widget.board);
+        if (board.isGameOver && mounted) {
+          showGameOverDialog(context, board);
         }
       },
       child: Container(

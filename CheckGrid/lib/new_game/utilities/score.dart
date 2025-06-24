@@ -1,15 +1,17 @@
+import 'package:checkgrid/new_game/board.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 
 class Score extends StatelessWidget {
-  final BigInt score;
-
-  const Score({super.key, required this.score});
+  const Score({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final board = context.watch<Board>();
+
     return Text(
-      NumberFormat("#,###").format(score.toInt()),
+      NumberFormat("#,###").format(board.currentScore.toInt()),
       style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
     );
   }

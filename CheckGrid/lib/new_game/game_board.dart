@@ -9,28 +9,29 @@ import 'package:provider/provider.dart';
 // Handle the board UI, layout etc.
 
 class GameBoard extends StatelessWidget {
-  final Board board;
-  const GameBoard({super.key, required this.board});
+  const GameBoard({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final board = context.watch<Board>();
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 40),
       child: GridView.builder(
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: Board.boardSide,
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: GeneralProvider.boardWidth,
           mainAxisSpacing: 3,
           crossAxisSpacing: 3,
         ),
-        itemCount: Board.boardSide * Board.boardSide,
+        itemCount: GeneralProvider.boardHeight * GeneralProvider.boardWidth,
         itemBuilder: (context, index) {
-          final row = index ~/ Board.boardSide;
-          final col = index % Board.boardSide;
+          final row = index ~/ GeneralProvider.boardWidth;
+          final col = index % GeneralProvider.boardWidth;
           return ChangeNotifierProvider<Cell>.value(
             value: board.board[row][col],
-            child: BoardCell(row: row, col: col, board: board), // Cell
+            child: BoardCell(row: row, col: col), // Cell
           );
         },
       ),
@@ -40,14 +41,8 @@ class GameBoard extends StatelessWidget {
 
 class BoardCell extends StatelessWidget {
   final int row, col;
-  final Board board;
 
-  const BoardCell({
-    super.key,
-    required this.row,
-    required this.col,
-    required this.board,
-  });
+  const BoardCell({super.key, required this.row, required this.col});
 
   @override
   Widget build(BuildContext context) {
