@@ -158,55 +158,54 @@ class _GameMenuState extends State<GameMenu> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SingleChildScrollView(
-        child: Center(
-          child: Column(
-            children: [
-              const SizedBox(height: 120),
-              _buildShimmerTitle(),
-              const SizedBox(height: 100),
-              SizedBox(
-                height: 300,
-                child: PageView.builder(
-                  controller: _pageController,
-                  itemCount: _infinitePageCount,
-                  itemBuilder: (context, index) {
-                    final realIndex = index % items.length;
-                    return AnimatedBuilder(
-                      animation: _pageController,
-                      builder: (context, child) {
-                        double value = 1.0;
-                        if (_pageController.hasClients &&
-                            _pageController.position.haveDimensions) {
-                          value =
-                              ((_pageController.page ??
-                                          _pageController.initialPage) -
-                                      index)
-                                  .toDouble();
-                          value = (1 - (value.abs() * 0.3)).clamp(0.7, 1.0);
-                        } else {
-                          value = (index == _initialPage) ? 1.0 : 0.7;
-                        }
-                        return Transform.scale(
-                          scale: value,
-                          child: MenuCard(
-                            item: items[realIndex],
-                            onTap: () {
-                              context.go(items[realIndex].route);
-                            },
-                          ),
-                        );
-                      },
-                    );
-                  },
-                ),
+      body: Center(
+        child: Column(
+          children: [
+            const SizedBox(height: 120),
+            _buildShimmerTitle(),
+            const SizedBox(height: 75),
+            // Menu slide
+            SizedBox(
+              height: 250,
+              child: PageView.builder(
+                controller: _pageController,
+                itemCount: _infinitePageCount,
+                itemBuilder: (context, index) {
+                  final realIndex = index % items.length;
+                  return AnimatedBuilder(
+                    animation: _pageController,
+                    builder: (context, child) {
+                      double value = 1.0;
+                      if (_pageController.hasClients &&
+                          _pageController.position.haveDimensions) {
+                        value =
+                            ((_pageController.page ??
+                                        _pageController.initialPage) -
+                                    index)
+                                .toDouble();
+                        value = (1 - (value.abs() * 0.3)).clamp(0.7, 1.0);
+                      } else {
+                        value = (index == _initialPage) ? 1.0 : 0.7;
+                      }
+                      return Transform.scale(
+                        scale: value,
+                        child: MenuCard(
+                          item: items[realIndex],
+                          onTap: () {
+                            context.go(items[realIndex].route);
+                          },
+                        ),
+                      );
+                    },
+                  );
+                },
               ),
-              const SizedBox(height: 100),
-              _buildSocialIcons(),
-              Text(appVersion),
-              const SizedBox(height: 20),
-            ],
-          ),
+            ),
+            const SizedBox(height: 80),
+            _buildSocialIcons(),
+            Text(appVersion),
+            const Spacer(),
+          ],
         ),
       ),
     );

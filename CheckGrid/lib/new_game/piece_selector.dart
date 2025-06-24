@@ -14,8 +14,8 @@ class PieceSelector extends StatefulWidget {
 }
 
 class _PieceSelectorState extends State<PieceSelector> {
-  final double boxWidth = 200;
-  final double boxHeight = 75;
+  final double boxWidth = 250;
+  final double boxHeight = 100;
 
   @override
   Widget build(BuildContext context) {
