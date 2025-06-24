@@ -19,6 +19,27 @@ class GeneralProvider with ChangeNotifier {
   // Ad constants
   final int countdownTime = 5;
 
+  // ---------- METHODS ----------
+
+  Widget pieceImage(
+    double? size,
+    PieceType pieceType,
+    BoxFit? boxFit,
+    BuildContext context,
+  ) {
+    final isDarkPieces = context.watch<SettingsProvider>().isDarkPieces;
+    return Image.asset(
+      isDarkPieces
+          ? 'assets/images/pieces/black/black_${pieceType.name}.png'
+          : 'assets/images/pieces/white/white_${pieceType.name}.png',
+      width: size,
+      height: size,
+      fit: boxFit,
+    );
+  }
+
+  // ---------- STORE ----------
+
   String getUserCurrencyCode(BuildContext context) {
     final locale = Localizations.localeOf(context);
     // Mappa landskod till valutakod (enkel mappning, utöka vid behov)
@@ -37,9 +58,7 @@ class GeneralProvider with ChangeNotifier {
     return formatter.format(price);
   }
 
-  bool isTablet(BuildContext context) {
-    return MediaQuery.of(context).size.shortestSide >= 600;
-  }
+  // ---------- ADS ----------
 
   double getBannerAdHeight() {
     return _bannerAdHeight;
@@ -50,20 +69,17 @@ class GeneralProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  Widget pieceImage(
-    double? size,
-    PieceType pieceType,
-    BoxFit? boxFit,
-    BuildContext context,
-  ) {
-    final isDarkPieces = context.watch<SettingsProvider>().isDarkPieces;
-    return Image.asset(
-      isDarkPieces
-          ? 'assets/images/pieces/black/black_${pieceType.name}.png'
-          : 'assets/images/pieces/white/white_${pieceType.name}.png',
-      width: size,
-      height: size,
-      fit: boxFit,
-    );
+  // ---------- DEVICE ----------
+
+  double screenWidth(BuildContext context) {
+    return MediaQuery.of(context).size.width;
+  }
+
+  double screenHeight(BuildContext context) {
+    return MediaQuery.of(context).size.height;
+  }
+
+  bool isTablet(BuildContext context) {
+    return MediaQuery.of(context).size.shortestSide >= 600;
   }
 }

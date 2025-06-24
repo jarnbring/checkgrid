@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -95,7 +96,13 @@ class _StatisticsPageState extends State<StatisticsPage> {
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
+          onPressed:
+              () => {
+                if (context.canPop())
+                  {context.pop()}
+                else
+                  {context.go('/menu')},
+              },
         ),
       ),
       body: SafeArea(

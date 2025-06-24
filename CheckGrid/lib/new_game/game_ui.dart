@@ -1,10 +1,12 @@
 import 'package:checkgrid/ads/banner_ad.dart';
+import 'package:checkgrid/new_game/dialogs/settings_dialog.dart';
 import 'package:checkgrid/new_game/game_board.dart';
 import 'package:checkgrid/new_game/utilities/score.dart';
 import 'package:checkgrid/new_game/board.dart';
 import 'package:checkgrid/new_game/piece_selector.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 // Handle UI on the gamescreen
@@ -31,7 +33,55 @@ class _GameState extends State<Game> {
     return ChangeNotifierProvider.value(
       value: board,
       child: Scaffold(
-        appBar: AppBar(),
+        appBar: AppBar(
+          centerTitle: true,
+          title: const Text("CheckGrid", style: TextStyle(fontSize: 26)),
+          // Back button
+          leading: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () {
+              // Save game
+              // Go back to menu
+              if (context.canPop()) {
+                context.pop();
+              } else {
+                context.go('/menu'); // eller vilken "startsida" du vill
+              }
+            },
+            child: const Padding(
+              padding: EdgeInsets.all(8.0),
+              child: Icon(Icons.arrow_back),
+            ),
+          ),
+          // Settings button
+          actions: [
+            SizedBox(
+              width: 50,
+              height: 50,
+              child: GestureDetector(
+                onTap: () {
+                  showSettingsDialog(
+                    context: context,
+                    onRestart: board.restartGame,
+                    onSettingsPage: () {
+                      context
+                          .pushNamed("/settings")
+                          .then((_) => board.update());
+                    },
+                    currentDifficulty: board.difficulty,
+                    onDifficultySelected: (newDifficulty) {
+                      setState(() {
+                        board.difficulty = newDifficulty;
+                        board.restartGame();
+                      });
+                    },
+                  );
+                },
+                child: const Icon(Icons.settings),
+              ),
+            ),
+          ],
+        ),
         body: SafeArea(
           child: Column(
             children: [
@@ -54,6 +104,7 @@ class _GameState extends State<Game> {
     );
   }
 
+  // For debug
   Widget? _buildGameOverButton() {
     if (kDebugMode) {
       return Padding(

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:checkgrid/components/photopicker.dart';
 import 'package:checkgrid/components/textfield.dart';
+import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
 class FeedbackPage extends StatefulWidget {
@@ -393,7 +394,13 @@ class _FeedbackPageState extends State<FeedbackPage>
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
+          onPressed:
+              () => {
+                if (context.canPop())
+                  {context.pop()}
+                else
+                  {context.go('/menu')},
+              },
         ),
       ),
       body: SafeArea(

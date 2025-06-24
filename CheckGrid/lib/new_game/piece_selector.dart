@@ -14,8 +14,8 @@ class PieceSelector extends StatefulWidget {
 }
 
 class _PieceSelectorState extends State<PieceSelector> {
-  final double boxWidth = 250;
-  final double boxHeight = 50;
+  final double boxWidth = 200;
+  final double boxHeight = 75;
 
   @override
   Widget build(BuildContext context) {
@@ -23,8 +23,8 @@ class _PieceSelectorState extends State<PieceSelector> {
     final selectedPieces = board.selectedPieces;
 
     return Container(
-      width: 250,
-      height: 75 + 28,
+      width: boxWidth,
+      height: boxHeight,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
@@ -153,9 +153,11 @@ class _PieceSelectorState extends State<PieceSelector> {
 
         // Check if the game is over
         widget.board.checkGameOver();
-        
+
         // If the game was over, show the dialog
-        if (widget.board.isGameOver && mounted) showGameOverDialog(context, widget.board);
+        if (widget.board.isGameOver && mounted) {
+          showGameOverDialog(context, widget.board);
+        }
       },
       child: Container(
         width: boxWidth,
@@ -166,7 +168,7 @@ class _PieceSelectorState extends State<PieceSelector> {
           "Continue",
           style: TextStyle(
             color: Colors.white,
-            fontSize: 24,
+            fontSize: 20,
             fontWeight: FontWeight.bold,
           ),
         ),

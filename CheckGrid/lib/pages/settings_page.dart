@@ -4,6 +4,7 @@ import 'package:checkgrid/components/icon_widget.dart';
 import 'package:checkgrid/providers/settings_provider.dart';
 import 'package:checkgrid/settings/noti_service.dart';
 import 'package:checkgrid/settings/privacy_policy.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -34,7 +35,11 @@ class SettingsPageState extends State<SettingsPage> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            Navigator.pop(context);
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go('/menu');
+            }
           },
         ),
       ),

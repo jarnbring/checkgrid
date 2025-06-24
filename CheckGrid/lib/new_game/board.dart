@@ -117,6 +117,15 @@ class Board extends ChangeNotifier {
     }
   }
 
+  // NOT DONE!
+  void save() {
+    notifyListeners();
+  }
+
+  void update() {
+    notifyListeners();
+  }
+
   void markTargetedCells(PieceType piece, int row, int col) {
     // Mark targeted cells and save in targetedCellsMap
     final targetedCells = getTargetedCells(piece, row, col);

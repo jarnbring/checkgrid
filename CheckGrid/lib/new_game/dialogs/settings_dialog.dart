@@ -1,7 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:checkgrid/new_game/utilities/difficulty.dart';
+import 'package:go_router/go_router.dart';
 
-enum DialogPage { settings, difficulty }
+enum DialogPage {
+  settings,
+  difficulty,
+} // Animation between settings and difficulty? fade?
+
+/// Shows a settingsmenu. Intended for ingame use
 
 void showSettingsDialog({
   required BuildContext context,
@@ -51,123 +57,134 @@ void showSettingsDialog({
                         ),
                         child: Padding(
                           padding: const EdgeInsets.all(20),
-                          child: currentPage == DialogPage.settings
-                              ? Column(
-                                  children: [
-                                    const SizedBox(height: 20),
-                                    const Text(
-                                      "Settings",
-                                      style: TextStyle(
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.bold,
+                          child:
+                              currentPage == DialogPage.settings
+                                  ? Column(
+                                    children: [
+                                      const SizedBox(height: 20),
+                                      const Text(
+                                        "Settings",
+                                        style: TextStyle(
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.bold,
+                                        ),
                                       ),
-                                    ),
-                                    const SizedBox(height: 20),
-                                    _OptionTile(
-                                      title: "Restart game",
-                                      icon: Icons.restart_alt_rounded,
-                                      onTap: onRestart,
-                                    ),
-                                    _OptionTile(
-                                      title: "Settings page",
-                                      icon: Icons.settings,
-                                      onTap: onSettingsPage,
-                                    ),
-                                    _OptionTile(
-                                      title: "Difficulty",
-                                      icon:
-                                          Icons.admin_panel_settings_outlined,
-                                      onTap: () {
-                                        setState(() {
-                                          currentPage = DialogPage.difficulty;
-                                        });
-                                      },
-                                    ),
-                                    const Spacer(),
-                                    _BackButtonWidget(
-                                      text: "Back",
-                                      onPressed: () =>
-                                          Navigator.of(context).pop(),
-                                    ),
-                                  ],
-                                )
-                              : Column(
-                                  children: [
-                                    const SizedBox(height: 20),
-                                    const Text(
-                                      "Choose Difficulty",
-                                      style: TextStyle(
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.bold,
+                                      const SizedBox(height: 20),
+                                      _OptionTile(
+                                        title: "Restart game",
+                                        icon: Icons.restart_alt_rounded,
+                                        onTap: onRestart,
                                       ),
-                                    ),
-                                    const SizedBox(height: 20),
-                                    const Text.rich(
-                                      TextSpan(
-                                        children: [
-                                          TextSpan(
-                                            text: "Note: ",
-                                            style: TextStyle(fontSize: 18),
-                                          ),
-                                          TextSpan(
-                                            text:
-                                                "This will restart your current progress and start a new game.",
-                                          ),
-                                        ],
+                                      _OptionTile(
+                                        title: "Difficulty",
+                                        icon:
+                                            Icons.admin_panel_settings_outlined,
+                                        onTap: () {
+                                          setState(() {
+                                            currentPage = DialogPage.difficulty;
+                                          });
+                                        },
                                       ),
-                                    ),
-                                    const Spacer(),
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: Difficulty.values
-                                          .map((difficulty) {
-                                        String assetName;
-                                        switch (difficulty) {
-                                          case Difficulty.easy:
-                                            assetName =
-                                                'assets/images/difficulties/easy_icon.png';
-                                            break;
-                                          case Difficulty.medium:
-                                            assetName =
-                                                'assets/images/difficulties/medium_icon.png';
-                                            break;
-                                          case Difficulty.hard:
-                                            assetName =
-                                                'assets/images/difficulties/hard_icon.png';
-                                            break;
-                                        }
-                                        final isSelected =
-                                            selectedDifficulty == difficulty;
-                                        return GestureDetector(
-                                          onTap: () {
-                                            setState(() {
-                                              selectedDifficulty = difficulty;
-                                            });
-                                          },
-                                          child: Image.asset(
-                                            assetName,
-                                            height: 67,
-                                            width: 67,
-                                            color: isSelected
-                                                ? selectedColor
-                                                : Colors.white,
-                                          ),
-                                        );
-                                      }).toList(),
-                                    ),
-                                    const Spacer(),
-                                    _BackButtonWidget(
-                                      text: "Restart",
-                                      onPressed: () {
-                                        onDifficultySelected(
-                                            selectedDifficulty);
-                                        onRestart();
-                                        Navigator.pop(context);
-                                      },
-                                    ),
-                                  ],
-                                ),
+                                      _OptionTile(
+                                        title: "Settings page",
+                                        icon: Icons.settings,
+                                        onTap: onSettingsPage,
+                                      ),
+                                      const Spacer(),
+                                      _BackButtonWidget(
+                                        text: "Back",
+                                        onPressed:
+                                            () => {
+                                              if (context.canPop())
+                                                {context.pop()}
+                                              else
+                                                {context.go('/menu')},
+                                            },
+                                      ),
+                                    ],
+                                  )
+                                  : Column(
+                                    children: [
+                                      const SizedBox(height: 20),
+                                      const Text(
+                                        "Choose Difficulty",
+                                        style: TextStyle(
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 20),
+                                      const Text.rich(
+                                        TextSpan(
+                                          children: [
+                                            TextSpan(
+                                              text: "Note: ",
+                                              style: TextStyle(fontSize: 18),
+                                            ),
+                                            TextSpan(
+                                              text:
+                                                  "This will reset your current progress and start a new game.",
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      const Spacer(),
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        spacing: 20,
+                                        children:
+                                            Difficulty.values.map((difficulty) {
+                                              String assetName;
+                                              switch (difficulty) {
+                                                case Difficulty.easy:
+                                                  assetName =
+                                                      'assets/images/difficulties/easy_icon.png';
+                                                  break;
+                                                case Difficulty.medium:
+                                                  assetName =
+                                                      'assets/images/difficulties/medium_icon.png';
+                                                  break;
+                                                case Difficulty.hard:
+                                                  assetName =
+                                                      'assets/images/difficulties/hard_icon.png';
+                                                  break;
+                                              }
+                                              final isSelected =
+                                                  selectedDifficulty ==
+                                                  difficulty;
+                                              return GestureDetector(
+                                                onTap: () {
+                                                  setState(() {
+                                                    selectedDifficulty =
+                                                        difficulty;
+                                                  });
+                                                },
+                                                child: Image.asset(
+                                                  assetName,
+                                                  height: 67,
+                                                  width: 67,
+                                                  color:
+                                                      isSelected
+                                                          ? selectedColor
+                                                          : Colors.white,
+                                                ),
+                                              );
+                                            }).toList(),
+                                      ),
+                                      const Spacer(),
+                                      _BackButtonWidget(
+                                        text: "Restart",
+                                        onPressed: () {
+                                          onDifficultySelected(
+                                            selectedDifficulty,
+                                          );
+                                          onRestart();
+                                          Navigator.pop(context);
+                                        },
+                                      ),
+                                    ],
+                                  ),
                         ),
                       ),
                       if (currentPage == DialogPage.difficulty)
@@ -265,6 +282,7 @@ class _OptionTile extends StatelessWidget {
       decoration: BoxDecoration(
         border: Border.all(width: 2, color: Colors.grey),
         borderRadius: BorderRadius.circular(10),
+        color: const Color.fromARGB(255, 32, 135, 219),
       ),
       child: ListTile(
         title: Text(title),
@@ -288,10 +306,7 @@ class _BackButtonWidget extends StatelessWidget {
   final String text;
   final VoidCallback onPressed;
 
-  const _BackButtonWidget({
-    required this.text,
-    required this.onPressed,
-  });
+  const _BackButtonWidget({required this.text, required this.onPressed});
 
   @override
   Widget build(BuildContext context) {

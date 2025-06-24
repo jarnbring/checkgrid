@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class StorePage extends StatefulWidget {
   const StorePage({super.key});
@@ -126,7 +127,15 @@ class _StorePageState extends State<StorePage> {
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
+          onPressed:
+              () => {
+                if (context.canPop())
+                  {context.pop()}
+                else
+                  {
+                    context.go('/menu'), // eller vilken "startsida" du vill
+                  },
+              },
         ),
       ),
       body: SafeArea(
