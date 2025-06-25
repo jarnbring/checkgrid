@@ -35,7 +35,7 @@ class _GameState extends State<Game> {
       value: board,
       child: Stack(
         children: [
-          GridBackground(
+          Background(
             child: Scaffold(
               backgroundColor: Colors.transparent, // Viktigt!
               appBar: AppBar(

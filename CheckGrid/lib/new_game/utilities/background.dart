@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'dart:math' as math;
 
-class GridBackground extends StatelessWidget {
+class Background extends StatelessWidget {
   final Widget child;
 
-  const GridBackground({super.key, required this.child});
+  const Background({super.key, required this.child});
 
   @override
   Widget build(BuildContext context) {
@@ -19,32 +20,54 @@ class _GridPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     canvas.drawRect(
       Rect.fromLTWH(0, 0, size.width, size.height),
-      Paint()..color = const Color(0xFF102840),
+      Paint()..color = const Color(0xFF0A1A2F),
     );
 
     const double cellSize = 60.0;
-    final paint =
-        Paint()
-          ..color = const Color(0xFF102840) // mörkblå ruta
-          ..style = PaintingStyle.fill;
+    final double yStep = cellSize / math.sqrt2; // ~42.4
 
-    final altPaint =
-        Paint()
-          ..color = const Color.fromARGB(255, 20, 50, 74); // ljusare blå ruta
+    int row = 0;
+    // börja på första centret och loopa över centerY direkt
+    for (
+      double centerY = cellSize / 2;
+      centerY < size.height + cellSize;
+      centerY += yStep, row++
+    ) {
+      int col = 0;
+      for (double x = 0; x < size.width + cellSize; x += cellSize, col++) {
+        final offsetX = (row % 2 == 0) ? 0.0 : cellSize / 2;
+        final isAlt = ((col + row) % 2 == 0);
+        final baseColor =
+            isAlt
+                ? const Color.fromARGB(255, 23, 51, 80)
+                : const Color.fromARGB(255, 13, 30, 48);
 
-    for (double y = 0; y < size.height; y += cellSize) {
-      for (double x = 0; x < size.width; x += cellSize) {
-        final isAlt = ((x / cellSize) + (y / cellSize)) % 2 == 0;
-        canvas.drawRRect(
-          RRect.fromLTRBR(
-            x,
-            y,
-            x + cellSize,
-            y + cellSize,
-            const Radius.circular(5),
-          ),
-          isAlt ? paint : altPaint,
+        final centerX = x + offsetX + cellSize / 2;
+
+        canvas.save();
+        canvas.translate(centerX, centerY);
+        canvas.rotate(math.pi / 4);
+
+        final rect = RRect.fromLTRBR(
+          -cellSize / 2,
+          -cellSize / 2,
+          cellSize / 2,
+          cellSize / 2,
+          const Radius.circular(5),
         );
+
+        // skugga
+        final shadowPaint =
+            Paint()
+              ..color = Colors.black.withAlpha(255)
+              ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3);
+        canvas.drawRRect(rect.shift(const Offset(-2, -2)), shadowPaint);
+
+        // själva rutan
+        final paint = Paint()..color = baseColor;
+        canvas.drawRRect(rect, paint);
+
+        canvas.restore();
       }
     }
   }

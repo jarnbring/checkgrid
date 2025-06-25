@@ -100,7 +100,7 @@ class _GameMenuState extends State<GameMenu> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: GridBackground(
+      body: Background(
         child: Center(
           child: Column(
             children: [
@@ -162,7 +162,7 @@ class _GameMenuState extends State<GameMenu> {
       child: const Text(
         'CheckGrid',
         style: TextStyle(
-          fontSize: 35,
+          fontSize: 45,
           fontWeight: FontWeight.bold,
           letterSpacing: 1.5,
         ),

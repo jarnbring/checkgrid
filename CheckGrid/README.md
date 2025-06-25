@@ -14,4 +14,10 @@ To do:
     Code cleanup
     Code review
     Everything around git, README etc.
+    Buy domain? @checkgrid.com
+
+    Store
+    Watch ads to unlock skins
+    Get big highscore to unlock skins
+    Unlock different backgrounds
 

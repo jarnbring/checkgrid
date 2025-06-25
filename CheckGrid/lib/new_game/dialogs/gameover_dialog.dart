@@ -19,7 +19,7 @@ class _GameOverPageState extends State<GameOverPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF0A1A2F),
-      body: GridBackground(
+      body: Background(
         child: Center(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 80.0),

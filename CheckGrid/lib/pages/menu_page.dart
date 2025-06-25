@@ -114,7 +114,7 @@ class _MenuPageState extends State<MenuPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF0A1A2F), // Samma som GameOverPage!
-      body: GridBackground(
+      body: Background(
         child: Center(
           child: SingleChildScrollView(
             child: AnimatedOpacity(
