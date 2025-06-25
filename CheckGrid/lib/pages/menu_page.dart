@@ -1,3 +1,4 @@
+import 'package:checkgrid/new_game/utilities/background.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:checkgrid/components/pressable_button.dart';
@@ -112,43 +113,37 @@ class _MenuPageState extends State<MenuPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SingleChildScrollView(
+      backgroundColor: const Color(0xFF0A1A2F), // Samma som GameOverPage!
+      body: GridBackground(
         child: Center(
-          child: AnimatedOpacity(
-            opacity: _showContent ? 1.0 : 0.0,
-            duration: const Duration(
-              milliseconds: 500,
-            ), // Samma som fade-out på splash
-            curve: Curves.easeIn,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                // Top spacing
-                const SizedBox(height: 100),
-
-                _buildCheckGridText(),
-                const SizedBox(height: 60),
-
-                // Main menu buttons using PressableButton
-                PressableButton(title: "Play", route: "/play"),
-                const SizedBox(height: 40),
-                PressableButton(title: "Store", route: "/store"),
-                const SizedBox(height: 40),
-                PressableButton(title: "Settings", route: "/settings"),
-                const SizedBox(height: 40),
-                PressableButton(title: "Statistics", route: "/statistics"),
-                const SizedBox(height: 40),
-                PressableButton(title: "Feedback", route: "/feedback"),
-                const SizedBox(height: 40),
-
-                // Social icons row
-                _buildSocials(),
-                SizedBox(height: 40),
-
-                // App version text
-                Text(appVersion),
-              ],
+          child: SingleChildScrollView(
+            child: AnimatedOpacity(
+              opacity: _showContent ? 1.0 : 0.0,
+              duration: const Duration(milliseconds: 500),
+              curve: Curves.easeIn,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  const SizedBox(height: 100),
+                  _buildCheckGridText(),
+                  const SizedBox(height: 60),
+                  PressableButton(title: "Play", route: "/play"),
+                  const SizedBox(height: 40),
+                  PressableButton(title: "Store", route: "/store"),
+                  const SizedBox(height: 40),
+                  PressableButton(title: "Settings", route: "/settings"),
+                  const SizedBox(height: 40),
+                  PressableButton(title: "Statistics", route: "/statistics"),
+                  const SizedBox(height: 40),
+                  PressableButton(title: "Feedback", route: "/feedback"),
+                  const SizedBox(height: 40),
+                  // Social icons row
+                  _buildSocials(),
+                  SizedBox(height: 40),
+                  // App version text
+                  Text(appVersion),
+                ],
+              ),
             ),
           ),
         ),

@@ -83,7 +83,8 @@ class _MyAppState extends State<MyApp> {
       theme: ThemeData(
         appBarTheme: AppBarTheme(
           iconTheme: IconThemeData(color: lightmodeTextColor),
-          backgroundColor: lightmodeBackgroundColor,
+          backgroundColor: Colors.transparent,
+          //backgroundColor: lightmodeBackgroundColor,
           titleTextStyle: GoogleFonts.poppins(
             color: lightmodeTextColor,
             fontWeight:

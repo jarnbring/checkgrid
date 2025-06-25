@@ -17,6 +17,11 @@ class GridBackground extends StatelessWidget {
 class _GridPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
+    canvas.drawRect(
+      Rect.fromLTWH(0, 0, size.width, size.height),
+      Paint()..color = const Color(0xFF102840),
+    );
+
     const double cellSize = 60.0;
     final paint =
         Paint()
@@ -30,8 +35,14 @@ class _GridPainter extends CustomPainter {
     for (double y = 0; y < size.height; y += cellSize) {
       for (double x = 0; x < size.width; x += cellSize) {
         final isAlt = ((x / cellSize) + (y / cellSize)) % 2 == 0;
-        canvas.drawRect(
-          Rect.fromLTWH(x, y, cellSize, cellSize),
+        canvas.drawRRect(
+          RRect.fromLTRBR(
+            x,
+            y,
+            x + cellSize,
+            y + cellSize,
+            const Radius.circular(5),
+          ),
           isAlt ? paint : altPaint,
         );
       }

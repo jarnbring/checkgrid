@@ -1,6 +1,7 @@
 import 'package:checkgrid/ads/banner_ad.dart';
 import 'package:checkgrid/new_game/dialogs/settings_dialog.dart';
 import 'package:checkgrid/new_game/game_board.dart';
+import 'package:checkgrid/new_game/utilities/background.dart';
 import 'package:checkgrid/new_game/utilities/score.dart';
 import 'package:checkgrid/new_game/board.dart';
 import 'package:checkgrid/new_game/piece_selector.dart';
@@ -32,70 +33,84 @@ class _GameState extends State<Game> {
   Widget build(BuildContext context) {
     return ChangeNotifierProvider.value(
       value: board,
-      child: Scaffold(
-        appBar: AppBar(
-          centerTitle: true,
-          title: const Text("CheckGrid", style: TextStyle(fontSize: 26)),
-          // Back button
-          leading: GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: () {
-              // Save game
-              if (context.canPop()) {
-                context.pop();
-              } else {
-                context.go('/menu');
-              }
-            },
-            child: const Padding(
-              padding: EdgeInsets.all(8.0),
-              child: Icon(Icons.arrow_back),
-            ),
-          ),
-          // Settings button
-          actions: [
-            SizedBox(
-              width: 50,
-              height: 50,
-              child: GestureDetector(
-                onTap: () {
-                  showSettingsDialog(
-                    context: context,
-                    onRestart: board.restartGame,
-                    onSettingsPage: () {
-                      context
-                          .pushNamed("/settings")
-                          .then((_) => board.update());
-                    },
-                    currentDifficulty: board.difficulty,
-                    onDifficultySelected: (newDifficulty) {
-                      setState(() {
-                        board.difficulty = newDifficulty;
-                        board.restartGame();
-                      });
-                    },
-                  );
-                },
-                child: const Icon(Icons.settings),
+      child: Stack(
+        children: [
+          GridBackground(
+            child: Scaffold(
+              backgroundColor: Colors.transparent, // Viktigt!
+              appBar: AppBar(
+                backgroundColor: Colors.transparent, // Viktigt!
+                elevation: 0,
+                foregroundColor: Colors.transparent,
+                centerTitle: true,
+                title: const Text("CheckGrid", style: TextStyle(fontSize: 26)),
+                // Back button
+                leading: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () {
+                    // Save game
+                    if (context.canPop()) {
+                      context.pop();
+                    } else {
+                      context.go('/menu');
+                    }
+                  },
+                  child: const Padding(
+                    padding: EdgeInsets.all(8.0),
+                    child: Icon(Icons.arrow_back),
+                  ),
+                ),
+                // Settings button
+                actions: [
+                  SizedBox(
+                    width: 50,
+                    height: 50,
+                    child: GestureDetector(
+                      onTap: () {
+                        showSettingsDialog(
+                          context: context,
+                          onRestart: board.restartGame,
+                          onSettingsPage: () {
+                            context
+                                .pushNamed("/settings")
+                                .then((_) => board.update());
+                          },
+                          currentDifficulty: board.difficulty,
+                          onDifficultySelected: (newDifficulty) {
+                            setState(() {
+                              board.difficulty = newDifficulty;
+                              board.restartGame();
+                            });
+                          },
+                        );
+                      },
+                      child: const Icon(Icons.settings),
+                    ),
+                  ),
+                ],
               ),
+              body: SafeArea(
+                child: Column(
+                  children: [
+                    Consumer<Board>(builder: (context, board, _) => Score()),
+                    const SizedBox(height: 30),
+                    Consumer<Board>(
+                      builder: (context, board, _) => GameBoard(),
+                    ),
+                    const SizedBox(height: 30),
+                    Consumer<Board>(
+                      builder: (context, board, _) => PieceSelector(),
+                    ),
+                    const SizedBox(height: 30),
+                    _buildReviveButton() ?? const SizedBox(),
+                    _buildGameOverButton() ?? const SizedBox(),
+                  ],
+                ),
+              ),
+              bottomNavigationBar: const BannerAdWidget(),
             ),
-          ],
-        ),
-        body: SafeArea(
-          child: Column(
-            children: [
-              Consumer<Board>(builder: (context, board, _) => Score()),
-              const SizedBox(height: 30),
-              Consumer<Board>(builder: (context, board, _) => GameBoard()),
-              const SizedBox(height: 30),
-              Consumer<Board>(builder: (context, board, _) => PieceSelector()),
-              const SizedBox(height: 30),
-              _buildReviveButton() ?? const SizedBox(),
-              _buildGameOverButton() ?? const SizedBox(),
-            ],
           ),
-        ),
-        bottomNavigationBar: const BannerAdWidget(),
+        ],
       ),
     );
   }
