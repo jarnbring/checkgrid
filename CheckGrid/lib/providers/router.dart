@@ -1,3 +1,5 @@
+import 'package:checkgrid/new_game/board.dart';
+import 'package:checkgrid/new_game/dialogs/gameover_dialog.dart';
 import 'package:checkgrid/new_game/game_ui.dart';
 import 'package:checkgrid/pages/statistics_page.dart';
 import 'package:checkgrid/pages/splash_screen.dart';
@@ -58,6 +60,15 @@ final GoRouter router = GoRouter(
       path: '/play',
       pageBuilder:
           (context, state) => CupertinoPage(key: state.pageKey, child: Game()),
+    ),
+    GoRoute(
+      name: '/gameover',
+      path: '/gameover',
+      pageBuilder:
+          (context, state) => CupertinoPage(
+            key: state.pageKey,
+            child: GameOverPage(board: state.extra as Board),
+          ),
     ),
     GoRoute(
       name: '/store',

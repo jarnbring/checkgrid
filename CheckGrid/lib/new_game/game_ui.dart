@@ -90,16 +90,47 @@ class _GameState extends State<Game> {
               const SizedBox(height: 30),
               Consumer<Board>(builder: (context, board, _) => PieceSelector()),
               const SizedBox(height: 30),
+              _buildReviveButton() ?? const SizedBox(),
               _buildGameOverButton() ?? const SizedBox(),
             ],
           ),
         ),
-        // bottomNavigationBar: const BannerAdWidget(),
+        bottomNavigationBar: const BannerAdWidget(),
       ),
     );
   }
 
   // For debug
+  Widget? _buildReviveButton() {
+    if (kDebugMode) {
+      return Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: SizedBox(
+          height: 36,
+          child: TextButton(
+            style: TextButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+              minimumSize: const Size(80, 36),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+            ),
+            onPressed: () {
+              board.debugSetRevive(context);
+            },
+            child: const Text(
+              'Revive',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+            ),
+          ),
+        ),
+      );
+    }
+    return null;
+  }
+
   Widget? _buildGameOverButton() {
     if (kDebugMode) {
       return Padding(
@@ -117,7 +148,7 @@ class _GameState extends State<Game> {
               padding: const EdgeInsets.symmetric(horizontal: 16),
             ),
             onPressed: () {
-              board.debugSetGameOver(context);
+              board.debugSetGameOver();
             },
             child: const Text(
               'Game Over',

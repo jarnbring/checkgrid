@@ -1,42 +1,106 @@
 import 'package:checkgrid/new_game/board.dart';
+import 'package:checkgrid/new_game/utilities/background.dart';
 import 'package:flutter/material.dart';
-import 'package:checkgrid/components/countdown_loading.dart';
+import 'package:go_router/go_router.dart';
 
-void showGameOverDialog(BuildContext context, Board board) async {
-  if (board.isReviveShowing) return;
+class GameOverPage extends StatefulWidget {
+  final Board board;
+  const GameOverPage({super.key, required this.board});
 
-  board.isReviveShowing = true;
+  @override
+  State<GameOverPage> createState() => _GameOverPageState();
+}
 
-  showGeneralDialog(
-    context: context,
-    transitionDuration: const Duration(milliseconds: 1000),
-    pageBuilder: (_, _, _) {
-      return CountdownLoading(
-        board: board,
-        afterAd: () {
-          // This is if the user watched the whole ad (award)
+class _GameOverPageState extends State<GameOverPage> {
+  bool isPressedRestart = false;
+  bool isPressedMenu = false;
 
-          // Reset board
-          board.clearBoard();
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFF0A1A2F),
+      body: GridBackground(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 80.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text(
+                  "Game\n Over",
+                  style: TextStyle(
+                    fontSize: 60,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF81D4FA),
+                    shadows: [
+                      Shadow(
+                        color: Colors.black45,
+                        offset: Offset(2, 2),
+                        blurRadius: 4,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 50),
+                _button(
+                  "Restart",
+                  () {
+                    widget.board.restartGame();
+                    context.go('/play');
+                  },
+                  isPressedRestart,
+                  (v) => setState(() => isPressedRestart = v),
+                ),
+                const SizedBox(height: 24),
+                _button(
+                  "Back to Menu",
+                  () {
+                    context.go('/menu');
+                  },
+                  isPressedMenu,
+                  (v) => setState(() => isPressedMenu = v),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 
-          // SpawnNewInitCells
-          board.spawnInitialActiveCells();
-
-          // selectedPiecesPositions.clear();
-          board.selectedPiecesPositions.clear();
-
-          // targetedCellsMap.clear();
-          board.targetedCellsMap.clear();
-
-          // SetNewPieces
-          board.setNewSelectedPieces();
-
-          board.isGameOver = false;
-          board.isReviveShowing = false;
-        },
-      );
-    },
-  ).then((_) {
-    board.isReviveShowing = false;
-  });
+  Widget _button(
+    String title,
+    VoidCallback onTap,
+    bool isPressed,
+    void Function(bool) setPressed,
+  ) {
+    return GestureDetector(
+      onTap: onTap,
+      onTapDown: (_) => setPressed(true),
+      onTapUp: (_) => setPressed(false),
+      onTapCancel: () => setPressed(false),
+      child: AnimatedScale(
+        scale: isPressed ? 0.95 : 1.0,
+        duration: const Duration(milliseconds: 100),
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          decoration: BoxDecoration(
+            color:
+                isPressed ? const Color(0xFF1976D2) : const Color(0xFF4FC3F7),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Text(
+            title,
+            style: const TextStyle(
+              fontSize: 20,
+              color: Colors.black87,
+              fontWeight: FontWeight.bold,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ),
+      ),
+    );
+  }
 }

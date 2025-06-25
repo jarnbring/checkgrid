@@ -8,7 +8,7 @@ extension DifficultyExtension on Difficulty {
       case Difficulty.medium:
         return 0.70;
       case Difficulty.hard:
-        return 1.0;
+        return 0.80;
     }
   }
 

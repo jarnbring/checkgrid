@@ -3,7 +3,7 @@
 To do:
 
     Settings, sound, notifications ------ Testa ifall vibrations och notifications funkar! ------
-    Highscore desgin change?
+    Highscore desgin change?  ------------------------------
     Responsive UI
     Animations
     Effekter för combo? det räknar ut tex 180 * combo oså räknar den upp!

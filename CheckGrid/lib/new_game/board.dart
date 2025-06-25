@@ -1,5 +1,6 @@
 import 'dart:math';
-import 'package:checkgrid/new_game/dialogs/gameover_dialog.dart';
+import 'package:checkgrid/animations/game_animations.dart';
+import 'package:checkgrid/new_game/dialogs/revive_dialog.dart';
 import 'package:checkgrid/new_game/utilities/cell.dart';
 import 'package:checkgrid/new_game/utilities/piecetype.dart';
 import 'package:checkgrid/new_game/utilities/difficulty.dart';
@@ -22,6 +23,7 @@ class Board extends ChangeNotifier {
   Difficulty _difficulty;
   bool isGameOver = false;
   bool isReviveShowing = false;
+  int watchedAds = 0;
 
   // Score vars
   BigInt currentScore = BigInt.zero;
@@ -56,6 +58,8 @@ class Board extends ChangeNotifier {
       );
 
   void addScore() async {
+    final BigInt oldScore = currentScore;
+
     final allTargetedCells =
         targetedCellsMap.values.expand((cells) => cells).toSet().toList();
 
@@ -86,23 +90,11 @@ class Board extends ChangeNotifier {
     // }
 
     // Play increase score animation
-    // final scoreAnim = _animations.animateBigInt(
-    //   oldScore,
-    //   newScore,
-    //   (v) => setState(() => currentScore = v),
-    // );
+    await GameAnimations.increaseScore(oldScore, currentScore, (v) {
+      currentScore = v;
+      notifyListeners();
+    });
 
-    // Play animation for highscore
-    // final highAnim =
-    //     (newScore > oldHigh)
-    //         ? _animations.animateBigInt(
-    //           oldHigh,
-    //           newHigh,
-    //           (v) => setState(() => displayedHighscore = v),
-    //         )
-    //         : Future.value();
-
-    // await Future.wait([scoreAnim, highAnim]);
     notifyListeners();
   }
 
@@ -221,6 +213,7 @@ class Board extends ChangeNotifier {
     selectedPiecesPositions.clear();
     isGameOver = false;
     isReviveShowing = false;
+    watchedAds = 0;
     resetScore();
     spawnInitialActiveCells();
     setNewSelectedPieces();
@@ -424,8 +417,13 @@ class Board extends ChangeNotifier {
   }
 
   // Debug: Sätt game over och notifiera
-  void debugSetGameOver(BuildContext context) {
-    showGameOverDialog(context, this);
+  void debugSetRevive(BuildContext context) {
+    showReviveDialog(context, this);
     notifyListeners();
+  }
+
+  void debugSetGameOver() {
+    watchedAds = 4;
+    isGameOver = true;
   }
 }

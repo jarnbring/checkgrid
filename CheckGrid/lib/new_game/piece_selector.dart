@@ -1,8 +1,9 @@
-import 'package:checkgrid/new_game/dialogs/gameover_dialog.dart';
+import 'package:checkgrid/new_game/dialogs/revive_dialog.dart';
 import 'package:checkgrid/providers/general_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:checkgrid/new_game/board.dart';
 import 'package:checkgrid/new_game/utilities/piecetype.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 class PieceSelector extends StatefulWidget {
@@ -156,9 +157,13 @@ class _PieceSelectorState extends State<PieceSelector> {
         // Check if the game is over
         board.checkGameOver();
 
-        // If the game was over, show the dialog
-        if (board.isGameOver && mounted) {
-          showGameOverDialog(context, board);
+        if (!mounted) return;
+
+        // If the game was over, show the dialogs
+        if (board.isGameOver && (board.watchedAds <= 3)) {
+          showReviveDialog(context, board);
+        } else if (board.isGameOver) {
+          context.go('/gameover', extra: board);
         }
       },
       child: Container(
