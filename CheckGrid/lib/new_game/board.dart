@@ -61,10 +61,10 @@ class Board extends ChangeNotifier {
 
     // Handle combo
     final removedCells = allTargetedCells.length;
-    currentCombo = removedCells >= comboRequirement ? currentCombo + 1 : 0;
+    currentCombo = removedCells >= comboRequirement ? currentCombo + 1 : 1;
 
     // Increase score
-    final comboFormula = BigInt.from(20) * BigInt.from(removedCells);
+    final comboFormula = BigInt.from(10) * BigInt.from(removedCells);
     final scoreToAdd = comboFormula * BigInt.from(currentCombo);
 
     // Load scores
@@ -108,34 +108,35 @@ class Board extends ChangeNotifier {
 
   // Update every cells color
   void updateColors() {
-    for (int row = 0; row < GeneralProvider.boardHeight; row++) {
-      for (int col = 0; col < GeneralProvider.boardWidth; col++) {
+    final height = GeneralProvider.boardHeight;
+    final width = GeneralProvider.boardWidth;
+    int zoneCount = 4;
+
+    for (int row = 0; row < height; row++) {
+      for (int col = 0; col < width; col++) {
         final cell = board[row][col];
         final activeCondition =
             cell.hasPiece || cell.isActive || cell.piece != null;
 
-        // Drawing priority, high number = high priority
+        // Grundfärg
+        cell.color = Colors.grey;
 
-        // 1
-        if (!cell.isActive) {
-          cell.color = Colors.grey;
-        }
+        // Vilken zon är vi i? (0 = topp, 3 = botten)
+        int zone = ((row / height) * zoneCount).floor();
+        if (zone >= zoneCount) zone = zoneCount - 1;
 
-        // 2
-        if (row >= 6) {
+        // Sätt färg efter zon och status
+        if (zone == 3) {
           cell.color = Colors.blueGrey;
-        }
-
-        // 3
-        if (row >= 4 && activeCondition) {
+        } else if (zone == 2 && activeCondition) {
           cell.color = Colors.red;
-        } else if (row >= 2 && activeCondition) {
+        } else if (zone == 1 && activeCondition) {
           cell.color = Colors.orange;
-        } else if (row >= 0 && activeCondition) {
+        } else if (zone == 0 && activeCondition) {
           cell.color = Colors.green;
         }
 
-        // 4
+        // Prioritera blå för pjäser
         if (cell.hasPiece || cell.piece != null) {
           cell.color = Colors.blue;
         }
@@ -218,10 +219,16 @@ class Board extends ChangeNotifier {
     selectedPiecesPositions.clear();
     isGameOver = false;
     isReviveShowing = false;
+    resetScore();
     spawnInitialActiveCells();
     setNewSelectedPieces();
 
     notifyListeners();
+  }
+
+  void resetScore() {
+    currentCombo = 0;
+    currentScore = BigInt.zero;
   }
 
   /// Clears all cells on the board (removes pieces, active and targeted states).
