@@ -110,7 +110,7 @@ class Board extends ChangeNotifier {
   void updateColors() {
     final height = GeneralProvider.boardHeight;
     final width = GeneralProvider.boardWidth;
-    int zoneCount = 4;
+    int zoneCount = 3;
 
     for (int row = 0; row < height; row++) {
       for (int col = 0; col < width; col++) {
@@ -125,10 +125,12 @@ class Board extends ChangeNotifier {
         int zone = ((row / height) * zoneCount).floor();
         if (zone >= zoneCount) zone = zoneCount - 1;
 
-        // Sätt färg efter zon och status
-        if (zone == 3) {
+        if (row == height - 1) {
           cell.color = Colors.blueGrey;
-        } else if (zone == 2 && activeCondition) {
+        }
+
+        // Sätt färg efter zon och status
+        if ((zone == 2) && activeCondition) {
           cell.color = Colors.red;
         } else if (zone == 1 && activeCondition) {
           cell.color = Colors.orange;
@@ -150,7 +152,7 @@ class Board extends ChangeNotifier {
   void checkGameOver() {
     // Kolla sista och näst sista raden
     for (
-      int row = GeneralProvider.boardHeight - 2;
+      int row = GeneralProvider.boardHeight - 1;
       row < GeneralProvider.boardHeight;
       row++
     ) {
@@ -266,18 +268,27 @@ class Board extends ChangeNotifier {
   }
 
   Future<void> spawnActiveCells() async {
+    final height = GeneralProvider.boardHeight;
+    final width = GeneralProvider.boardWidth;
+    final rowsToSpawn = _difficulty.rowsToSpawn;
+
     // 1. Flytta ner rader
-    for (var row = GeneralProvider.boardHeight - 1; row > 0; row--) {
-      for (var col = 0; col < GeneralProvider.boardWidth; col++) {
-        board[row][col] = board[row - 1][col];
+    for (var row = height - 1; row >= rowsToSpawn; row--) {
+      for (var col = 0; col < width; col++) {
+        board[row][col] = board[row - rowsToSpawn][col];
+        // Uppdatera positionen på cellen
+        board[row][col].position = Point(row, col);
       }
     }
-    // 2. Skapa ny rad överst
-    for (var col = 0; col < GeneralProvider.boardWidth; col++) {
-      board[0][col] = Cell(position: Point(0, col));
-      if (rng.nextDouble() < _difficulty.spawnRate) {
-        board[0][col].isActive = true;
-        // Sätt färg/gradient om du vill
+
+    // 2. Skapa nya rader överst
+    for (var row = 0; row < rowsToSpawn; row++) {
+      for (var col = 0; col < width; col++) {
+        board[row][col] = Cell(position: Point(row, col));
+        if (rng.nextDouble() < _difficulty.spawnRate) {
+          board[row][col].isActive = true;
+          // Sätt färg/gradient om du vill
+        }
       }
     }
 
@@ -302,7 +313,7 @@ class Board extends ChangeNotifier {
   void spawnInitialActiveCells() {
     // Kan lägga till en koll ifall spawnRate är valid (känns onödigt men kolla!)
 
-    for (var row = 0; row < _difficulty.spawnRows; row++) {
+    for (var row = 0; row < _difficulty.initialRows; row++) {
       // Kollar hur många rows som ska spawnas beroende på difficulty
       for (var col = 0; col < GeneralProvider.boardWidth; col++) {
         if (rng.nextDouble() < _difficulty.spawnRate) {

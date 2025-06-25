@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:checkgrid/new_game/utilities/difficulty.dart';
 
+// Add animation when switching difficulty
+
 void showDifficultyDialog({
   required BuildContext context,
   required Difficulty currentDifficulty,

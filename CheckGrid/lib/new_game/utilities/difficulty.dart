@@ -4,9 +4,9 @@ extension DifficultyExtension on Difficulty {
   double get spawnRate {
     switch (this) {
       case Difficulty.easy:
-        return 0.5;
+        return 0.60;
       case Difficulty.medium:
-        return 0.75;
+        return 0.70;
       case Difficulty.hard:
         return 1.0;
     }
@@ -17,7 +17,7 @@ extension DifficultyExtension on Difficulty {
   // if (_difficulty == Difficulty.hard) {
   //   newRows = 3;
   // }
-  int get spawnRows {
+  int get initialRows {
     switch (this) {
       case Difficulty.easy:
         return 2;
@@ -25,6 +25,17 @@ extension DifficultyExtension on Difficulty {
         return 2;
       case Difficulty.hard:
         return 3;
+    }
+  }
+
+  int get rowsToSpawn {
+    switch (this) {
+      case Difficulty.easy:
+        return 1;
+      case Difficulty.medium:
+        return 2;
+      case Difficulty.hard:
+        return 2;
     }
   }
 }

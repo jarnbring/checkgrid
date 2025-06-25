@@ -94,7 +94,7 @@ class _GameState extends State<Game> {
             ],
           ),
         ),
-        bottomNavigationBar: const BannerAdWidget(),
+        // bottomNavigationBar: const BannerAdWidget(),
       ),
     );
   }
