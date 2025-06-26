@@ -15,6 +15,7 @@ To do:
     Code review
     Everything around git, README etc.
     Buy domain? @checkgrid.com
+    iPhone activate Game Mode?
 
     Store
     Watch ads to unlock skins

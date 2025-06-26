@@ -18,13 +18,17 @@ class Background extends StatelessWidget {
 class _GridPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
+    // Colors
+    final Color firstColor = const Color.fromARGB(255, 57, 117, 181);
+    final Color secondColor = const Color.fromARGB(255, 38, 86, 137);
+
     canvas.drawRect(
       Rect.fromLTWH(0, 0, size.width, size.height),
-      Paint()..color = const Color(0xFF0A1A2F),
+      Paint()..color = secondColor,
     );
 
-    const double cellSize = 60.0;
-    final double yStep = cellSize / math.sqrt2; // ~42.4
+    const double cellSize = 80.0;
+    final double yStep = cellSize / 2;
 
     int row = 0;
     // börja på första centret och loopa över centerY direkt
@@ -33,16 +37,23 @@ class _GridPainter extends CustomPainter {
       centerY < size.height + cellSize;
       centerY += yStep, row++
     ) {
-      int col = 0;
-      for (double x = 0; x < size.width + cellSize; x += cellSize, col++) {
-        final offsetX = (row % 2 == 0) ? 0.0 : cellSize / 2;
-        final isAlt = ((col + row) % 2 == 0);
-        final baseColor =
-            isAlt
-                ? const Color.fromARGB(255, 23, 51, 80)
-                : const Color.fromARGB(255, 13, 30, 48);
+      final bool isOddRow = row % 2 == 1;
+      final double startX = isOddRow ? -cellSize / 2 : 0.0;
+      for (double x = startX; x < size.width + cellSize; x += cellSize) {
+        final isAlt = row % 2 == 0;
+        Color baseColor = isAlt ? firstColor : secondColor;
 
-        final centerX = x + offsetX + cellSize / 2;
+        // Ändra färg på allra översta raden
+        if (row == 0) {
+          baseColor = const Color.fromARGB(
+            255,
+            57,
+            117,
+            181,
+          ); // eller den färg du vill ha
+        }
+
+        final centerX = x + cellSize / 2;
 
         canvas.save();
         canvas.translate(centerX, centerY);
@@ -59,7 +70,7 @@ class _GridPainter extends CustomPainter {
         // skugga
         final shadowPaint =
             Paint()
-              ..color = Colors.black.withAlpha(255)
+              ..color = const Color.fromARGB(255, 40, 40, 40).withAlpha(255)
               ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3);
         canvas.drawRRect(rect.shift(const Offset(-2, -2)), shadowPaint);
 
@@ -70,6 +81,24 @@ class _GridPainter extends CustomPainter {
         canvas.restore();
       }
     }
+
+    // Lägg till gradient-overlay sist
+    final Rect rect = Rect.fromLTWH(0, 0, size.width, size.height);
+    final int alphaStrength = 130; // Max 255, min 0
+    final Paint gradientPaint =
+        Paint()
+          ..shader = LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Colors.black.withAlpha(alphaStrength), // Mörk upptill
+              Colors.transparent, // Ljusare i mitten
+              Colors.black.withAlpha(alphaStrength), // Mörk nedtill
+            ],
+            stops: const [0.0, 0.41, 1.0],
+          ).createShader(rect);
+
+    canvas.drawRect(rect, gradientPaint);
   }
 
   @override
