@@ -20,13 +20,13 @@ class Game extends StatefulWidget {
 }
 
 class _GameState extends State<Game> {
-  final Board board = Board();
-  BigInt currentScore = BigInt.zero;
+  late Board board;
 
   @override
   void initState() {
     super.initState();
-    board.prepareNewBoard();
+    board = context.read<Board>();
+    board.loadBoard();
   }
 
   @override
@@ -47,8 +47,9 @@ class _GameState extends State<Game> {
                 // Back button
                 leading: GestureDetector(
                   behavior: HitTestBehavior.opaque,
-                  onTap: () {
+                  onTap: () async {
                     // Save game
+                    board.saveBoard();
                     if (context.canPop()) {
                       context.pop();
                     } else {
@@ -102,8 +103,14 @@ class _GameState extends State<Game> {
                       builder: (context, board, _) => PieceSelector(),
                     ),
                     const SizedBox(height: 30),
-                    _buildReviveButton() ?? const SizedBox(),
-                    _buildGameOverButton() ?? const SizedBox(),
+                    Row(
+                      children: [
+                        const Spacer(),
+                        _buildReviveButton() ?? const SizedBox(),
+                        _buildGameOverButton() ?? const SizedBox(),
+                        const Spacer(),
+                      ],
+                    ),
                   ],
                 ),
               ),

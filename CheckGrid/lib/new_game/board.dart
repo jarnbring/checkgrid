@@ -6,6 +6,7 @@ import 'package:checkgrid/new_game/utilities/piecetype.dart';
 import 'package:checkgrid/new_game/utilities/difficulty.dart';
 import 'package:checkgrid/providers/general_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
 
 // Handle board logic, ex clearBoard etc.
 
@@ -181,11 +182,6 @@ class Board extends ChangeNotifier {
     }
   }
 
-  // NOT DONE!
-  void save() {
-    notifyListeners();
-  }
-
   void update() {
     notifyListeners();
   }
@@ -270,7 +266,8 @@ class Board extends ChangeNotifier {
       for (var col = 0; col < width; col++) {
         board[row][col] = board[row - rowsToSpawn][col];
         // Uppdatera positionen på cellen
-        board[row][col].position = Point(row, col);
+        board[row][col].x = row;
+        board[row][col].y = col;
       }
     }
 
@@ -414,6 +411,28 @@ class Board extends ChangeNotifier {
 
     targetedCellsMap.clear();
     notifyListeners();
+  }
+
+  void saveBoard() async {
+    var box = await Hive.openBox('boardBox');
+    // Platta ut boarden till en lista
+    List<Cell> allCells = board.expand((row) => row).toList();
+    await box.put('board', allCells);
+  }
+
+  void loadBoard() async {
+    var box = await Hive.openBox('boardBox');
+    List<Cell>? loadedCells = box.get('board')?.cast<Cell>();
+    if (loadedCells != null) {
+      int width = GeneralProvider.boardWidth;
+      int height = GeneralProvider.boardHeight;
+      for (int row = 0; row < height; row++) {
+        for (int col = 0; col < width; col++) {
+          board[row][col] = loadedCells[row * width + col];
+        }
+      }
+      notifyListeners();
+    }
   }
 
   // Debug: Sätt game over och notifiera

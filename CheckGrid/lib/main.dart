@@ -1,3 +1,6 @@
+import 'package:checkgrid/new_game/board.dart';
+import 'package:checkgrid/new_game/utilities/cell.dart';
+import 'package:checkgrid/new_game/utilities/piecetype.dart';
 import 'package:checkgrid/providers/ad_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -6,6 +9,7 @@ import 'package:checkgrid/providers/settings_provider.dart';
 import 'package:checkgrid/providers/router.dart';
 import 'package:checkgrid/settings/noti_service.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -17,6 +21,11 @@ void main() async {
     RequestConfiguration(testDeviceIds: ['EMULATOR']),
   );
   await MobileAds.instance.initialize();
+
+  // Configure Hive
+  await Hive.initFlutter();
+  Hive.registerAdapter(CellAdapter());
+  Hive.registerAdapter(PieceTypeAdapter());
 
   // Load settings
   final settingsProvider = SettingsProvider();
@@ -39,6 +48,7 @@ void main() async {
         ), // Use value to avoid re-creating the provider
         ChangeNotifierProvider(create: (_) => GeneralProvider()),
         ChangeNotifierProvider(create: (_) => AdProvider()),
+        ChangeNotifierProvider(create: (_) => Board()),
       ],
       child: const MyApp(),
     ),

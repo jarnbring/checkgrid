@@ -15,25 +15,36 @@ class GameBoard extends StatelessWidget {
   Widget build(BuildContext context) {
     final board = context.watch<Board>();
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 10),
-      child: GridView.builder(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: GeneralProvider.boardWidth,
-          mainAxisSpacing: 3,
-          crossAxisSpacing: 3,
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(10),
+        color:
+            Provider.of<SettingsProvider>(context).themeMode == ThemeMode.dark
+                ? const Color.fromARGB(255, 39, 39, 39)
+                : Colors.white,
+
+        //const Color.fromARGB(255, 46, 46, 46),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(10),
+        child: GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: GeneralProvider.boardWidth,
+            mainAxisSpacing: 5,
+            crossAxisSpacing: 5,
+          ),
+          itemCount: GeneralProvider.boardHeight * GeneralProvider.boardWidth,
+          itemBuilder: (context, index) {
+            final row = index ~/ GeneralProvider.boardWidth;
+            final col = index % GeneralProvider.boardWidth;
+            return ChangeNotifierProvider<Cell>.value(
+              value: board.board[row][col],
+              child: BoardCell(row: row, col: col), // Cell
+            );
+          },
         ),
-        itemCount: GeneralProvider.boardHeight * GeneralProvider.boardWidth,
-        itemBuilder: (context, index) {
-          final row = index ~/ GeneralProvider.boardWidth;
-          final col = index % GeneralProvider.boardWidth;
-          return ChangeNotifierProvider<Cell>.value(
-            value: board.board[row][col],
-            child: BoardCell(row: row, col: col), // Cell
-          );
-        },
       ),
     );
   }

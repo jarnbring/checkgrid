@@ -1,28 +1,46 @@
 import 'dart:math';
 import 'package:checkgrid/new_game/utilities/piecetype.dart';
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
 
-class Cell extends ChangeNotifier {
-  Point<int> position;
+part 'cell.g.dart';
+
+@HiveType(typeId: 0)
+class Cell extends HiveObject with ChangeNotifier {
+  @HiveField(0)
+  late int x;
+  @HiveField(1)
+  late int y;
+  @HiveField(2)
   bool _isActive;
+  @HiveField(3)
   bool _isTargeted;
+  @HiveField(4)
   bool _hasPiece;
-  bool isPreview = false;
+  @HiveField(5)
+  bool isPreview;
+  @HiveField(6)
   PieceType? _piece;
-  Color _color;
+  @HiveField(7)
+  int colorValue;
 
   Cell({
-    required this.position,
+    Point<int>? position,
     bool isActive = false,
     bool isTargeted = false,
     bool hasPiece = false,
+    this.isPreview = false,
     PieceType? piece,
     Color color = Colors.grey,
-  }) : _isActive = isActive,
+  }) : x = position?.x ?? 0,
+       y = position?.y ?? 0,
+       _isActive = isActive,
        _isTargeted = isTargeted,
        _hasPiece = hasPiece,
        _piece = piece,
-       _color = color;
+       colorValue = color.value;
+
+  Point<int> get position => Point<int>(x, y);
 
   bool get isActive => _isActive;
   set isActive(bool value) {
@@ -57,33 +75,11 @@ class Cell extends ChangeNotifier {
     }
   }
 
-  Color get color => _color;
+  Color get color => Color(colorValue);
   set color(Color value) {
-    if (_color != value) {
-      _color = value;
+    if (colorValue != value.value) {
+      colorValue = value.value;
       notifyListeners();
     }
   }
-
-  Map<String, dynamic> toJson() => {
-    'position': {'x': position.x, 'y': position.y},
-    'isActive': isActive,
-    'isTargeted': isTargeted,
-    'hasPiece': hasPiece,
-    'piece': piece?.name,
-  };
-
-  factory Cell.fromJson(Map<String, dynamic> json) => Cell(
-    position: Point<int>(
-      json['position']['x'] as int,
-      json['position']['y'] as int,
-    ),
-    isActive: json['isActive'] as bool,
-    isTargeted: json['isTargeted'] as bool,
-    hasPiece: json['hasPiece'] as bool,
-    piece:
-        json['piece'] != null
-            ? PieceType.values.firstWhere((e) => e.name == json['piece'])
-            : null,
-  );
 }

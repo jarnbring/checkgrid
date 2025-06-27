@@ -12,7 +12,7 @@ class Score extends StatelessWidget {
 
     return Text(
       NumberFormat("#,###").format(board.currentScore.toInt()),
-      style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
+      style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
     );
   }
 }

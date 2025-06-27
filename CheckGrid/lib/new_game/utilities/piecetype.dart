@@ -1,7 +1,25 @@
 import 'package:flame/image_composition.dart';
 import 'package:checkgrid/new_game/utilities/move_pattern.dart';
+import 'package:hive/hive.dart';
 
-enum PieceType { king, queen, rook, bishop, knight, pawn }
+part 'piecetype.g.dart';
+
+@HiveType(typeId: 1)
+enum PieceType {
+  @HiveField(0)
+  pawn,
+  @HiveField(1)
+  knight,
+  @HiveField(2)
+  bishop,
+  @HiveField(3)
+  rook,
+  @HiveField(4)
+  queen,
+  @HiveField(5)
+  king,
+  // ...lägg till fler om du har...
+}
 
 class PlacedPiece {
   final PieceType type;
@@ -10,7 +28,6 @@ class PlacedPiece {
 
   PlacedPiece({required this.type, required this.row, required this.col});
 }
-
 
 extension PieceProperties on PieceType {
   MovePattern get movementPattern {
