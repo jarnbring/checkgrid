@@ -1,8 +1,8 @@
-import 'package:checkgrid/new_game/dialogs/revive_dialog.dart';
+import 'package:checkgrid/game/dialogs/revive_dialog.dart';
 import 'package:checkgrid/providers/general_provider.dart';
 import 'package:flutter/material.dart';
-import 'package:checkgrid/new_game/board.dart';
-import 'package:checkgrid/new_game/utilities/piecetype.dart';
+import 'package:checkgrid/game/board.dart';
+import 'package:checkgrid/game/utilities/piecetype.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
@@ -146,10 +146,12 @@ class _PieceSelectorState extends State<PieceSelector> {
         board.removeTargetedCells();
         board.removePlacedPieces();
 
+        // Lägg till denna rad för att rensa ALLA pjäser på brädet:
+        board.clearPiecesOnBoard();
+
         // Create a new state
         board.setNewSelectedPieces();
         await board.spawnActiveCells();
-        // board.updateColors();
 
         // Update colors on the board
         board.updateColors();
@@ -165,6 +167,8 @@ class _PieceSelectorState extends State<PieceSelector> {
         } else if (board.isGameOver) {
           context.go('/gameover', extra: board);
         }
+
+        board.saveBoard(); // Save the board state after continuing
       },
       child: Container(
         width: boxWidth,

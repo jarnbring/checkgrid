@@ -1,10 +1,11 @@
+// ignore: unused_import
 import 'package:checkgrid/ads/banner_ad.dart';
-import 'package:checkgrid/new_game/dialogs/settings_dialog.dart';
-import 'package:checkgrid/new_game/game_board.dart';
-import 'package:checkgrid/new_game/utilities/background.dart';
-import 'package:checkgrid/new_game/utilities/score.dart';
-import 'package:checkgrid/new_game/board.dart';
-import 'package:checkgrid/new_game/piece_selector.dart';
+import 'package:checkgrid/game/dialogs/settings_dialog.dart';
+import 'package:checkgrid/game/game_board.dart';
+import 'package:checkgrid/components/background.dart';
+import 'package:checkgrid/game/utilities/score.dart';
+import 'package:checkgrid/game/board.dart';
+import 'package:checkgrid/game/piece_selector.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -40,8 +41,6 @@ class _GameState extends State<Game> {
               backgroundColor: Colors.transparent, // Viktigt!
               appBar: AppBar(
                 backgroundColor: Colors.transparent, // Viktigt!
-                elevation: 0,
-                foregroundColor: Colors.transparent,
                 centerTitle: true,
                 title: const Text("CheckGrid", style: TextStyle(fontSize: 26)),
                 // Back button
@@ -114,7 +113,7 @@ class _GameState extends State<Game> {
                   ],
                 ),
               ),
-              bottomNavigationBar: const BannerAdWidget(),
+              //bottomNavigationBar: const BannerAdWidget(),
             ),
           ),
         ],

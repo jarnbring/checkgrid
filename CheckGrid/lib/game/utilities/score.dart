@@ -1,4 +1,4 @@
-import 'package:checkgrid/new_game/board.dart';
+import 'package:checkgrid/game/board.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';

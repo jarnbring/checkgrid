@@ -1,9 +1,9 @@
-import 'package:checkgrid/new_game/utilities/cell.dart';
+import 'package:checkgrid/game/utilities/cell.dart';
 import 'package:checkgrid/providers/general_provider.dart';
 import 'package:checkgrid/providers/settings_provider.dart';
 import 'package:flutter/material.dart';
-import 'package:checkgrid/new_game/board.dart';
-import 'package:checkgrid/new_game/utilities/piecetype.dart';
+import 'package:checkgrid/game/board.dart';
+import 'package:checkgrid/game/utilities/piecetype.dart';
 import 'package:provider/provider.dart';
 
 // Handle the board UI, layout etc.
@@ -77,6 +77,7 @@ class BoardCell extends StatelessWidget {
             board.markTargetedCells(details.data, row, col);
             board.clearPreview();
             board.updateColors(); // Needed for the blue color of the piece
+            board.saveBoard(); // Save the board after placing a piece
           },
           builder: (context, candidateData, rejectedData) {
             return Container(

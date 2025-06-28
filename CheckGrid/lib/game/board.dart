@@ -1,9 +1,9 @@
 import 'dart:math';
 import 'package:checkgrid/animations/game_animations.dart';
-import 'package:checkgrid/new_game/dialogs/revive_dialog.dart';
-import 'package:checkgrid/new_game/utilities/cell.dart';
-import 'package:checkgrid/new_game/utilities/piecetype.dart';
-import 'package:checkgrid/new_game/utilities/difficulty.dart';
+import 'package:checkgrid/game/dialogs/revive_dialog.dart';
+import 'package:checkgrid/game/utilities/cell.dart';
+import 'package:checkgrid/game/utilities/piecetype.dart';
+import 'package:checkgrid/game/utilities/difficulty.dart';
 import 'package:checkgrid/providers/general_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
@@ -68,29 +68,19 @@ class Board extends ChangeNotifier {
     final removedCells = allTargetedCells.length;
     currentCombo = removedCells >= comboRequirement ? currentCombo + 1 : 1;
 
-    // Increase score
-    final comboFormula = BigInt.from(10) * BigInt.from(removedCells);
-    final scoreToAdd = comboFormula * BigInt.from(currentCombo);
+    // Ny poängformel
+    final baseScore = 2;
+    final comboMultiplier = pow(1.15, currentCombo);
+    final cellBonus = removedCells * log(removedCells + 1);
+    final scoreToAdd = (baseScore * removedCells * comboMultiplier + cellBonus).floor();
 
-    // Load scores
-    currentScore = currentScore + scoreToAdd;
+    currentScore = currentScore + BigInt.from(scoreToAdd);
     final newHigh = currentScore > highScore ? currentScore : highScore;
 
-    // New highscore
     if (currentScore > highScore) {
-      //await _saveHighscore(newScore);
-      //_saveStatistic(highScore: newScore);
       highScore = newHigh;
     }
 
-    // SAVE STATS
-
-    // Save if it is a new longest streak
-    // if (comboCount > longestComboStreak) {
-    //   _saveStatistic(comboStreak: comboCount);
-    // }
-
-    // Play increase score animation
     await GameAnimations.increaseScore(oldScore, currentScore, (v) {
       currentScore = v;
       notifyListeners();
@@ -211,6 +201,7 @@ class Board extends ChangeNotifier {
     isReviveShowing = false;
     watchedAds = 0;
     resetScore();
+    clearPiecesOnBoard();
     spawnInitialActiveCells();
     setNewSelectedPieces();
 
@@ -415,14 +406,26 @@ class Board extends ChangeNotifier {
 
   void saveBoard() async {
     var box = await Hive.openBox('boardBox');
-    // Platta ut boarden till en lista
     List<Cell> allCells = board.expand((row) => row).toList();
     await box.put('board', allCells);
+    await box.put('score', currentScore.toString());
+    await box.put(
+      'selectedPieces',
+      selectedPieces.map((e) => e.index).toList(),
+    );
+    await box.put(
+      'selectedPiecesPositions',
+      selectedPiecesPositions.map((p) => [p.x, p.y]).toList(),
+    );
   }
 
   void loadBoard() async {
     var box = await Hive.openBox('boardBox');
     List<Cell>? loadedCells = box.get('board')?.cast<Cell>();
+    String? scoreStr = box.get('score');
+    List<dynamic>? selectedPiecesIndexes = box.get('selectedPieces');
+    List<dynamic>? loadedPositions = box.get('selectedPiecesPositions');
+
     if (loadedCells != null) {
       int width = GeneralProvider.boardWidth;
       int height = GeneralProvider.boardHeight;
@@ -431,8 +434,39 @@ class Board extends ChangeNotifier {
           board[row][col] = loadedCells[row * width + col];
         }
       }
-      notifyListeners();
     }
+    if (scoreStr != null) {
+      currentScore = BigInt.parse(scoreStr);
+    }
+    if (selectedPiecesIndexes != null) {
+      selectedPieces =
+          selectedPiecesIndexes.map((i) => PieceType.values[i as int]).toList();
+    }
+    selectedPiecesPositions.clear();
+    if (loadedPositions != null) {
+      for (var pos in loadedPositions) {
+        if (pos is List && pos.length == 2) {
+          selectedPiecesPositions.add(Point<int>(pos[0] as int, pos[1] as int));
+        }
+      }
+    }
+
+    // Återskapa targetedCellsMap baserat på cellernas isTargeted-status
+    targetedCellsMap.clear();
+    int width = GeneralProvider.boardWidth;
+    int height = GeneralProvider.boardHeight;
+    for (int row = 0; row < height; row++) {
+      for (int col = 0; col < width; col++) {
+        final cell = board[row][col];
+        if (cell.isTargeted) {
+          final key = Point<int>(row, col);
+          targetedCellsMap.putIfAbsent(key, () => []);
+          targetedCellsMap[key]!.add(cell);
+        }
+      }
+    }
+
+    notifyListeners();
   }
 
   // Debug: Sätt game over och notifiera

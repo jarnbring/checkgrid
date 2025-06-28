@@ -1,4 +1,4 @@
-import 'package:checkgrid/new_game/board.dart';
+import 'package:checkgrid/game/board.dart';
 import 'package:flutter/material.dart';
 import 'package:checkgrid/components/countdown_loading.dart';
 

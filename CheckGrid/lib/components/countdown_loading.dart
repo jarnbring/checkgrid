@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:checkgrid/new_game/board.dart';
+import 'package:checkgrid/game/board.dart';
 import 'package:checkgrid/providers/ad_provider.dart';
 import 'package:checkgrid/providers/general_provider.dart';
 import 'package:flutter/material.dart';

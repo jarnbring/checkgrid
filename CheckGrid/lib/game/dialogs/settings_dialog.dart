@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:checkgrid/new_game/utilities/difficulty.dart';
+import 'package:checkgrid/game/utilities/difficulty.dart';
 import 'package:go_router/go_router.dart';
 
 enum DialogPage {

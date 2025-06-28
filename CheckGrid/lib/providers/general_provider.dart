@@ -1,4 +1,4 @@
-import 'package:checkgrid/new_game/utilities/piecetype.dart';
+import 'package:checkgrid/game/utilities/piecetype.dart';
 import 'package:checkgrid/providers/settings_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';

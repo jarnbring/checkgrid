@@ -1,14 +1,13 @@
-import 'package:checkgrid/new_game/board.dart';
-import 'package:checkgrid/new_game/dialogs/gameover_dialog.dart';
-import 'package:checkgrid/new_game/game_ui.dart';
+import 'package:checkgrid/game/board.dart';
+import 'package:checkgrid/game/dialogs/gameover_dialog.dart';
+import 'package:checkgrid/game/game_ui.dart';
 import 'package:checkgrid/pages/statistics_page.dart';
 import 'package:checkgrid/pages/splash_screen.dart';
-import 'package:checkgrid/pages/new_menu_page.dart';
+import 'package:checkgrid/pages/menu_page.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:go_router/go_router.dart';
 import 'package:checkgrid/pages/store_page.dart';
 import 'package:checkgrid/pages/feedback_page.dart';
-import 'package:checkgrid/pages/menu_page.dart';
 import 'package:checkgrid/pages/settings_page.dart';
 
 final GoRouter router = GoRouter(
@@ -28,23 +27,6 @@ final GoRouter router = GoRouter(
           (context, state) => CustomTransitionPage(
             key: state.pageKey,
             child: const SplashScreen(),
-            transitionsBuilder: (
-              context,
-              animation,
-              secondaryAnimation,
-              child,
-            ) {
-              return FadeTransition(opacity: animation, child: child);
-            },
-          ),
-    ),
-    GoRoute(
-      name: '/test',
-      path: '/test',
-      pageBuilder:
-          (context, state) => CustomTransitionPage(
-            key: state.pageKey,
-            child: const MenuPage(),
             transitionsBuilder: (
               context,
               animation,

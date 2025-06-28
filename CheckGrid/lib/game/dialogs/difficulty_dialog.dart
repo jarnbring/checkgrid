@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:checkgrid/new_game/utilities/difficulty.dart';
+import 'package:checkgrid/game/utilities/difficulty.dart';
 
 // Add animation when switching difficulty
 

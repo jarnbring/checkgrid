@@ -1,6 +1,6 @@
-import 'package:checkgrid/new_game/board.dart';
-import 'package:checkgrid/new_game/utilities/cell.dart';
-import 'package:checkgrid/new_game/utilities/piecetype.dart';
+import 'package:checkgrid/game/board.dart';
+import 'package:checkgrid/game/utilities/cell.dart';
+import 'package:checkgrid/game/utilities/piecetype.dart';
 import 'package:checkgrid/providers/ad_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';

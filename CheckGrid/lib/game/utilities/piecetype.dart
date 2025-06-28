@@ -1,5 +1,5 @@
 import 'package:flame/image_composition.dart';
-import 'package:checkgrid/new_game/utilities/move_pattern.dart';
+import 'package:checkgrid/game/utilities/move_pattern.dart';
 import 'package:hive/hive.dart';
 
 part 'piecetype.g.dart';

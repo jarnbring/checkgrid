@@ -1,5 +1,5 @@
 import 'dart:math';
-import 'package:checkgrid/new_game/utilities/piecetype.dart';
+import 'package:checkgrid/game/utilities/piecetype.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 

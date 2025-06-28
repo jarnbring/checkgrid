@@ -9,7 +9,7 @@ class Background extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      constraints: const BoxConstraints.expand(), // Fyll hela ytan!
+      constraints: const BoxConstraints.expand(),
       child: CustomPaint(painter: _GridPainter(), child: child),
     );
   }
@@ -70,8 +70,8 @@ class _GridPainter extends CustomPainter {
         // skugga
         final shadowPaint =
             Paint()
-              ..color = const Color.fromARGB(255, 40, 40, 40).withAlpha(255)
-              ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3);
+              ..color = const Color.fromARGB(0, 70, 70, 70).withAlpha(255)
+              ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 0.5);
         canvas.drawRRect(rect.shift(const Offset(-2, -2)), shadowPaint);
 
         // själva rutan
@@ -84,7 +84,7 @@ class _GridPainter extends CustomPainter {
 
     // Lägg till gradient-overlay sist
     final Rect rect = Rect.fromLTWH(0, 0, size.width, size.height);
-    final int alphaStrength = 130; // Max 255, min 0
+    final int alphaStrength = 160; // Max 255, min 0
     final Paint gradientPaint =
         Paint()
           ..shader = LinearGradient(

@@ -1,5 +1,5 @@
-import 'package:checkgrid/new_game/board.dart';
-import 'package:checkgrid/new_game/utilities/background.dart';
+import 'package:checkgrid/game/board.dart';
+import 'package:checkgrid/components/background.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
