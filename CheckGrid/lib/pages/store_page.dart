@@ -25,7 +25,9 @@ class _StorePageState extends State<StorePage> {
 
   Widget skinItem({
     required String name,
-    required IconData icon,
+    required String description,
+    required String imageName,
+    required double price,
     required bool unlocked,
     bool isNew = false,
     String? unlockText,
@@ -55,23 +57,31 @@ class _StorePageState extends State<StorePage> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
-                  const SizedBox(width: 16),
                   Padding(
-                    padding: const EdgeInsets.all(8),
+                    padding: const EdgeInsets.fromLTRB(16, 20, 8, 16),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(
-                          icon,
-                          size: 48,
-                          color: unlocked ? Colors.white : Colors.black26,
+                        Image.asset(
+                          'assets/images/pieces/$imageName.png',
+                          width: 64,
+                          height: 64,
+                          fit: BoxFit.cover,
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          name,
+                          '${price.toString()}€',
                           style: TextStyle(
-                            color: unlocked ? Colors.white : Colors.black38,
+                            fontSize: 30,
+                            foreground:
+                                Paint()
+                                  ..style = PaintingStyle.stroke
+                                  ..strokeWidth = 3
+                                  ..color = Colors.black,
+                            decorationColor:
+                                unlocked ? Colors.white : Colors.black38,
                             fontWeight: FontWeight.bold,
+                            fontFamily: 'Antonio',
                           ),
                         ),
                         if (!unlocked && unlockText != null)
@@ -92,6 +102,27 @@ class _StorePageState extends State<StorePage> {
                           ),
                       ],
                     ),
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        name,
+                        style: TextStyle(
+                          color: unlocked ? Colors.white : Colors.black38,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 20,
+                          fontFamily: 'Antonio',
+                        ),
+                      ),
+                      Text(
+                        description,
+                        style: TextStyle(
+                          color: unlocked ? Colors.white : Colors.black38,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -199,25 +230,33 @@ class _StorePageState extends State<StorePage> {
                         children: [
                           Column(
                             mainAxisAlignment: MainAxisAlignment.center,
+                            spacing: 50,
                             children: [
                               const SizedBox(height: 1),
                               skinItem(
-                                name: "Classic",
-                                icon: Icons.check_box_outline_blank,
+                                name: "Blacked",
+                                imageName: 'black/black_rook',
+                                description: 'Unlock all pieces in black',
+                                price: 5.0,
                                 unlocked: true,
                                 isNew: true,
                               ),
                               skinItem(
-                                name: "Gold",
-                                icon: Icons.star,
+                                name: "White",
+                                imageName: 'white/white_knight',
+                                description: 'Unlock all pieces in white',
+                                price: 5.0,
                                 unlocked: highscore >= 50,
                                 unlockText: "Reach 50+ highscore",
                                 isNew: true,
                               ),
-                              const SizedBox(height: 240),
+
                               skinItem(
-                                name: "Diamond",
-                                icon: Icons.diamond,
+                                name: "Rainbow",
+                                imageName: 'white/white_rook',
+                                description:
+                                    'Unlock all pieces in rainbow colors',
+                                price: 10.0,
                                 unlocked: highscore >= 100,
                                 unlockText: "Reach 100+ highscore",
                                 isNew: true,

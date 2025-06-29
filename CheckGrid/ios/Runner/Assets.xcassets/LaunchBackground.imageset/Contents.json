@@ -1,17 +1,17 @@
 {
   "images" : [
     {
-      "filename" : "splash_screen_bgimg.png",
+      "filename" : "jarnbring(1) 2.jpg",
       "idiom" : "universal",
       "scale" : "1x"
     },
     {
-      "filename" : "splash_screen_bgimg 1.png",
+      "filename" : "jarnbring(1) 1.jpg",
       "idiom" : "universal",
       "scale" : "2x"
     },
     {
-      "filename" : "splash_screen_bgimg 2.png",
+      "filename" : "jarnbring(1).jpg",
       "idiom" : "universal",
       "scale" : "3x"
     }
