@@ -18,7 +18,6 @@ enum PieceType {
   queen,
   @HiveField(5)
   king,
-  // ...lägg till fler om du har...
 }
 
 class PlacedPiece {

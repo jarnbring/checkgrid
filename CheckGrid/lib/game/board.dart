@@ -72,7 +72,8 @@ class Board extends ChangeNotifier {
     final baseScore = 2;
     final comboMultiplier = pow(1.15, currentCombo);
     final cellBonus = removedCells * log(removedCells + 1);
-    final scoreToAdd = (baseScore * removedCells * comboMultiplier + cellBonus).floor();
+    final scoreToAdd =
+        (baseScore * removedCells * comboMultiplier + cellBonus).floor();
 
     currentScore = currentScore + BigInt.from(scoreToAdd);
     final newHigh = currentScore > highScore ? currentScore : highScore;
@@ -406,66 +407,111 @@ class Board extends ChangeNotifier {
 
   void saveBoard() async {
     var box = await Hive.openBox('boardBox');
-    List<Cell> allCells = board.expand((row) => row).toList();
-    await box.put('board', allCells);
-    await box.put('score', currentScore.toString());
-    await box.put(
-      'selectedPieces',
-      selectedPieces.map((e) => e.index).toList(),
-    );
-    await box.put(
-      'selectedPiecesPositions',
-      selectedPiecesPositions.map((p) => [p.x, p.y]).toList(),
-    );
+
+    List<Map<String, dynamic>> cellData =
+        board.expand((row) => row).map((cell) {
+          return {
+            'x': cell.x,
+            'y': cell.y,
+            'hasPiece': cell.hasPiece,
+            'isActive': cell.isActive,
+            'isTargeted': cell.isTargeted,
+            'piece': cell.piece?.name,
+          };
+        }).toList();
+
+    List<Map<String, dynamic>> targetedCellsMapData =
+        targetedCellsMap.entries.map((entry) {
+          return {
+            'point': {'x': entry.key.x, 'y': entry.key.y},
+            'cells':
+                entry.value.map((cell) => {'x': cell.x, 'y': cell.y}).toList(),
+          };
+        }).toList();
+
+    await box.put('board', cellData);
+    await box.put('targetedCellsMap', targetedCellsMapData);
+    await box.put('_difficulty', _difficulty.name);
+    await box.put('selectedPieces', selectedPieces.map((e) => e.name).toList());
+    await box.put('watchedAds', watchedAds);
+    await box.put('isGameOver', isGameOver);
+    await box.put('isReviveShowing', isReviveShowing);
+    await box.put('currentScore', currentScore.toString());
   }
 
-  void loadBoard() async {
+  Future<void> loadBoard() async {
     var box = await Hive.openBox('boardBox');
-    List<Cell>? loadedCells = box.get('board')?.cast<Cell>();
-    String? scoreStr = box.get('score');
-    List<dynamic>? selectedPiecesIndexes = box.get('selectedPieces');
-    List<dynamic>? loadedPositions = box.get('selectedPiecesPositions');
 
-    if (loadedCells != null) {
-      int width = GeneralProvider.boardWidth;
-      int height = GeneralProvider.boardHeight;
-      for (int row = 0; row < height; row++) {
-        for (int col = 0; col < width; col++) {
-          board[row][col] = loadedCells[row * width + col];
+    // Load selected pieces
+    final savedSelectedPieces = box.get(
+      'selectedPieces',
+      defaultValue: <String>[],
+    );
+    selectedPieces =
+        (savedSelectedPieces as List)
+            .map((e) => PieceType.values.firstWhere((pt) => pt.name == e))
+            .toList();
+
+    // Load score
+    final savedScore = await box.get('currentScore');
+
+    if (savedScore != null) {
+      currentScore = BigInt.parse(savedScore);
+    }
+
+    // Load board
+    final cellData = await box.get('board');
+
+    if (cellData != null) {
+      for (final data in cellData) {
+        final cell = getCell(data['x'], data['y']);
+        if (cell != null) {
+          cell.hasPiece = data['hasPiece'] ?? false;
+          cell.isActive = data['isActive'] ?? false;
+          cell.isTargeted = data['isTargeted'] ?? false;
+          final pieceName = data['piece'];
+          cell.piece =
+              pieceName != null
+                  ? PieceType.values.firstWhere((e) => e.name == pieceName)
+                  : null;
         }
       }
     }
-    if (scoreStr != null) {
-      currentScore = BigInt.parse(scoreStr);
-    }
-    if (selectedPiecesIndexes != null) {
-      selectedPieces =
-          selectedPiecesIndexes.map((i) => PieceType.values[i as int]).toList();
-    }
-    selectedPiecesPositions.clear();
-    if (loadedPositions != null) {
-      for (var pos in loadedPositions) {
-        if (pos is List && pos.length == 2) {
-          selectedPiecesPositions.add(Point<int>(pos[0] as int, pos[1] as int));
-        }
-      }
-    }
 
-    // Återskapa targetedCellsMap baserat på cellernas isTargeted-status
+    // Load targeted cells
+    final targetedCellsMapData = await box.get('targetedCellsMap');
+
     targetedCellsMap.clear();
-    int width = GeneralProvider.boardWidth;
-    int height = GeneralProvider.boardHeight;
-    for (int row = 0; row < height; row++) {
-      for (int col = 0; col < width; col++) {
-        final cell = board[row][col];
-        if (cell.isTargeted) {
-          final key = Point<int>(row, col);
-          targetedCellsMap.putIfAbsent(key, () => []);
-          targetedCellsMap[key]!.add(cell);
+    if (targetedCellsMapData != null) {
+      for (final entry in targetedCellsMapData) {
+        final pointData = entry['point'];
+        final point = Point<int>(pointData['x'], pointData['y']);
+
+        final cells = <Cell>[];
+        for (final cellPos in entry['cells']) {
+          final cell = getCell(cellPos['x'], cellPos['y']);
+          if (cell != null) {
+            cells.add(cell);
+          }
         }
+        targetedCellsMap[point] = cells;
       }
     }
 
+    // Load difficulty
+    final savedDifficulty = await box.get('_difficulty');
+
+    _difficulty = Difficulty.values.firstWhere(
+      (d) => d.name == savedDifficulty,
+      orElse: () => Difficulty.medium,
+    );
+
+    // Load variables
+    watchedAds = await box.get('watchedAds');
+    isGameOver = await box.get('isGameOver');
+    isReviveShowing = await box.get('isReviveShowing');
+
+    updateColors();
     notifyListeners();
   }
 

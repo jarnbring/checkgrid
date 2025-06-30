@@ -91,7 +91,9 @@ class _StatisticsPageState extends State<StatisticsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
+        backgroundColor: Colors.transparent,
         title: const Text("Statistics", style: TextStyle(fontSize: 22)),
         centerTitle: true,
         leading: IconButton(
@@ -100,7 +102,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
             if (context.canPop()) {
               context.pop();
             } else {
-              context.go('/menu');
+              context.go('/home');
             }
           },
         ),

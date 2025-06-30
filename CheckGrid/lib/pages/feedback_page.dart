@@ -398,7 +398,7 @@ class _FeedbackPageState extends State<FeedbackPage>
             if (context.canPop()) {
               context.pop();
             } else {
-              context.go('/menu');
+              context.go('/home');
             }
           },
         ),

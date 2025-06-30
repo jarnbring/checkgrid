@@ -1,4 +1,3 @@
-import 'package:checkgrid/components/background.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
@@ -14,9 +13,6 @@ class GameMenu extends StatefulWidget {
 
 class _GameMenuState extends State<GameMenu> {
   late String appVersion = 'ALPHA';
-  static const int _infinitePageCount = 10000;
-
-  static const int _initialPage = _infinitePageCount ~/ 2;
   late PageController _pageController;
 
   final List<MenuItem> items = [
@@ -26,49 +22,9 @@ class _GameMenuState extends State<GameMenu> {
       route: '/play',
       gradient: LinearGradient(
         colors: [
-          Color.fromARGB(255, 21, 96, 246),
-          Color.fromARGB(255, 1, 202, 242),
+          Color.fromARGB(255, 66, 246, 21),
+          Color.fromARGB(255, 0, 126, 17),
         ],
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-      ),
-    ),
-    MenuItem(
-      icon: Icons.store,
-      title: 'Store',
-      route: '/store',
-      gradient: LinearGradient(
-        colors: [Color(0xFFDA22FF), Color(0xFF9733EE)],
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-      ),
-    ),
-    MenuItem(
-      icon: Icons.settings,
-      title: 'Settings',
-      route: '/settings',
-      gradient: LinearGradient(
-        colors: [Color(0xFFbdc3c7), Color(0xFF2c3e50)],
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-      ),
-    ),
-    MenuItem(
-      icon: Icons.bar_chart,
-      title: 'Statistics',
-      route: '/statistics',
-      gradient: LinearGradient(
-        colors: [Color(0xFF56ab2f), Color(0xFFa8e063)],
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-      ),
-    ),
-    MenuItem(
-      icon: Icons.feedback,
-      title: 'Feedback',
-      route: '/feedback',
-      gradient: LinearGradient(
-        colors: [Color(0xFFFFB75E), Color(0xFFED8F03)],
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
       ),
@@ -78,10 +34,6 @@ class _GameMenuState extends State<GameMenu> {
   @override
   void initState() {
     super.initState();
-    _pageController = PageController(
-      viewportFraction: 0.55, // Mindre värde = mer avstånd mellan korten
-      initialPage: _initialPage,
-    );
   }
 
   @override
@@ -100,56 +52,36 @@ class _GameMenuState extends State<GameMenu> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Background(
-        child: Center(
-          child: Column(
-            children: [
-              const SizedBox(height: 120),
-              _buildShimmerTitle(),
-              const SizedBox(height: 75),
-              // Menu slide
-              SizedBox(
-                height: 250,
-                child: PageView.builder(
-                  controller: _pageController,
-                  itemCount: _infinitePageCount,
-                  itemBuilder: (context, index) {
-                    final realIndex = index % items.length;
-                    return AnimatedBuilder(
-                      animation: _pageController,
-                      builder: (context, child) {
-                        double value = 1.0;
-                        if (_pageController.hasClients &&
-                            _pageController.position.haveDimensions) {
-                          value =
-                              ((_pageController.page ??
-                                          _pageController.initialPage) -
-                                      index)
-                                  .toDouble();
-                          value = (1 - (value.abs() * 0.3)).clamp(0.7, 1.0);
-                        } else {
-                          value = (index == _initialPage) ? 1.0 : 0.7;
-                        }
-                        return Transform.scale(
-                          scale: value,
-                          child: MenuCard(
-                            item: items[realIndex],
-                            onTap: () {
-                              context.pushNamed(items[realIndex].route);
-                            },
-                          ),
-                        );
-                      },
-                    );
-                  },
-                ),
-              ),
-              const SizedBox(height: 80),
-              _buildSocialIcons(),
-              Text(appVersion),
-              const Spacer(),
-            ],
+      backgroundColor: Colors.transparent,
+      appBar: AppBar(
+        centerTitle: true,
+        backgroundColor: Colors.transparent,
+        title: _buildShimmerTitle(),
+        actions: [
+          Padding(
+            padding: EdgeInsetsGeometry.symmetric(horizontal: 20),
+            child: IconButton(
+              onPressed: () => context.go('/settings'),
+              icon: Icon(Icons.settings),
+            ),
           ),
+        ],
+      ),
+      body: Center(
+        child: Column(
+          children: [
+            const SizedBox(height: 120),
+            MenuCard(
+              item: items[0],
+              onTap: () {
+                context.pushNamed(items[0].route);
+              },
+            ),
+            const SizedBox(height: 80),
+            _buildSocialIcons(),
+            Text(appVersion),
+            const Spacer(),
+          ],
         ),
       ),
     );
@@ -246,8 +178,8 @@ class MenuCard extends StatelessWidget {
       child: GestureDetector(
         onTap: onTap,
         child: Container(
-          width: double.infinity,
-          height: 400,
+          width: 250,
+          height: 250,
           margin: EdgeInsets.zero,
           decoration: BoxDecoration(
             gradient: item.gradient,
@@ -256,7 +188,7 @@ class MenuCard extends StatelessWidget {
             boxShadow: const [
               BoxShadow(
                 color: Colors.black45,
-                blurRadius: 10,
+                blurRadius: 90,
                 offset: Offset(0, 6),
               ),
             ],

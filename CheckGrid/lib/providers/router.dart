@@ -4,6 +4,8 @@ import 'package:checkgrid/game/game_ui.dart';
 import 'package:checkgrid/pages/statistics_page.dart';
 import 'package:checkgrid/pages/splash_screen.dart';
 import 'package:checkgrid/pages/menu_page.dart';
+import 'package:checkgrid/providers/wrapper.dart';
+import 'package:checkgrid/settings/privacy_policy.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:go_router/go_router.dart';
 import 'package:checkgrid/pages/store_page.dart';
@@ -13,6 +15,12 @@ import 'package:checkgrid/pages/settings_page.dart';
 final GoRouter router = GoRouter(
   initialLocation: "/splash",
   routes: [
+    GoRoute(
+      name: '/home',
+      path: '/home',
+      builder: (context, state) => const HomeWrapper(),
+    ),
+
     GoRoute(
       name: '/menu',
       path: '/menu',
@@ -79,6 +87,13 @@ final GoRouter router = GoRouter(
       pageBuilder:
           (context, state) =>
               CupertinoPage(key: state.pageKey, child: FeedbackPage()),
+    ),
+    GoRoute(
+      name: '/privacy_policy',
+      path: '/privacy_policy',
+      pageBuilder:
+          (context, state) =>
+              CupertinoPage(key: state.pageKey, child: PrivacyPolicyPage()),
     ),
   ],
 );

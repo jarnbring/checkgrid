@@ -97,7 +97,7 @@ void showSettingsDialog({
                                           if (context.canPop()) {
                                             context.pop();
                                           } else {
-                                            context.go('/menu');
+                                            context.go('/home');
                                           }
                                         },
                                       ),

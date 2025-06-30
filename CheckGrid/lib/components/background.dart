@@ -34,12 +34,12 @@ class _GridPainter extends CustomPainter {
     // börja på första centret och loopa över centerY direkt
     for (
       double centerY = cellSize / 2;
-      centerY < size.height + cellSize;
+      centerY < size.height;
       centerY += yStep, row++
     ) {
       final bool isOddRow = row % 2 == 1;
       final double startX = isOddRow ? -cellSize / 2 : 0.0;
-      for (double x = startX; x < size.width + cellSize; x += cellSize) {
+      for (double x = startX; x < size.width; x += cellSize) {
         final isAlt = row % 2 == 0;
         Color baseColor = isAlt ? firstColor : secondColor;
 

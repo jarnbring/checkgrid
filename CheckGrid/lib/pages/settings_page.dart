@@ -3,7 +3,6 @@ import 'package:checkgrid/components/group_settings.dart';
 import 'package:checkgrid/components/icon_widget.dart';
 import 'package:checkgrid/providers/settings_provider.dart';
 import 'package:checkgrid/settings/noti_service.dart';
-import 'package:checkgrid/settings/privacy_policy.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
@@ -38,7 +37,7 @@ class SettingsPageState extends State<SettingsPage> {
             if (context.canPop()) {
               context.pop();
             } else {
-              context.go('/menu');
+              context.go('/home');
             }
           },
         ),
@@ -53,7 +52,6 @@ class SettingsPageState extends State<SettingsPage> {
                 _buildDarkPieces(),
                 _buildGlossEffect(),
                 _buildVibration(),
-                _buildPrivacyPolicy(),
               ],
             ),
             GroupSettingsWidget(header: "Sound", children: [_buildSound()]),
@@ -62,6 +60,11 @@ class SettingsPageState extends State<SettingsPage> {
               header: "Notifications",
               children: [_buildNotificationReminder()],
             ),
+            GroupSettingsWidget(
+              header: "Other",
+              children: [_buildFeedback(), _buildPrivacyPolicy()],
+            ),
+            const SizedBox(height: 20),
             Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -219,12 +222,19 @@ class SettingsPageState extends State<SettingsPage> {
         Icons.arrow_forward_ios,
         color: Theme.of(context).iconTheme.color?.withAlpha(100),
       ),
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => PrivacyPolicyPage()),
-        );
-      },
+      onTap: () => context.pushNamed('/privacy_policy'),
+    );
+  }
+
+  Widget _buildFeedback() {
+    return ListTile(
+      title: const Text('Feedback'),
+      leading: IconWidget(icon: Icons.feedback_outlined),
+      trailing: Icon(
+        Icons.arrow_forward_ios,
+        color: Theme.of(context).iconTheme.color?.withAlpha(100),
+      ),
+      onTap: () => context.pushNamed('/feedback'),
     );
   }
 

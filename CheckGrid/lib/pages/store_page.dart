@@ -1,8 +1,6 @@
 import 'package:checkgrid/animations/border_beam.dart';
-import 'package:checkgrid/components/background.dart';
 import 'package:checkgrid/providers/general_provider.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 class StorePage extends StatefulWidget {
@@ -15,7 +13,7 @@ class StorePage extends StatefulWidget {
 class _StorePageState extends State<StorePage> {
   // Dummy-data för exempel
   int highscore = 100;
-  int rewardedAdsWatched = 21; // Byt till din riktiga provider/state
+  int rewardedAdsWatched = 11; // Byt till din riktiga provider/state
   final int adsRequiredForSkin = 20;
 
   @override
@@ -195,99 +193,87 @@ class _StorePageState extends State<StorePage> {
 
     return Scaffold(
       backgroundColor: Colors.transparent,
-      body: Background(
-        child: SafeArea(
-          child: CustomScrollView(
-            slivers: [
-              SliverAppBar(
-                backgroundColor: Colors.transparent,
-                elevation: 0,
-                floating: true,
-                snap: true,
-                title: const Text("Store", style: TextStyle(fontSize: 22)),
-                centerTitle: true,
-                leading: IconButton(
-                  icon: const Icon(Icons.arrow_back),
-                  onPressed: () {
-                    if (context.canPop()) {
-                      context.pop();
-                    } else {
-                      context.go('/menu');
-                    }
-                  },
-                ),
-              ),
-              SliverToBoxAdapter(
-                child: Center(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 600),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 20,
-                      ),
-                      child: Column(
-                        children: [
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            spacing: 50,
-                            children: [
-                              const SizedBox(height: 1),
-                              skinItem(
-                                name: "Blacked",
-                                imageName: 'black/black_rook',
-                                description: 'Unlock all pieces in black',
-                                price: 5.0,
-                                unlocked: true,
-                                isNew: true,
-                              ),
-                              skinItem(
-                                name: "White",
-                                imageName: 'white/white_knight',
-                                description: 'Unlock all pieces in white',
-                                price: 5.0,
-                                unlocked: highscore >= 50,
-                                unlockText: "Reach 50+ highscore",
-                                isNew: true,
-                              ),
+      body: SafeArea(
+        child: CustomScrollView(
+          slivers: [
+            SliverAppBar(
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              floating: true,
+              snap: true,
+              title: const Text("Store", style: TextStyle(fontSize: 22)),
+              centerTitle: true,
+            ),
+            SliverToBoxAdapter(
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 600),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 20,
+                    ),
+                    child: Column(
+                      children: [
+                        Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          spacing: 50,
+                          children: [
+                            const SizedBox(height: 1),
+                            skinItem(
+                              name: "Blacked",
+                              imageName: 'black/black_rook',
+                              description: 'Unlock all pieces in black',
+                              price: 5.0,
+                              unlocked: true,
+                              isNew: true,
+                            ),
+                            skinItem(
+                              name: "White",
+                              imageName: 'white/white_knight',
+                              description: 'Unlock all pieces in white',
+                              price: 5.0,
+                              unlocked: highscore >= 50,
+                              unlockText: "Reach 50+ highscore",
+                              isNew: true,
+                            ),
 
-                              skinItem(
-                                name: "Rainbow",
-                                imageName: 'white/white_rook',
-                                description:
-                                    'Unlock all pieces in rainbow colors',
-                                price: 10.0,
-                                unlocked: highscore >= 100,
-                                unlockText: "Reach 100+ highscore",
-                                isNew: true,
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 24),
-                          adsProgressBar(),
-                          const SizedBox(height: 24),
-                          Wrap(
-                            spacing: 10,
-                            runSpacing: 10,
-                            alignment: WrapAlignment.center,
-                            children: [
-                              purchaseableItem(
-                                title: "Remove Ads",
-                                price: 9.99,
-                                icon: Icons.block,
-                                screenWidth: screenWidth,
-                                discountText: "Enjoy ad-free gaming!",
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
+                            skinItem(
+                              name: "Rainbow",
+                              imageName: 'white/white_rook',
+                              description:
+                                  'Unlock all pieces in rainbow colors',
+                              price: 10.0,
+                              unlocked: highscore >= 100,
+                              unlockText: "Reach 100+ highscore",
+                              isNew: true,
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 24),
+                        adsProgressBar(),
+                        const SizedBox(height: 24),
+                        Wrap(
+                          spacing: 10,
+                          runSpacing: 10,
+                          alignment: WrapAlignment.center,
+                          children: [
+                            purchaseableItem(
+                              title: "Remove Ads",
+                              price: 9.99,
+                              icon: Icons.block,
+                              screenWidth: screenWidth,
+                              discountText: "Enjoy ad-free gaming!",
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

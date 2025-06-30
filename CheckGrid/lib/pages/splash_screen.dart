@@ -1,6 +1,8 @@
+import 'package:checkgrid/game/board.dart';
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -16,6 +18,7 @@ class _SplashScreenState extends State<SplashScreen>
   late final Animation<double> _fadeAnimation;
   bool _loadingDone = false;
   bool _shouldRepeat = true;
+  bool _boardLoaded = false;
 
   @override
   void initState() {
@@ -33,28 +36,35 @@ class _SplashScreenState extends State<SplashScreen>
     _lottieController.addStatusListener((status) {
       if (status == AnimationStatus.completed) {
         if (_loadingDone && mounted) {
-          // Starta fade ut direkt
           _fadeController.forward().then((_) {
-            if (mounted) context.go('/menu');
+            if (mounted) context.go('/home');
           });
         } else if (_shouldRepeat) {
           _lottieController.forward(from: 0);
         }
       }
     });
+  }
 
-    _load();
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_boardLoaded) {
+      _boardLoaded = true;
+      _load();
+    }
   }
 
   Future<void> _load() async {
-    await Future.delayed(const Duration(seconds: 1)); // Simulerad laddning
+    final board = context.watch<Board>();
+    await board.loadBoard();
 
     _loadingDone = true;
     _shouldRepeat = false;
-    // Om Lottie redan är klar, starta fade direkt
+
     if (_lottieController.status == AnimationStatus.completed && mounted) {
       _fadeController.forward().then((_) {
-        if (mounted) context.go('/menu');
+        if (mounted) context.go('/home');
       });
     }
   }

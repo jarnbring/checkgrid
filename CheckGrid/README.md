@@ -17,6 +17,7 @@ To do:
     Buy domain? @checkgrid.com
     iPhone activate Game Mode?
     Add a tutorial for first time users
+    Remake Widget methods to classes for performance increase
 
     Store
     Watch ads to unlock skins

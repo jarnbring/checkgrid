@@ -1,8 +1,6 @@
-// ignore: unused_import
 import 'package:checkgrid/ads/banner_ad.dart';
 import 'package:checkgrid/game/dialogs/settings_dialog.dart';
 import 'package:checkgrid/game/game_board.dart';
-import 'package:checkgrid/components/background.dart';
 import 'package:checkgrid/game/utilities/score.dart';
 import 'package:checkgrid/game/board.dart';
 import 'package:checkgrid/game/piece_selector.dart';
@@ -21,102 +19,76 @@ class Game extends StatefulWidget {
 }
 
 class _GameState extends State<Game> {
-  late Board board;
+  late final Board board;
 
   @override
   void initState() {
     super.initState();
     board = context.read<Board>();
-    board.loadBoard();
   }
 
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider.value(
       value: board,
-      child: Stack(
-        children: [
-          Background(
-            child: Scaffold(
-              backgroundColor: Colors.transparent, // Viktigt!
-              appBar: AppBar(
-                backgroundColor: Colors.transparent, // Viktigt!
-                centerTitle: true,
-                title: const Text("CheckGrid", style: TextStyle(fontSize: 26)),
-                // Back button
-                leading: GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: () async {
-                    // Save game
-                    board.saveBoard();
-                    if (context.canPop()) {
-                      context.pop();
-                    } else {
-                      context.go('/menu');
-                    }
-                  },
-                  child: const Padding(
-                    padding: EdgeInsets.all(8.0),
-                    child: Icon(Icons.arrow_back),
-                  ),
-                ),
-                // Settings button
-                actions: [
-                  SizedBox(
-                    width: 50,
-                    height: 50,
-                    child: GestureDetector(
-                      onTap: () {
-                        showSettingsDialog(
-                          context: context,
-                          onRestart: board.restartGame,
-                          onSettingsPage: () {
-                            context
-                                .pushNamed("/settings")
-                                .then((_) => board.update());
-                          },
-                          currentDifficulty: board.difficulty,
-                          onDifficultySelected: (newDifficulty) {
-                            setState(() {
-                              board.difficulty = newDifficulty;
-                              board.restartGame();
-                            });
-                          },
-                        );
-                      },
-                      child: const Icon(Icons.settings),
-                    ),
-                  ),
-                ],
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          centerTitle: true,
+          title: const Text("CheckGrid", style: TextStyle(fontSize: 26)),
+          // Settings button
+          actions: [
+            SizedBox(
+              width: 50,
+              height: 50,
+              child: GestureDetector(
+                onTap: () {
+                  showSettingsDialog(
+                    context: context,
+                    onRestart: board.restartGame,
+                    onSettingsPage: () {
+                      context
+                          .pushNamed("/settings")
+                          .then((_) => board.update());
+                    },
+                    currentDifficulty: board.difficulty,
+                    onDifficultySelected: (newDifficulty) {
+                      setState(() {
+                        board.difficulty = newDifficulty;
+                        board.restartGame();
+                      });
+                    },
+                  );
+                },
+                child: const Icon(Icons.settings),
               ),
-              body: SafeArea(
-                child: Column(
-                  children: [
-                    Consumer<Board>(builder: (context, board, _) => Score()),
-                    const SizedBox(height: 30),
-                    Consumer<Board>(
-                      builder: (context, board, _) => GameBoard(),
-                    ),
-                    const SizedBox(height: 30),
-                    Consumer<Board>(
-                      builder: (context, board, _) => PieceSelector(),
-                    ),
-                    const SizedBox(height: 30),
-                    Row(
-                      children: [
-                        const Spacer(),
-                        _buildReviveButton() ?? const SizedBox(),
-                        _buildGameOverButton() ?? const SizedBox(),
-                        const Spacer(),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              //bottomNavigationBar: const BannerAdWidget(),
             ),
+          ],
+        ),
+        body: SafeArea(
+          child: Column(
+            children: [
+              Consumer<Board>(builder: (context, board, _) => Score()),
+              const SizedBox(height: 20),
+              Consumer<Board>(builder: (context, board, _) => GameBoard()),
+              const SizedBox(height: 20),
+              Consumer<Board>(builder: (context, board, _) => PieceSelector()),
+              const SizedBox(height: 20),
+              // Row(
+              //   children: [
+              //     const Spacer(),
+              //     _buildReviveButton() ?? const SizedBox(),
+              //     _buildGameOverButton() ?? const SizedBox(),
+
+              //     const Spacer(),
+              //   ],
+              // ),
+              const BannerAdWidget(),
+              const Spacer(),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

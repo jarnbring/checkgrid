@@ -55,7 +55,7 @@ class _GameOverPageState extends State<GameOverPage> {
                 _button(
                   "Back to Menu",
                   () {
-                    context.go('/menu');
+                    context.go('/home');
                   },
                   isPressedMenu,
                   (v) => setState(() => isPressedMenu = v),
