@@ -2,6 +2,7 @@ import 'package:checkgrid/game/board.dart';
 import 'package:checkgrid/components/background.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hive/hive.dart';
 
 class GameOverPage extends StatefulWidget {
   final Board board;
@@ -16,9 +17,24 @@ class _GameOverPageState extends State<GameOverPage> {
   bool isPressedMenu = false;
 
   @override
+  void initState() {
+    super.initState();
+    _updateAmountOfRounds();
+  }
+
+  // Updates the amountOfRounds statistic
+  void _updateAmountOfRounds() async {
+    var statsBox = await Hive.openBox('statsBox');
+
+    // Amount of games
+    int amountOfRounds = statsBox.get('amountOfRounds', defaultValue: 0);
+    statsBox.put('amountOfRounds', amountOfRounds + 1);
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0A1A2F),
+      backgroundColor: Colors.transparent,
       body: Background(
         child: Center(
           child: Padding(

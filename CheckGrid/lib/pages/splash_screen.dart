@@ -76,12 +76,15 @@ class _SplashScreenState extends State<SplashScreen>
     if (!isFirstTimeUser) {
       bool shouldAskAgain = true;
 
-      while (shouldAskAgain && mounted) {
+      while (shouldAskAgain) {
         try {
-          await board.loadBoard().timeout(
-            const Duration(seconds: 5),
-            onTimeout: () => throw TimeoutException('Load board timed out'),
-          );
+          if (!mounted) return;
+          await board
+              .loadBoard(context)
+              .timeout(
+                const Duration(seconds: 5),
+                onTimeout: () => throw TimeoutException('Load board timed out'),
+              );
           shouldAskAgain = false;
         } on TimeoutException {
           if (!mounted) return;
@@ -100,6 +103,8 @@ class _SplashScreenState extends State<SplashScreen>
           // User did not want to create a new board, keep looping
         }
       }
+    } else {
+      board.createNewBoard();
     }
 
     _loadingDone = true;

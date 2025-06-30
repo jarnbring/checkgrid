@@ -4,9 +4,10 @@ import 'package:checkgrid/game/dialogs/revive_dialog.dart';
 import 'package:checkgrid/game/utilities/cell.dart';
 import 'package:checkgrid/game/utilities/piecetype.dart';
 import 'package:checkgrid/game/utilities/difficulty.dart';
+import 'package:checkgrid/providers/board_provider.dart';
 import 'package:checkgrid/providers/general_provider.dart';
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
+import 'package:provider/provider.dart';
 
 // Handle board logic, ex clearBoard etc.
 
@@ -421,8 +422,31 @@ class Board extends ChangeNotifier {
     notifyListeners();
   }
 
-  void saveBoard() async {
-    var box = await Hive.openBox('boardBox');
+  void updatePlacedPiecesStatistic(BuildContext context) async {
+    final boardProvider = context.read<BoardProvider>();
+
+    int storedPlacedPieces = boardProvider.getStatisticsBox.get(
+      'placedPieces',
+      defaultValue: 0,
+    );
+    storedPlacedPieces = storedPlacedPieces + 1;
+    boardProvider.getStatisticsBox.put('placedPieces', storedPlacedPieces);
+  }
+
+  void updateHighscore(BuildContext context) async {
+    final boardProvider = context.read<BoardProvider>();
+
+    // Highscore
+    BigInt storedHighScore = BigInt.parse(
+      boardProvider.getStatisticsBox.get('highScore', defaultValue: '0'),
+    );
+    if (currentScore > storedHighScore) {
+      boardProvider.getStatisticsBox.put('highScore', currentScore.toString());
+    }
+  }
+
+  void saveBoard(BuildContext context) async {
+    final boardBox = context.read<BoardProvider>().getBoardBox;
 
     List<Map<String, dynamic>> cellData =
         board.expand((row) => row).map((cell) {
@@ -445,25 +469,28 @@ class Board extends ChangeNotifier {
           };
         }).toList();
 
-    await box.put('board', cellData);
-    await box.put('targetedCellsMap', targetedCellsMapData);
-    await box.put('_difficulty', _difficulty.name);
-    await box.put('selectedPieces', selectedPieces.map((e) => e.name).toList());
-    await box.put('watchedAds', watchedAds);
-    await box.put('isGameOver', isGameOver);
-    await box.put('isReviveShowing', isReviveShowing);
-    await box.put('currentScore', currentScore.toString());
+    await boardBox.put('board', cellData);
+    await boardBox.put('targetedCellsMap', targetedCellsMapData);
+    await boardBox.put('_difficulty', _difficulty.name);
+    await boardBox.put(
+      'selectedPieces',
+      selectedPieces.map((e) => e.name).toList(),
+    );
+    await boardBox.put('watchedAds', watchedAds);
+    await boardBox.put('isGameOver', isGameOver);
+    await boardBox.put('isReviveShowing', isReviveShowing);
+    await boardBox.put('currentScore', currentScore.toString());
   }
 
-  Future<void> loadBoard() async {
+  Future<void> loadBoard(BuildContext context) async {
     try {
       // For debug
       // await Future.delayed(const Duration(seconds: 10));
 
-      var box = await Hive.openBox('boardBox');
+      final boardBox = context.read<BoardProvider>().getBoardBox;
 
       // Load selected pieces
-      final savedSelectedPieces = box.get(
+      final savedSelectedPieces = boardBox.get(
         'selectedPieces',
         defaultValue: <String>[],
       );
@@ -473,13 +500,13 @@ class Board extends ChangeNotifier {
               .toList();
 
       // Load score
-      final savedScore = await box.get('currentScore');
+      final savedScore = await boardBox.get('currentScore');
       if (savedScore != null) {
         currentScore = BigInt.parse(savedScore);
       }
 
       // Load board cells
-      final cellData = await box.get('board');
+      final cellData = await boardBox.get('board');
       if (cellData != null) {
         for (final data in cellData) {
           final cell = getCell(data['x'], data['y']);
@@ -497,7 +524,7 @@ class Board extends ChangeNotifier {
       }
 
       // Load targeted cells map
-      final targetedCellsMapData = await box.get('targetedCellsMap');
+      final targetedCellsMapData = await boardBox.get('targetedCellsMap');
       targetedCellsMap.clear();
       if (targetedCellsMapData != null) {
         for (final entry in targetedCellsMapData) {
@@ -514,23 +541,22 @@ class Board extends ChangeNotifier {
       }
 
       // Load difficulty
-      final savedDifficulty = await box.get('_difficulty');
+      final savedDifficulty = await boardBox.get('_difficulty');
       _difficulty = Difficulty.values.firstWhere(
         (d) => d.name == savedDifficulty,
         orElse: () => Difficulty.medium,
       );
 
       // Load other variables
-      watchedAds = await box.get('watchedAds');
-      isGameOver = await box.get('isGameOver');
-      isReviveShowing = await box.get('isReviveShowing');
+      watchedAds = await boardBox.get('watchedAds');
+      isGameOver = await boardBox.get('isGameOver');
+      isReviveShowing = await boardBox.get('isReviveShowing');
 
       updateColors();
       notifyListeners();
     } catch (e, stacktrace) {
       debugPrint('Error loading board: $e');
       debugPrint('$stacktrace');
-      // Eventuellt hantera felet, t.ex. återställ till default-värden
     }
   }
 

@@ -2,6 +2,7 @@ import 'package:checkgrid/game/board.dart';
 import 'package:checkgrid/game/utilities/cell.dart';
 import 'package:checkgrid/game/utilities/piecetype.dart';
 import 'package:checkgrid/providers/ad_provider.dart';
+import 'package:checkgrid/providers/board_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:checkgrid/providers/general_provider.dart';
@@ -27,6 +28,10 @@ void main() async {
   Hive.registerAdapter(CellAdapter());
   Hive.registerAdapter(PieceTypeAdapter());
 
+  // Load Hive
+  final boardProvider = BoardProvider();
+  await boardProvider.initFuture;
+
   // Load settings
   final settingsProvider = SettingsProvider();
   await settingsProvider.loadSettings();
@@ -43,12 +48,13 @@ void main() async {
     MultiProvider(
       providers: [
         // Initialize providers
-        ChangeNotifierProvider.value(
-          value: settingsProvider,
-        ), // Use value to avoid re-creating the provider
+        ChangeNotifierProvider.value(value: boardProvider),
         ChangeNotifierProvider(create: (_) => GeneralProvider()),
         ChangeNotifierProvider(create: (_) => AdProvider()),
         ChangeNotifierProvider(create: (_) => Board()),
+
+        // Use value to avoid re-creating the provider
+        ChangeNotifierProvider.value(value: settingsProvider),
       ],
       child: const MyApp(),
     ),
@@ -62,7 +68,7 @@ class MyApp extends StatefulWidget {
   State<MyApp> createState() => _MyAppState();
 }
 
-class _MyAppState extends State<MyApp> {
+class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   // Darkmode colors
   final Color darkmodeBackgroundColor = const Color.fromARGB(255, 39, 39, 39);
   final Color darkmodeTextColor = Colors.white;
@@ -74,7 +80,28 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _setOrientations();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.inactive) {
+      final board = context.read<Board>();
+      board.updateHighscore(context);
+
+      // debugPrint("SAVING BOARD...");
+      // final stopwatch = Stopwatch()..start();
+      // board.saveBoard(context);
+      // stopwatch.stop();
+      // print('Sparande tog ${stopwatch.elapsedMilliseconds} ms');
+    }
   }
 
   void _setOrientations() {

@@ -27,6 +27,7 @@ class _PieceSelectorState extends State<PieceSelector> {
       height: boxHeight,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
+        border: BoxBorder.all(color: Colors.black, width: 4),
         gradient: const LinearGradient(
           colors: [
             Color.fromARGB(255, 57, 159, 255),
@@ -167,8 +168,6 @@ class _PieceSelectorState extends State<PieceSelector> {
         } else if (board.isGameOver) {
           context.go('/gameover', extra: board);
         }
-
-        board.saveBoard(); // Save the board state after continuing
       },
       child: Container(
         width: boxWidth,

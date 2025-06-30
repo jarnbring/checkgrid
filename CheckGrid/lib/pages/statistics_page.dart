@@ -1,41 +1,34 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
+import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
-class StatisticsPage extends StatefulWidget {
+class StatisticsPage extends StatelessWidget {
   const StatisticsPage({super.key});
 
-  @override
-  State<StatisticsPage> createState() => _StatisticsPageState();
-}
+  Future<Map<String, dynamic>> _loadStatistics() async {
+    var statsBox = await Hive.openBox('statsBox');
 
-class _StatisticsPageState extends State<StatisticsPage> {
-  BigInt? highscore;
-  BigInt? longestComboStreak;
-  int? amountOfRounds;
-  bool isLoading = true;
+    final highScoreRaw = statsBox.get('highScore');
+    final amountOfRounds = statsBox.get('amountOfRounds') ?? 0;
 
-  @override
-  void initState() {
-    super.initState();
-    _loadStatistics();
-  }
+    BigInt parseBigIntOrZero(dynamic value) {
+      if (value == null) return BigInt.zero;
+      if (value is BigInt) return value;
+      if (value is int) return BigInt.from(value);
+      if (value is String) {
+        try {
+          return BigInt.parse(value);
+        } catch (_) {
+          return BigInt.zero;
+        }
+      }
+      return BigInt.zero;
+    }
 
-  Future<void> _loadStatistics() async {
-    final prefs = await SharedPreferences.getInstance();
-
-    final hs = prefs.getString('highscore');
-    final comboStreak = prefs.getString('longest_combo_streak');
-    final roundsPlayed = prefs.getString('rounds_played');
-
-    setState(() {
-      highscore = hs != null ? BigInt.parse(hs) : BigInt.zero;
-      longestComboStreak =
-          comboStreak != null ? BigInt.parse(comboStreak) : BigInt.zero;
-      amountOfRounds = roundsPlayed != null ? int.parse(roundsPlayed) : 0;
-      isLoading = false;
-    });
+    return {
+      'highscore': parseBigIntOrZero(highScoreRaw),
+      'amountOfRounds': amountOfRounds,
+    };
   }
 
   Widget _buildStatistic(
@@ -96,55 +89,54 @@ class _StatisticsPageState extends State<StatisticsPage> {
         backgroundColor: Colors.transparent,
         title: const Text("Statistics", style: TextStyle(fontSize: 22)),
         centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            if (context.canPop()) {
-              context.pop();
-            } else {
-              context.go('/home');
-            }
-          },
-        ),
       ),
       body: SafeArea(
-        child:
-            isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : SingleChildScrollView(
-                  child: Center(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 20,
-                      ),
-                      child: Wrap(
-                        spacing: 15,
-                        runSpacing: 15,
-                        alignment: WrapAlignment.center,
-                        children: [
-                          _buildStatistic("Rounds", amountOfRounds!.toDouble()),
+        child: FutureBuilder<Map<String, dynamic>>(
+          future: _loadStatistics(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            if (!snapshot.hasData) {
+              return const Center(child: Text('No data'));
+            }
 
-                          _buildStatistic("Time played", 0, isTime: true),
-                          _buildStatistic(
-                            "Highscore",
-                            highscore!.toDouble(),
-                            isWide: true,
-                          ),
-                          _buildStatistic("Pieces placed", 0),
-                          _buildStatistic(
-                            "Highest combo",
-                            longestComboStreak!.toDouble(),
-                          ),
-                          _buildStatistic(
-                            "Revives",
-                            amountOfRounds!.toDouble(),
-                          ),
-                        ],
+            final data = snapshot.data!;
+            final highscore = data['highscore'] as BigInt;
+            final amountOfRounds = data['amountOfRounds'] as int;
+
+            return SingleChildScrollView(
+              child: Center(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 20,
+                  ),
+                  child: Wrap(
+                    spacing: 15,
+                    runSpacing: 15,
+                    alignment: WrapAlignment.center,
+                    children: [
+                      _buildStatistic(
+                        "Highscore",
+                        highscore.toDouble(),
+                        isWide: true,
                       ),
-                    ),
+                      _buildStatistic("Rounds", amountOfRounds.toDouble()),
+                      //_buildStatistic("Time played", 0, isTime: true),
+                      _buildStatistic("Pieces placed", 0),
+                      _buildStatistic(
+                        "Highest combo",
+                        0, //longestComboStreak.toDouble(),
+                      ),
+                      _buildStatistic("Revives", amountOfRounds.toDouble()),
+                    ],
                   ),
                 ),
+              ),
+            );
+          },
+        ),
       ),
     );
   }

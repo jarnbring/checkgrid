@@ -77,7 +77,10 @@ class BoardCell extends StatelessWidget {
             board.markTargetedCells(details.data, row, col);
             board.clearPreview();
             board.updateColors(); // Needed for the blue color of the piece
-            board.saveBoard(); // Save the board after placing a piece
+            board.saveBoard(context);
+            board.updatePlacedPiecesStatistic(
+              context,
+            ); // Update the statistic for placed pieces
           },
           builder: (context, candidateData, rejectedData) {
             return Container(
