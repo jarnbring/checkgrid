@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:checkgrid/providers/ad_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:checkgrid/providers/general_provider.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
@@ -13,7 +14,6 @@ class BannerAdWidget extends StatefulWidget {
 
 class _BannerAdWidgetState extends State<BannerAdWidget> {
   BannerAd? _bannerAd;
-  bool _isBannerAdLoaded = false;
   AnchoredAdaptiveBannerAdSize? _adSize;
   final String adUnitId =
       Platform.isAndroid
@@ -50,9 +50,6 @@ class _BannerAdWidgetState extends State<BannerAdWidget> {
       size: _adSize!,
       listener: BannerAdListener(
         onAdLoaded: (ad) {
-          setState(() {
-            _isBannerAdLoaded = true;
-          });
           // Sätt bannerAdHeight i GeneralProvider när annonsen laddas
           final generalProvider = context.read<GeneralProvider>();
           generalProvider.setBannerAdHeight(
@@ -64,7 +61,6 @@ class _BannerAdWidgetState extends State<BannerAdWidget> {
           ad.dispose();
           setState(() {
             _bannerAd = null;
-            _isBannerAdLoaded = false;
           });
           // Återställ bannerAdHeight till 0.0 om annonsen misslyckas
           final generalProvider = context.read<GeneralProvider>();
@@ -84,14 +80,18 @@ class _BannerAdWidgetState extends State<BannerAdWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return _bannerAd != null && _isBannerAdLoaded
-        ? SafeArea(
-          child: Container(
-            margin: const EdgeInsets.only(bottom: 12.0),
-            height: _bannerAd!.size.height.toDouble(),
-            child: AdWidget(ad: _bannerAd!),
-          ),
-        )
-        : const SizedBox.shrink();
+    final adProvider = context.watch<AdProvider>();
+
+    if (!adProvider.isBannerAdLoaded || adProvider.bannerAd == null) {
+      return const SizedBox.shrink();
+    }
+
+    return SafeArea(
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        height: adProvider.bannerAd!.size.height.toDouble(),
+        child: AdWidget(ad: adProvider.bannerAd!),
+      ),
+    );
   }
 }

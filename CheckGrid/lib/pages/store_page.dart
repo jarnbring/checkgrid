@@ -101,26 +101,28 @@ class _StorePageState extends State<StorePage> {
                       ],
                     ),
                   ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        name,
-                        style: TextStyle(
-                          color: unlocked ? Colors.white : Colors.black38,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 20,
-                          fontFamily: 'Antonio',
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          name,
+                          style: TextStyle(
+                            color: unlocked ? Colors.white : Colors.black38,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 20,
+                            fontFamily: 'Antonio',
+                          ),
                         ),
-                      ),
-                      Text(
-                        description,
-                        style: TextStyle(
-                          color: unlocked ? Colors.white : Colors.black38,
-                          fontWeight: FontWeight.bold,
+                        Text(
+                          description,
+                          style: TextStyle(
+                            color: unlocked ? Colors.white : Colors.black38,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ],
               ),

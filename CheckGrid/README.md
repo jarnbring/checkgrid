@@ -18,9 +18,12 @@ To do:
     iPhone activate Game Mode?
     Add a tutorial for first time users
     Remake Widget methods to classes for performance increase
+    Add logging for errors and crashes
+    Fix vibrations on iOS
 
     Store
     Watch ads to unlock skins
     Get big highscore to unlock skins
     Unlock different backgrounds
+    Notifications for new stuff in store
 

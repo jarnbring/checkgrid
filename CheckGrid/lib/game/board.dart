@@ -405,6 +405,22 @@ class Board extends ChangeNotifier {
     notifyListeners();
   }
 
+  void createNewBoard() {
+    clearBoard();
+    placedPieces.clear();
+    selectedPieces.clear();
+    targetedCellsMap.clear();
+    selectedPiecesPositions.clear();
+    isGameOver = false;
+    isReviveShowing = false;
+    watchedAds = 0;
+    resetScore();
+    spawnInitialActiveCells();
+    setNewSelectedPieces();
+
+    notifyListeners();
+  }
+
   void saveBoard() async {
     var box = await Hive.openBox('boardBox');
 
@@ -440,79 +456,82 @@ class Board extends ChangeNotifier {
   }
 
   Future<void> loadBoard() async {
-    var box = await Hive.openBox('boardBox');
+    try {
+      // For debug
+      // await Future.delayed(const Duration(seconds: 10));
 
-    // Load selected pieces
-    final savedSelectedPieces = box.get(
-      'selectedPieces',
-      defaultValue: <String>[],
-    );
-    selectedPieces =
-        (savedSelectedPieces as List)
-            .map((e) => PieceType.values.firstWhere((pt) => pt.name == e))
-            .toList();
+      var box = await Hive.openBox('boardBox');
 
-    // Load score
-    final savedScore = await box.get('currentScore');
+      // Load selected pieces
+      final savedSelectedPieces = box.get(
+        'selectedPieces',
+        defaultValue: <String>[],
+      );
+      selectedPieces =
+          (savedSelectedPieces as List)
+              .map((e) => PieceType.values.firstWhere((pt) => pt.name == e))
+              .toList();
 
-    if (savedScore != null) {
-      currentScore = BigInt.parse(savedScore);
-    }
-
-    // Load board
-    final cellData = await box.get('board');
-
-    if (cellData != null) {
-      for (final data in cellData) {
-        final cell = getCell(data['x'], data['y']);
-        if (cell != null) {
-          cell.hasPiece = data['hasPiece'] ?? false;
-          cell.isActive = data['isActive'] ?? false;
-          cell.isTargeted = data['isTargeted'] ?? false;
-          final pieceName = data['piece'];
-          cell.piece =
-              pieceName != null
-                  ? PieceType.values.firstWhere((e) => e.name == pieceName)
-                  : null;
-        }
+      // Load score
+      final savedScore = await box.get('currentScore');
+      if (savedScore != null) {
+        currentScore = BigInt.parse(savedScore);
       }
-    }
 
-    // Load targeted cells
-    final targetedCellsMapData = await box.get('targetedCellsMap');
-
-    targetedCellsMap.clear();
-    if (targetedCellsMapData != null) {
-      for (final entry in targetedCellsMapData) {
-        final pointData = entry['point'];
-        final point = Point<int>(pointData['x'], pointData['y']);
-
-        final cells = <Cell>[];
-        for (final cellPos in entry['cells']) {
-          final cell = getCell(cellPos['x'], cellPos['y']);
+      // Load board cells
+      final cellData = await box.get('board');
+      if (cellData != null) {
+        for (final data in cellData) {
+          final cell = getCell(data['x'], data['y']);
           if (cell != null) {
-            cells.add(cell);
+            cell.hasPiece = data['hasPiece'] ?? false;
+            cell.isActive = data['isActive'] ?? false;
+            cell.isTargeted = data['isTargeted'] ?? false;
+            final pieceName = data['piece'];
+            cell.piece =
+                pieceName != null
+                    ? PieceType.values.firstWhere((e) => e.name == pieceName)
+                    : null;
           }
         }
-        targetedCellsMap[point] = cells;
       }
+
+      // Load targeted cells map
+      final targetedCellsMapData = await box.get('targetedCellsMap');
+      targetedCellsMap.clear();
+      if (targetedCellsMapData != null) {
+        for (final entry in targetedCellsMapData) {
+          final pointData = entry['point'];
+          final point = Point<int>(pointData['x'], pointData['y']);
+
+          final cells = <Cell>[];
+          for (final cellPos in entry['cells']) {
+            final cell = getCell(cellPos['x'], cellPos['y']);
+            if (cell != null) cells.add(cell);
+          }
+          targetedCellsMap[point] = cells;
+        }
+      }
+
+      // Load difficulty
+      final savedDifficulty = await box.get('_difficulty');
+      _difficulty = Difficulty.values.firstWhere(
+        (d) => d.name == savedDifficulty,
+        orElse: () => Difficulty.medium,
+      );
+
+      // Load other variables
+      watchedAds = await box.get('watchedAds');
+      isGameOver = await box.get('isGameOver');
+      isReviveShowing = await box.get('isReviveShowing');
+
+      updateColors();
+      notifyListeners();
+    } catch (e, stacktrace) {
+      debugPrint('Error loading board: $e');
+      debugPrint('$stacktrace');
+      // Eventuellt hantera felet, t.ex. återställ till default-värden
     }
-
-    // Load difficulty
-    final savedDifficulty = await box.get('_difficulty');
-
-    _difficulty = Difficulty.values.firstWhere(
-      (d) => d.name == savedDifficulty,
-      orElse: () => Difficulty.medium,
-    );
-
-    // Load variables
-    watchedAds = await box.get('watchedAds');
-    isGameOver = await box.get('isGameOver');
-    isReviveShowing = await box.get('isReviveShowing');
-
-    updateColors();
-    notifyListeners();
   }
 
   // Debug: Sätt game over och notifiera
