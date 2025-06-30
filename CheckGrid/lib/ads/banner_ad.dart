@@ -88,6 +88,8 @@ class _BannerAdWidgetState extends State<BannerAdWidget> {
 
     return SafeArea(
       child: Container(
+        width: double.infinity,
+        alignment: Alignment.center,
         margin: const EdgeInsets.only(bottom: 12),
         height: adProvider.bannerAd!.size.height.toDouble(),
         child: AdWidget(ad: adProvider.bannerAd!),

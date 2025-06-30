@@ -12,6 +12,7 @@ To do:
     In app purchase
     Set everything up for iOS and Android, App store, Google play store
     Code cleanup
+    App Size
     Code review
     Everything around git, README etc.
     Buy domain? @checkgrid.com

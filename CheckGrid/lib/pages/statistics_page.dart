@@ -1,15 +1,19 @@
+import 'package:checkgrid/providers/board_provider.dart';
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 
 class StatisticsPage extends StatelessWidget {
   const StatisticsPage({super.key});
 
-  Future<Map<String, dynamic>> _loadStatistics() async {
-    var statsBox = await Hive.openBox('statsBox');
+  Future<Map<String, dynamic>> _loadStatistics(BuildContext context) async {
+    final boardProvider = context.watch<BoardProvider>();
 
-    final highScoreRaw = statsBox.get('highScore');
-    final amountOfRounds = statsBox.get('amountOfRounds') ?? 0;
+    final highScoreRaw = boardProvider.getStatisticsBox.get('highScore');
+    final amountOfRounds =
+        boardProvider.getStatisticsBox.get('amountOfRounds') ?? 0;
+    final placedPieces =
+        boardProvider.getStatisticsBox.get('placedPieces') ?? 0;
 
     BigInt parseBigIntOrZero(dynamic value) {
       if (value == null) return BigInt.zero;
@@ -28,12 +32,13 @@ class StatisticsPage extends StatelessWidget {
     return {
       'highscore': parseBigIntOrZero(highScoreRaw),
       'amountOfRounds': amountOfRounds,
+      'placedPieces': placedPieces,
     };
   }
 
   Widget _buildStatistic(
     String title,
-    double data, {
+    dynamic data, {
     bool? isWide,
     bool? isTime,
   }) {
@@ -71,7 +76,9 @@ class StatisticsPage extends StatelessWidget {
             ),
             const Spacer(),
             Text(
-              '${NumberFormat('#,###').format(data.toInt())}${isTime == true ? ' h' : ''}',
+              data is String
+                  ? '$data${isTime == true ? ' h' : ''}'
+                  : '${NumberFormat('#,###').format(data.toInt())}${isTime == true ? ' h' : ''}',
               style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
             ),
             const Spacer(),
@@ -92,7 +99,7 @@ class StatisticsPage extends StatelessWidget {
       ),
       body: SafeArea(
         child: FutureBuilder<Map<String, dynamic>>(
-          future: _loadStatistics(),
+          future: _loadStatistics(context),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator());
@@ -104,6 +111,7 @@ class StatisticsPage extends StatelessWidget {
             final data = snapshot.data!;
             final highscore = data['highscore'] as BigInt;
             final amountOfRounds = data['amountOfRounds'] as int;
+            final placedPieces = data['placedPieces'] as int;
 
             return SingleChildScrollView(
               child: Center(
@@ -119,17 +127,27 @@ class StatisticsPage extends StatelessWidget {
                     children: [
                       _buildStatistic(
                         "Highscore",
-                        highscore.toDouble(),
+                        highscore >= BigInt.from(9223372036854775807)
+                            ? '∞'
+                            : highscore.toDouble(),
                         isWide: true,
                       ),
-                      _buildStatistic("Rounds", amountOfRounds.toDouble()),
-                      //_buildStatistic("Time played", 0, isTime: true),
-                      _buildStatistic("Pieces placed", 0),
                       _buildStatistic(
-                        "Highest combo",
-                        0, //longestComboStreak.toDouble(),
+                        "Rounds",
+                        amountOfRounds.toDouble(),
+                        isWide: true,
                       ),
-                      _buildStatistic("Revives", amountOfRounds.toDouble()),
+                      //_buildStatistic("Time played", 0, isTime: true),
+                      _buildStatistic(
+                        "Pieces placed",
+                        placedPieces.toDouble(),
+                        isWide: true,
+                      ),
+                      // _buildStatistic(
+                      //  "Highest combo",
+                      //  0, //longestComboStreak.toDouble(),
+                      // ),
+                      // _buildStatistic("Revives", amountOfRounds.toDouble()),
                     ],
                   ),
                 ),

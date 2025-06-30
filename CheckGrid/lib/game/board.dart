@@ -29,7 +29,7 @@ class Board extends ChangeNotifier {
 
   // Score vars
   BigInt currentScore = BigInt.zero;
-  BigInt highScore = BigInt.from(1000000000);
+  BigInt highScore = BigInt.zero;
 
   int currentCombo = 0;
   final int comboRequirement = 6;
@@ -78,7 +78,6 @@ class Board extends ChangeNotifier {
 
     currentScore = currentScore + BigInt.from(scoreToAdd);
     final newHigh = currentScore > highScore ? currentScore : highScore;
-
     if (currentScore > highScore) {
       highScore = newHigh;
     }
@@ -422,6 +421,19 @@ class Board extends ChangeNotifier {
     notifyListeners();
   }
 
+  // Updates the amountOfRounds statistic
+  void updateAmountOfRounds(BuildContext context) async {
+    debugPrint("UPDATING AMOUNT OF ROUNDS...");
+    final boardProvider = context.read<BoardProvider>();
+
+    // Amount of games
+    int amountOfRounds = boardProvider.getStatisticsBox.get(
+      'amountOfRounds',
+      defaultValue: 0,
+    );
+    boardProvider.getStatisticsBox.put('amountOfRounds', amountOfRounds + 1);
+  }
+
   void updatePlacedPiecesStatistic(BuildContext context) async {
     final boardProvider = context.read<BoardProvider>();
 
@@ -435,14 +447,8 @@ class Board extends ChangeNotifier {
 
   void updateHighscore(BuildContext context) async {
     final boardProvider = context.read<BoardProvider>();
-
     // Highscore
-    BigInt storedHighScore = BigInt.parse(
-      boardProvider.getStatisticsBox.get('highScore', defaultValue: '0'),
-    );
-    if (currentScore > storedHighScore) {
-      boardProvider.getStatisticsBox.put('highScore', currentScore.toString());
-    }
+    boardProvider.getStatisticsBox.put('highScore', highScore.toString());
   }
 
   void saveBoard(BuildContext context) async {

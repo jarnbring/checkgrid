@@ -85,6 +85,7 @@ class _CountdownLoadingState extends State<CountdownLoading> {
     if (isAdBeingShown) return;
     if (!mounted) return;
 
+    widget.board.updateAmountOfRounds(context);
     widget.board.restartGame();
     if (Navigator.canPop(context)) {
       Navigator.pop(context);
@@ -110,7 +111,7 @@ class _CountdownLoadingState extends State<CountdownLoading> {
       },
       onAdDismissed: () {
         if (isRevived) return;
-
+        widget.board.updateAmountOfRounds(context);
         widget.board.restartGame();
 
         setState(() {

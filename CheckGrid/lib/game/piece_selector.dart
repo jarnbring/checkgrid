@@ -168,6 +168,8 @@ class _PieceSelectorState extends State<PieceSelector> {
         } else if (board.isGameOver) {
           context.go('/gameover', extra: board);
         }
+
+        board.updateHighscore(context);
       },
       child: Container(
         width: boxWidth,

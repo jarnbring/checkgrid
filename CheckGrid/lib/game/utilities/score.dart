@@ -11,7 +11,9 @@ class Score extends StatelessWidget {
     final board = context.watch<Board>();
 
     return Text(
-      NumberFormat("#,###").format(board.currentScore.toInt()),
+      board.currentScore >= BigInt.from(9223372036854775807)
+          ? "∞"
+          : NumberFormat("#,###").format(board.currentScore.toInt()),
       style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
     );
   }

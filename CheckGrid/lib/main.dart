@@ -93,9 +93,6 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.inactive) {
-      final board = context.read<Board>();
-      board.updateHighscore(context);
-
       // debugPrint("SAVING BOARD...");
       // final stopwatch = Stopwatch()..start();
       // board.saveBoard(context);

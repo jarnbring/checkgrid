@@ -1,3 +1,5 @@
+// ignore_for_file: unused_element
+
 import 'package:checkgrid/ads/banner_ad.dart';
 import 'package:checkgrid/game/dialogs/settings_dialog.dart';
 import 'package:checkgrid/game/game_board.dart';
@@ -74,7 +76,7 @@ class _GameState extends State<Game> {
               Consumer<Board>(builder: (context, board, _) => GameBoard()),
               const SizedBox(height: 20),
               Consumer<Board>(builder: (context, board, _) => PieceSelector()),
-              const SizedBox(height: 20),
+              // const SizedBox(height: 20),
               // Row(
               //   children: [
               //     const Spacer(),
@@ -84,8 +86,9 @@ class _GameState extends State<Game> {
               //     const Spacer(),
               //   ],
               // ),
-              const BannerAdWidget(),
               const Spacer(),
+              const BannerAdWidget(),
+              const SizedBox(height: 51),
             ],
           ),
         ),

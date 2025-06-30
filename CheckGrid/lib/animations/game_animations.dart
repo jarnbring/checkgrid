@@ -62,7 +62,7 @@ class GameAnimations {
     BigInt newScore,
     void Function(BigInt) onUpdate, {
     int durationMs = 500,
-    int steps = 20,
+    int steps = 10,
   }) async {
     final diff = newScore - oldScore;
     for (var i = 1; i <= steps; i++) {

@@ -86,7 +86,7 @@ void showSettingsDialog({
                                         },
                                       ),
                                       _OptionTile(
-                                        title: "Settings page",
+                                        title: "Settings",
                                         icon: Icons.settings,
                                         onTap: onSettingsPage,
                                       ),
