@@ -1,14 +1,13 @@
 // ignore_for_file: unused_element
 
 import 'package:checkgrid/ads/banner_ad.dart';
-import 'package:checkgrid/game/dialogs/settings_dialog.dart';
+import 'package:checkgrid/game/dialogs/settings/settings_dialog.dart';
 import 'package:checkgrid/game/game_board.dart';
 import 'package:checkgrid/game/utilities/score.dart';
 import 'package:checkgrid/game/board.dart';
 import 'package:checkgrid/game/piece_selector.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 // Handle UI on the gamescreen
@@ -46,22 +45,7 @@ class _GameState extends State<Game> {
               height: 50,
               child: GestureDetector(
                 onTap: () {
-                  showSettingsDialog(
-                    context: context,
-                    onRestart: board.restartGame,
-                    onSettingsPage: () {
-                      context
-                          .pushNamed("/settings")
-                          .then((_) => board.update());
-                    },
-                    currentDifficulty: board.difficulty,
-                    onDifficultySelected: (newDifficulty) {
-                      setState(() {
-                        board.difficulty = newDifficulty;
-                        board.restartGame();
-                      });
-                    },
-                  );
+                  showSettingsDialog(board: board, context: context);
                 },
                 child: const Icon(Icons.settings),
               ),

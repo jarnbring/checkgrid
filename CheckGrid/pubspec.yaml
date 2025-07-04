@@ -63,6 +63,9 @@ flutter:
     - assets/images/
     - assets/images/animations/
     - assets/images/difficulties/
+    - assets/images/dialog_images/
     - assets/images/pieces/white/
     - assets/images/pieces/black/
     - assets/audio/
+    - assets/images/dialog_images/settings_icon.png
+    - assets/images/dialog_images/difficulty_icon.png

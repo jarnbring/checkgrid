@@ -1,6 +1,6 @@
 import 'dart:math';
 import 'package:checkgrid/animations/game_animations.dart';
-import 'package:checkgrid/game/dialogs/revive_dialog.dart';
+import 'package:checkgrid/game/dialogs/game_over/revive_dialog.dart';
 import 'package:checkgrid/game/utilities/cell.dart';
 import 'package:checkgrid/game/utilities/piecetype.dart';
 import 'package:checkgrid/game/utilities/difficulty.dart';

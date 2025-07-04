@@ -17,7 +17,9 @@ To do:
     Everything around git, README etc.
     Buy domain? @checkgrid.com
     iPhone activate Game Mode?
+
     Add a tutorial for first time users
+    
     Remake Widget methods to classes for performance increase
     Add logging for errors and crashes
     Fix vibrations on iOS

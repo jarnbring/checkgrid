@@ -1,5 +1,5 @@
 import 'package:checkgrid/game/board.dart';
-import 'package:checkgrid/game/dialogs/gameover_dialog.dart';
+import 'package:checkgrid/game/dialogs/game_over/gameover_dialog.dart';
 import 'package:checkgrid/game/game_ui.dart';
 import 'package:checkgrid/pages/statistics_page.dart';
 import 'package:checkgrid/pages/splash_screen.dart';

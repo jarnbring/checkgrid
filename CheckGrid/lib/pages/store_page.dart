@@ -94,7 +94,7 @@ class _StorePageState extends State<StorePage> {
                               ),
                               textAlign: TextAlign.center,
                               softWrap: true,
-                              maxLines: 2, // Tillåt radbrytning
+                              maxLines: 5,
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),

@@ -1,4 +1,4 @@
-import 'package:checkgrid/game/dialogs/revive_dialog.dart';
+import 'package:checkgrid/game/dialogs/game_over/revive_dialog.dart';
 import 'package:checkgrid/providers/general_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:checkgrid/game/board.dart';
