@@ -1,8 +1,10 @@
 import 'package:checkgrid/game/dialogs/settings/components/dialog_image.dart';
 import 'package:checkgrid/game/dialogs/settings/components/small_button.dart';
 import 'package:checkgrid/game/dialogs/settings/settings_dialog.dart';
+import 'package:checkgrid/providers/skin_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:checkgrid/game/board.dart';
+import 'package:provider/provider.dart';
 
 class SkinsPage extends StatefulWidget {
   final Board board;
@@ -23,25 +25,14 @@ class SkinsPage extends StatefulWidget {
 }
 
 class _SkinsPageState extends State<SkinsPage> {
-  // ----- Add new skins here! -----
-  final List<String> skins = [
-    'white',
-    'black',
-    'white',
-    'black',
-    'white',
-    'black',
-    'white',
-    'black',
-    'white',
-    'black',
-  ];
-
-  // Retrieve from GeneralProvider
-  int selectedIndex = 0; // Already selected skin
-
   @override
   Widget build(BuildContext context) {
+    final skinProvider = context.watch<SkinProvider>();
+    final skinKeys = skinProvider.allSkins.keys.toList();
+    final selectedSkinKey = skinProvider.selectedSkin;
+
+    skinProvider.unlockSkin('black');
+
     return Center(
       child: Stack(
         clipBehavior: Clip.none,
@@ -67,28 +58,31 @@ class _SkinsPageState extends State<SkinsPage> {
                     child: Text("Select Skin"),
                   ),
                   const SizedBox(height: 20),
-
                   Expanded(
                     child: GridView.builder(
                       padding: const EdgeInsets.all(20),
                       gridDelegate:
                           const SliverGridDelegateWithFixedCrossAxisCount(
                             crossAxisCount: 2,
-                            mainAxisSpacing: 20,
-                            crossAxisSpacing: 20,
+                            mainAxisSpacing: 30,
+                            crossAxisSpacing: 30,
                             childAspectRatio: 1,
                           ),
-                      itemCount: skins.length,
+                      itemCount: skinKeys.length,
                       itemBuilder: (context, index) {
-                        final skinName = skins[index];
-                        final isSelected = index == selectedIndex;
+                        final skinName = skinKeys[index];
+                        final isSelected = skinName == selectedSkinKey;
+                        final isUnlocked = skinProvider.unlockedSkins.contains(
+                          skinName,
+                        );
 
                         return GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              selectedIndex = index;
-                            });
-                          },
+                          onTap:
+                              isUnlocked
+                                  ? () {
+                                    skinProvider.selectSkin(skinName);
+                                  }
+                                  : null,
                           child: Container(
                             decoration: BoxDecoration(
                               border: Border.all(
@@ -99,9 +93,11 @@ class _SkinsPageState extends State<SkinsPage> {
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Center(
-                              // Image
-                              child: Image.asset(
-                                "assets/images/pieces/$skinName/${skinName}_knight.png",
+                              child: Opacity(
+                                opacity: isUnlocked ? 1.0 : 0.1,
+                                child: Image.asset(
+                                  "assets/images/pieces/$skinName/${skinName}_knight.png",
+                                ),
                               ),
                             ),
                           ),

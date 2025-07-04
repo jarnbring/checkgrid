@@ -8,8 +8,6 @@ class SettingsProvider with ChangeNotifier {
   bool _isVibrationOn = true;
   bool _isSoundOn = true;
   bool _notificationReminder = true;
-  bool _useGlossEffect = true;
-  bool _isDarkPieces = false;
   ThemeMode _themeMode = ThemeMode.system;
 
   bool get isBoldText => _isBoldText;
@@ -17,8 +15,6 @@ class SettingsProvider with ChangeNotifier {
   bool get isVibrationOn => _isVibrationOn;
   bool get isSoundOn => _isSoundOn;
   bool get notificationReminder => _notificationReminder;
-  bool get useGlossEffect => _useGlossEffect;
-  bool get isDarkPieces => _isDarkPieces;
   ThemeMode get themeMode => _themeMode;
 
   SettingsProvider() {
@@ -33,8 +29,6 @@ class SettingsProvider with ChangeNotifier {
       _isVibrationOn = prefs.getBool('isVibrationOn') ?? true;
       _isSoundOn = prefs.getBool('isSoundOn') ?? true;
       _notificationReminder = prefs.getBool('notificationReminder') ?? true;
-      _useGlossEffect = prefs.getBool('useGlossEffect') ?? true;
-      _isDarkPieces = prefs.getBool('isDarkPieces') ?? false;
       _themeMode = _isDarkMode ? ThemeMode.dark : ThemeMode.light;
 
       notifyListeners();
@@ -51,8 +45,6 @@ class SettingsProvider with ChangeNotifier {
       await prefs.setBool('isVibrationOn', _isVibrationOn);
       await prefs.setBool('isSoundOn', _isSoundOn);
       await prefs.setBool('notificationReminder', _notificationReminder);
-      await prefs.setBool('useGlossEffect', _useGlossEffect);
-      await prefs.setBool('isDarkPieces', _isDarkPieces);
     } catch (e) {
       debugPrint('Error saving settings: $e');
     }
@@ -106,18 +98,6 @@ class SettingsProvider with ChangeNotifier {
 
   void setNotificationReminder(bool value) {
     _notificationReminder = value;
-    _saveSettings();
-    notifyListeners();
-  }
-
-  void toggleGlossEffect() {
-    _useGlossEffect = !_useGlossEffect;
-    _saveSettings();
-    notifyListeners();
-  }
-
-  void setDarkPieces(bool value) {
-    _isDarkPieces = value;
     _saveSettings();
     notifyListeners();
   }

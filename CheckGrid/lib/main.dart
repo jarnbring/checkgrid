@@ -3,6 +3,7 @@ import 'package:checkgrid/game/utilities/cell.dart';
 import 'package:checkgrid/game/utilities/piecetype.dart';
 import 'package:checkgrid/providers/ad_provider.dart';
 import 'package:checkgrid/providers/board_provider.dart';
+import 'package:checkgrid/providers/skin_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:checkgrid/providers/general_provider.dart';
@@ -52,6 +53,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => GeneralProvider()),
         ChangeNotifierProvider(create: (_) => AdProvider()),
         ChangeNotifierProvider(create: (_) => Board()),
+        ChangeNotifierProvider(create: (_) => SkinProvider()),
 
         // Use value to avoid re-creating the provider
         ChangeNotifierProvider.value(value: settingsProvider),

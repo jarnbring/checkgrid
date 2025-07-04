@@ -47,15 +47,9 @@ class SettingsPageState extends State<SettingsPage> {
           children: [
             GroupSettingsWidget(
               header: "General",
-              children: [
-                _buildDarkmode(),
-                _buildDarkPieces(),
-                _buildGlossEffect(),
-                _buildVibration(),
-              ],
+              children: [_buildDarkmode(), _buildVibration(), _buildBoldText()],
             ),
             GroupSettingsWidget(header: "Sound", children: [_buildSound()]),
-            GroupSettingsWidget(header: "Text", children: [_buildBoldText()]),
             GroupSettingsWidget(
               header: "Notifications",
               children: [_buildNotificationReminder()],
@@ -121,64 +115,6 @@ class SettingsPageState extends State<SettingsPage> {
       activeTrackColor: Colors.lightBlue,
       onChanged: (bool value) {
         context.read<SettingsProvider>().setDarkMode(value);
-      },
-    );
-  }
-
-  Widget _buildDarkPieces() {
-    return SwitchListTile(
-      title: const Text('Dark pieces'),
-      secondary: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 300),
-        transitionBuilder:
-            (child, animation) => FadeTransition(
-              opacity: animation,
-              child: ScaleTransition(scale: animation, child: child),
-            ),
-        child:
-            context.watch<SettingsProvider>().isDarkPieces
-                ? IconWidget(key: ValueKey('dark'), icon: Icons.circle)
-                : IconWidget(
-                  key: ValueKey('light'),
-                  icon: Icons.circle_outlined,
-                ),
-      ),
-      value: context.watch<SettingsProvider>().isDarkPieces,
-      activeTrackColor: Colors.lightBlue,
-      onChanged: (bool value) {
-        context.read<SettingsProvider>().setDarkPieces(value);
-      },
-    );
-  }
-
-  Widget _buildGlossEffect() {
-    return SwitchListTile(
-      title: const Text('Gloss effect'),
-      secondary: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 300),
-        transitionBuilder:
-            (child, animation) => FadeTransition(
-              opacity: animation,
-              child: ScaleTransition(scale: animation, child: child),
-            ),
-        child:
-            Provider.of<SettingsProvider>(context).useGlossEffect
-                ? IconWidget(
-                  key: ValueKey('gloss_on'),
-                  icon: Icons.aspect_ratio,
-                )
-                : IconWidget(
-                  key: ValueKey('gloss_off'),
-                  icon: Icons.fit_screen_sharp,
-                ),
-      ),
-      value: Provider.of<SettingsProvider>(context).useGlossEffect,
-      activeTrackColor: Colors.lightBlue,
-      onChanged: (bool value) {
-        Provider.of<SettingsProvider>(
-          context,
-          listen: false,
-        ).toggleGlossEffect();
       },
     );
   }

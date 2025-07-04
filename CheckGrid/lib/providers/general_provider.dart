@@ -1,7 +1,6 @@
 import 'package:checkgrid/game/utilities/piecetype.dart';
-import 'package:checkgrid/providers/settings_provider.dart';
+import 'package:checkgrid/providers/skin_provider.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 class GeneralProvider with ChangeNotifier {
@@ -28,11 +27,9 @@ class GeneralProvider with ChangeNotifier {
     BoxFit? boxFit,
     BuildContext context,
   ) {
-    final isDarkPieces = context.watch<SettingsProvider>().isDarkPieces;
+    final skinName = context.watch<SkinProvider>().selectedSkin;
     return Image.asset(
-      isDarkPieces
-          ? 'assets/images/pieces/black/black_${pieceType.name}.png'
-          : 'assets/images/pieces/white/white_${pieceType.name}.png',
+      'assets/images/pieces/$skinName/${skinName}_${pieceType.name}.png',
       width: size,
       height: size,
       fit: boxFit,
@@ -41,23 +38,7 @@ class GeneralProvider with ChangeNotifier {
 
   // ---------- STORE ----------
 
-  String getUserCurrencyCode(BuildContext context) {
-    final locale = Localizations.localeOf(context);
-    // Mappa landskod till valutakod (enkel mappning, utöka vid behov)
-    final currencyMap = {
-      'US': 'USD',
-      'GB': 'GBP',
-      'SE': 'SEK',
-      'EU': 'EUR',
-      // Lägg till fler
-    };
-    return currencyMap[locale.countryCode] ?? 'USD'; // Fallback till USD
-  }
-
-  String formatPrice(double price, String currencyCode) {
-    final formatter = NumberFormat.currency(locale: currencyCode, symbol: '');
-    return formatter.format(price);
-  }
+  // Currency / format
 
   // ---------- ADS ----------
 

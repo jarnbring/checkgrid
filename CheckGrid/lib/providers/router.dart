@@ -8,7 +8,7 @@ import 'package:checkgrid/providers/wrapper.dart';
 import 'package:checkgrid/settings/privacy_policy.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:go_router/go_router.dart';
-import 'package:checkgrid/pages/store_page.dart';
+import 'package:checkgrid/pages/store/store_page.dart';
 import 'package:checkgrid/pages/feedback_page.dart';
 import 'package:checkgrid/pages/settings_page.dart';
 

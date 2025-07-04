@@ -17,7 +17,7 @@ class DialogImageWidget extends StatelessWidget {
       case DialogPage.settings:
         return 'assets/images/dialog_images/settings_icon.png';
       case DialogPage.difficulty:
-        return 'assets/images/dialog_images/difficulty.png';
+        return 'assets/images/dialog_images/difficulty_icon.png';
       case DialogPage.skins:
         return 'assets/images/dialog_images/skins_icon.png';
     }
@@ -32,6 +32,7 @@ class DialogImageWidget extends StatelessWidget {
         _getImagePathForPage(currentPage),
         width: iconSize,
         height: iconSize,
+        fit: BoxFit.contain,
       ),
     );
   }

@@ -2,7 +2,7 @@ import 'package:checkgrid/components/background.dart';
 import 'package:checkgrid/components/custom_navigation_bar.dart';
 import 'package:checkgrid/game/game_ui.dart';
 import 'package:checkgrid/pages/statistics_page.dart';
-import 'package:checkgrid/pages/store_page.dart';
+import 'package:checkgrid/pages/store/store_page.dart';
 import 'package:flutter/material.dart';
 
 class HomeWrapper extends StatefulWidget {

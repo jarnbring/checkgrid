@@ -1,6 +1,7 @@
 import 'package:checkgrid/game/utilities/cell.dart';
 import 'package:checkgrid/providers/general_provider.dart';
 import 'package:checkgrid/providers/settings_provider.dart';
+import 'package:checkgrid/providers/skin_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:checkgrid/game/board.dart';
 import 'package:checkgrid/game/utilities/piecetype.dart';
@@ -58,7 +59,7 @@ class BoardCell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final generalProvider = context.read<GeneralProvider>();
-    final settingsProvider = context.watch<SettingsProvider>();
+    final skinProvider = context.watch<SkinProvider>();
     final board = context.read<Board>();
 
     return Consumer<Cell>(
@@ -93,7 +94,7 @@ class BoardCell extends StatelessWidget {
                 children: [
                   if (cell.piece != null)
                     Image.asset(
-                      'assets/images/pieces/${settingsProvider.isDarkPieces ? 'black' : 'white'}/${settingsProvider.isDarkPieces ? 'black' : 'white'}_${cell.piece!.name}.png',
+                      'assets/images/pieces/${skinProvider.selectedSkin}/${skinProvider.selectedSkin}_${cell.piece!.name}.png',
                       width: generalProvider.iconSize,
                       height: generalProvider.iconSize,
                     ),
