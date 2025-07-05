@@ -2,14 +2,12 @@ import 'package:checkgrid/animations/border_beam.dart';
 import 'package:checkgrid/components/outlined_text.dart';
 import 'package:checkgrid/pages/store/components/new.dart';
 import 'package:checkgrid/providers/general_provider.dart';
+import 'package:checkgrid/providers/skin_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class SkinItem extends StatefulWidget {
-  final String name;
-  final String description;
-  final String imageName;
-  final double price;
+  final Skin skin;
   final bool unlocked;
   final bool isNew;
   final String? unlockText;
@@ -17,10 +15,7 @@ class SkinItem extends StatefulWidget {
 
   const SkinItem({
     super.key,
-    required this.name,
-    required this.description,
-    required this.imageName,
-    required this.price,
+    required this.skin,
     required this.unlocked,
     this.isNew = false,
     this.unlockText,
@@ -48,7 +43,7 @@ class _SkinItemState extends State<SkinItem> {
             borderRadius: BorderRadius.circular(16),
             borderWidth: 2,
             child: Container(
-              width: generalProvider.screenWidth(context),
+              width: generalProvider.screenWidth(context) / 3,
               decoration: BoxDecoration(
                 color:
                     widget.unlocked ? Colors.blueAccent : Colors.grey.shade400,
@@ -73,7 +68,7 @@ class _SkinItemState extends State<SkinItem> {
                           fit: BoxFit.cover,
                         ),
                         const SizedBox(height: 8),
-                        OutlinedText(text: widget.price.toString()),
+                        OutlinedText(text: widget.skin.name),
 
                         if (!widget.unlocked && widget.unlockText != null)
                           Padding(
@@ -91,31 +86,6 @@ class _SkinItemState extends State<SkinItem> {
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                      ],
-                    ),
-                  ),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          widget.name,
-                          style: TextStyle(
-                            color:
-                                widget.unlocked ? Colors.white : Colors.black38,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 20,
-                            fontFamily: 'Antonio',
-                          ),
-                        ),
-                        Text(
-                          widget.description,
-                          style: TextStyle(
-                            color:
-                                widget.unlocked ? Colors.white : Colors.black38,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
                       ],
                     ),
                   ),

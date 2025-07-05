@@ -27,7 +27,7 @@ class GeneralProvider with ChangeNotifier {
     BoxFit? boxFit,
     BuildContext context,
   ) {
-    final skinName = context.watch<SkinProvider>().selectedSkin;
+    final skinName = context.watch<SkinProvider>().selectedSkin.name;
     return Image.asset(
       'assets/images/pieces/$skinName/${skinName}_${pieceType.name}.png',
       width: size,

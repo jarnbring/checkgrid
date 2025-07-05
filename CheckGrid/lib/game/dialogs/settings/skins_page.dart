@@ -28,10 +28,10 @@ class _SkinsPageState extends State<SkinsPage> {
   @override
   Widget build(BuildContext context) {
     final skinProvider = context.watch<SkinProvider>();
-    final skinKeys = skinProvider.allSkins.keys.toList();
-    final selectedSkinKey = skinProvider.selectedSkin;
+    final skins = skinProvider.allSkins;
+    final selectedSkin = skinProvider.selectedSkin;
 
-    skinProvider.unlockSkin('black');
+    skinProvider.unlockSkin(Skin.black);
 
     return Center(
       child: Stack(
@@ -68,19 +68,19 @@ class _SkinsPageState extends State<SkinsPage> {
                             crossAxisSpacing: 30,
                             childAspectRatio: 1,
                           ),
-                      itemCount: skinKeys.length,
+                      itemCount: skins.length,
                       itemBuilder: (context, index) {
-                        final skinName = skinKeys[index];
-                        final isSelected = skinName == selectedSkinKey;
+                        final skin = skins[index];
+                        final isSelected = skin == selectedSkin;
                         final isUnlocked = skinProvider.unlockedSkins.contains(
-                          skinName,
+                          skin,
                         );
 
                         return GestureDetector(
                           onTap:
                               isUnlocked
                                   ? () {
-                                    skinProvider.selectSkin(skinName);
+                                    skinProvider.selectSkin(skin);
                                   }
                                   : null,
                           child: Container(
@@ -96,7 +96,7 @@ class _SkinsPageState extends State<SkinsPage> {
                               child: Opacity(
                                 opacity: isUnlocked ? 1.0 : 0.1,
                                 child: Image.asset(
-                                  "assets/images/pieces/$skinName/${skinName}_knight.png",
+                                  "assets/images/pieces/${skin.name}/${skin.name}_knight.png",
                                 ),
                               ),
                             ),

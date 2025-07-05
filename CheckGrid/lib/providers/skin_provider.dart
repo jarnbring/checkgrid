@@ -1,25 +1,40 @@
 import 'package:flutter/material.dart';
 
+enum Skin {
+  white(0, 0),
+  black(1, 4.99),
+  blue(2, 9.99);
+
+  final int id;
+  final double price;
+  // final String description
+
+  const Skin(this.id, this.price);
+
+  String get name => toString().split('.').last;
+
+  double get getPrice => price;
+}
+
 class SkinProvider with ChangeNotifier {
-  final Map<String, int> allSkins = {'white': 0, 'black': 1, 'blue': 2};
+  final List<Skin> allSkins = Skin.values;
 
-  String selectedSkin = 'white';
+  Skin selectedSkin = Skin.white;
 
-  List<String> unlockedSkins = ['white'];
+  List<Skin> unlockedSkins = [Skin.white];
 
-  List<MapEntry<String, int>> get unlockedSkinsEntries =>
-      allSkins.entries.where((e) => unlockedSkins.contains(e.key)).toList();
+  List<Skin> get unlockedSkinsList => unlockedSkins;
 
-  void selectSkin(String skinKey) {
-    if (allSkins.containsKey(skinKey) && unlockedSkins.contains(skinKey)) {
-      selectedSkin = skinKey;
+  void selectSkin(Skin skin) {
+    if (unlockedSkins.contains(skin)) {
+      selectedSkin = skin;
       notifyListeners();
     }
   }
 
-  void unlockSkin(String skinName) {
-    if (!unlockedSkins.contains(skinName)) {
-      unlockedSkins = List.from(unlockedSkins)..add(skinName);
+  void unlockSkin(Skin skin) {
+    if (!unlockedSkins.contains(skin)) {
+      unlockedSkins = List.from(unlockedSkins)..add(skin);
       notifyListeners();
     }
   }

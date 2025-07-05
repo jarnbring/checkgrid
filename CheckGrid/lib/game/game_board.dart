@@ -94,10 +94,11 @@ class BoardCell extends StatelessWidget {
                 children: [
                   if (cell.piece != null)
                     Image.asset(
-                      'assets/images/pieces/${skinProvider.selectedSkin}/${skinProvider.selectedSkin}_${cell.piece!.name}.png',
+                      'assets/images/pieces/${skinProvider.selectedSkin.name}/${skinProvider.selectedSkin.name}_${cell.piece!.name}.png',
                       width: generalProvider.iconSize,
                       height: generalProvider.iconSize,
                     ),
+
                   if (cell.isPreview || cell.isTargeted)
                     Opacity(
                       opacity: cell.isTargeted ? 1.0 : 0.5,

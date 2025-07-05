@@ -18,9 +18,7 @@ class _StorePageState extends State<StorePage> {
   @override
   Widget build(BuildContext context) {
     final skinProvider = context.watch<SkinProvider>();
-
     final double screenWidth = MediaQuery.of(context).size.width;
-
     int rewardedAdsWatched = 19;
 
     return Scaffold(
@@ -53,57 +51,49 @@ class _StorePageState extends State<StorePage> {
                           children: [
                             const SizedBox(height: 1),
 
-                            // Add new items to the shop here:
                             SkinItem(
-                              name: "White",
-                              imageName: 'white',
-                              description: 'Unlock all pieces in white',
-                              price: 5.0,
-                              unlocked: skinProvider.unlockedSkins.contains(
-                                'white',
-                              ),
-                              unlockText: "Reach 50+ highscore",
+                              skin: Skin.white,
                               isNew: true,
                               onTap: () {
                                 if (!skinProvider.unlockedSkins.contains(
-                                  'white',
+                                  Skin.white,
                                 )) {
-                                  skinProvider.unlockSkin('white');
+                                  skinProvider.unlockSkin(Skin.white);
                                 }
                               },
                             ),
                             SkinItem(
-                              name: "Blacked",
-                              imageName: 'black',
+                              name: "Black",
+                              imageName: Skin.black.name,
                               description: 'Unlock all pieces in black',
                               price: 5.0,
                               unlocked: skinProvider.unlockedSkins.contains(
-                                'blacked',
+                                Skin.black,
                               ),
                               isNew: true,
                               onTap: () {
                                 if (!skinProvider.unlockedSkins.contains(
-                                  'blacked',
+                                  Skin.black,
                                 )) {
-                                  skinProvider.unlockSkin('blacked');
+                                  skinProvider.unlockSkin(Skin.black);
                                 }
                               },
                             ),
                             SkinItem(
-                              name: "Rainbow",
-                              imageName: 'blue',
+                              name: "Blue",
+                              imageName: Skin.blue.name,
                               description: 'Unlock all pieces in blue colors',
                               price: 10.0,
                               unlocked: skinProvider.unlockedSkins.contains(
-                                'blue',
+                                Skin.blue,
                               ),
                               unlockText: "Reach 100+ highscore",
                               isNew: true,
                               onTap: () {
                                 if (!skinProvider.unlockedSkins.contains(
-                                  'blue',
+                                  Skin.blue,
                                 )) {
-                                  skinProvider.unlockSkin('blue');
+                                  skinProvider.unlockSkin(Skin.blue);
                                 }
                               },
                             ),
