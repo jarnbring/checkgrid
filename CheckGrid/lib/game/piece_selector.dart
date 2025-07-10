@@ -1,4 +1,5 @@
 import 'package:checkgrid/game/dialogs/game_over/revive_dialog.dart';
+import 'package:checkgrid/pages/tutorial_page.dart';
 import 'package:checkgrid/providers/general_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:checkgrid/game/board.dart';
@@ -167,6 +168,13 @@ class _PieceSelectorState extends State<PieceSelector> {
           showReviveDialog(context, board);
         } else if (board.isGameOver) {
           context.go('/gameover', extra: board);
+        }
+
+        final tutorial = context.read<TutorialController>();
+        if (tutorial.tutorialStep == 4) {
+          tutorial.nextStep();
+          board.selectedPieces = [];
+          return;
         }
 
         board.updateHighscore(context);

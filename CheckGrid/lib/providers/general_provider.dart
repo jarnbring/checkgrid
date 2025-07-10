@@ -2,6 +2,7 @@ import 'package:checkgrid/game/utilities/piecetype.dart';
 import 'package:checkgrid/providers/skin_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class GeneralProvider with ChangeNotifier {
   double _bannerAdHeight = 90.0;
@@ -18,6 +19,9 @@ class GeneralProvider with ChangeNotifier {
 
   // Ad constants
   final int countdownTime = 5;
+
+  // User constants
+  static bool isFirstTimeUser = false;
 
   // ---------- METHODS ----------
 
@@ -63,5 +67,17 @@ class GeneralProvider with ChangeNotifier {
 
   bool isTablet(BuildContext context) {
     return MediaQuery.of(context).size.shortestSide >= 600;
+  }
+
+  // ---------- USER ----------
+
+  static Future<bool> isFirstTime() async {
+    final prefs = await SharedPreferences.getInstance();
+    final firstTime = prefs.getBool('first_time') ?? true;
+    if (firstTime) {
+      isFirstTimeUser = true;
+      await prefs.setBool('first_time', false);
+    }
+    return firstTime;
   }
 }

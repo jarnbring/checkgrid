@@ -2,31 +2,37 @@
 
 To do:
 
-    Settings, sound, notifications ------ Testa ifall vibrations och notifications funkar! ------
-    Highscore desgin change?  ------------------------------
-    Responsive UI
-    Animations
-    Effekter för combo? det räknar ut tex 180 * combo oså räknar den upp!
-    Feedback, backend? 
-    Privacy policy, terms of service
-    In app purchase
-    Set everything up for iOS and Android, App store, Google play store
-    Code cleanup
-    App Size
-    Code review
-    Everything around git, README etc.
-    Buy domain? @checkgrid.com
-    iPhone activate Game Mode?
-
     Add a tutorial for first time users
-    
-    Remake Widget methods to classes for performance increase
-    Add logging for errors and crashes
     Fix vibrations on iOS
+    Sound
+    Notifications
+    Remake Widget methods to classes for performance increase
+    Responsive UI
+    iPhone activate Game Mode?
+    App Size
+    Add logging for errors and crashes
+    Code cleanup
+    Everything around git, README etc.
+    Privacy policy, terms of service
+    Set everything up for iOS and Android, App store, Google play store
+    Buy domain? @checkgrid.com
+    Code review
 
-    Store
+    Animations:
+    Highscore
+    Place piece
+    Navigationbar
+
+    **Future ideas:**
+    // Requires backend
+
+    Feedback system
+
+    *Store*
     Watch ads to unlock skins
     Get big highscore to unlock skins
     Unlock different backgrounds
     Notifications for new stuff in store
+    In app purchase
+
 

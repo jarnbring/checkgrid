@@ -1,13 +1,14 @@
 // ignore_for_file: unused_element
 
-import 'package:checkgrid/ads/banner_ad.dart';
 import 'package:checkgrid/game/dialogs/settings/settings_dialog.dart';
 import 'package:checkgrid/game/game_board.dart';
 import 'package:checkgrid/game/utilities/score.dart';
 import 'package:checkgrid/game/board.dart';
 import 'package:checkgrid/game/piece_selector.dart';
+import 'package:checkgrid/providers/general_provider.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 // Handle UI on the gamescreen
@@ -60,19 +61,19 @@ class _GameState extends State<Game> {
               Consumer<Board>(builder: (context, board, _) => GameBoard()),
               const SizedBox(height: 20),
               Consumer<Board>(builder: (context, board, _) => PieceSelector()),
-              // const SizedBox(height: 20),
-              // Row(
-              //   children: [
-              //     const Spacer(),
-              //     _buildReviveButton() ?? const SizedBox(),
-              //     _buildGameOverButton() ?? const SizedBox(),
+              const SizedBox(height: 20),
+              Row(
+                children: [
+                  const Spacer(),
+                  _buildTutorialButton() ?? const SizedBox(),
+                  _buildReviveButton() ?? const SizedBox(),
+                  _buildGameOverButton() ?? const SizedBox(),
 
-              //     const Spacer(),
-              //   ],
-              // ),
+                  const Spacer(),
+                ],
+              ),
               const Spacer(),
-              const BannerAdWidget(),
-              const SizedBox(height: 51),
+              //const BannerAdWidget(),
             ],
           ),
         ),
@@ -80,7 +81,39 @@ class _GameState extends State<Game> {
     );
   }
 
-  // For debug
+  // For debug and testing
+  Widget? _buildTutorialButton() {
+    if (kDebugMode) {
+      return Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: SizedBox(
+          height: 36,
+          child: TextButton(
+            style: TextButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+              minimumSize: const Size(80, 36),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+            ),
+            onPressed:
+                () => {
+                  GeneralProvider.isFirstTimeUser = true,
+                  context.pushNamed('/tutorial'),
+                },
+            child: const Text(
+              'Tutorial',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+            ),
+          ),
+        ),
+      );
+    }
+    return null;
+  }
+
   Widget? _buildReviveButton() {
     if (kDebugMode) {
       return Padding(

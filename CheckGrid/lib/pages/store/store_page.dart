@@ -1,3 +1,4 @@
+import 'package:checkgrid/components/outlined_text.dart';
 import 'package:checkgrid/pages/store/components/progress_bar.dart';
 import 'package:checkgrid/pages/store/components/skin_item.dart';
 import 'package:checkgrid/pages/store/components/standard_button.dart';
@@ -24,109 +25,81 @@ class _StorePageState extends State<StorePage> {
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: SafeArea(
-        child: CustomScrollView(
-          slivers: [
-            const SliverAppBar(
-              backgroundColor: Colors.transparent,
-              elevation: 0,
-              floating: true,
-              snap: true,
-              title: Text("Store", style: TextStyle(fontSize: 22)),
-              centerTitle: true,
-            ),
-            SliverToBoxAdapter(
-              child: Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 600),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 20,
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                OutlinedText(text: "Store", fontSize: 34),
+                const SizedBox(height: 60),
+                Wrap(
+                  spacing: 60,
+                  runSpacing: 60,
+                  children: [
+                    SkinItem(
+                      skin: Skin.white,
+                      isNew: false,
+                      isUnlocked: false, // Fix here!
+                      onTap: () {
+                        // If is owned, show "Owned" text
+                        // If equipped
+                        if (!skinProvider.unlockedSkins.contains(Skin.white)) {
+                          skinProvider.unlockSkin(Skin.white);
+                        }
+                      },
                     ),
-                    child: Column(
-                      children: [
-                        Wrap(
-                          spacing: 40,
-                          runSpacing: 40,
-                          children: [
-                            const SizedBox(height: 1),
-
-                            SkinItem(
-                              skin: Skin.white,
-                              isNew: true,
-                              onTap: () {
-                                if (!skinProvider.unlockedSkins.contains(
-                                  Skin.white,
-                                )) {
-                                  skinProvider.unlockSkin(Skin.white);
-                                }
-                              },
-                            ),
-                            SkinItem(
-                              name: "Black",
-                              imageName: Skin.black.name,
-                              description: 'Unlock all pieces in black',
-                              price: 5.0,
-                              unlocked: skinProvider.unlockedSkins.contains(
-                                Skin.black,
-                              ),
-                              isNew: true,
-                              onTap: () {
-                                if (!skinProvider.unlockedSkins.contains(
-                                  Skin.black,
-                                )) {
-                                  skinProvider.unlockSkin(Skin.black);
-                                }
-                              },
-                            ),
-                            SkinItem(
-                              name: "Blue",
-                              imageName: Skin.blue.name,
-                              description: 'Unlock all pieces in blue colors',
-                              price: 10.0,
-                              unlocked: skinProvider.unlockedSkins.contains(
-                                Skin.blue,
-                              ),
-                              unlockText: "Reach 100+ highscore",
-                              isNew: true,
-                              onTap: () {
-                                if (!skinProvider.unlockedSkins.contains(
-                                  Skin.blue,
-                                )) {
-                                  skinProvider.unlockSkin(Skin.blue);
-                                }
-                              },
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 24),
-                        AdProgressBar(
-                          adsRequired: adsRequiredForSkin,
-                          rewardedAdsWatched: rewardedAdsWatched,
-                        ),
-                        const SizedBox(height: 24),
-                        Wrap(
-                          spacing: 10,
-                          runSpacing: 10,
-                          alignment: WrapAlignment.center,
-                          children: [
-                            StandardButton(
-                              title: "Remove Ads",
-                              price: 9.99,
-                              icon: Icons.block,
-                              screenWidth: screenWidth,
-                              discountText: "Enjoy ad-free gaming!",
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 500),
-                      ],
+                    SkinItem(
+                      skin: Skin.black,
+                      isUnlocked: skinProvider.unlockedSkins.contains(
+                        Skin.black,
+                      ),
+                      isNew: true,
+                      onTap: () {
+                        if (!skinProvider.unlockedSkins.contains(Skin.black)) {
+                          skinProvider.unlockSkin(Skin.black);
+                        }
+                      },
                     ),
-                  ),
+                    SkinItem(
+                      skin: Skin.blue,
+                      isUnlocked: skinProvider.unlockedSkins.contains(
+                        Skin.blue,
+                      ),
+                      isNew: true,
+                      onTap: () {
+                        // Buy skin!
+                        if (!skinProvider.unlockedSkins.contains(Skin.blue)) {
+                          skinProvider.unlockSkin(Skin.blue);
+                        }
+                      },
+                    ),
+                  ],
                 ),
-              ),
+                const SizedBox(height: 24),
+                AdProgressBar(
+                  adsRequired: adsRequiredForSkin,
+                  rewardedAdsWatched: rewardedAdsWatched,
+                ),
+                const SizedBox(height: 24),
+                Wrap(
+                  spacing: 10,
+                  runSpacing: 10,
+                  alignment: WrapAlignment.center,
+                  children: [
+                    StoreButton(
+                      title: "Remove Ads",
+                      price: 9.99,
+                      icon: Icons.block,
+                      screenWidth: screenWidth,
+                      discountText: "Enjoy ad-free gaming!",
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 500),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );

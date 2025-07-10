@@ -1,6 +1,7 @@
 import 'package:checkgrid/game/board.dart';
 import 'package:checkgrid/game/utilities/cell.dart';
 import 'package:checkgrid/game/utilities/piecetype.dart';
+import 'package:checkgrid/pages/tutorial_page.dart';
 import 'package:checkgrid/providers/ad_provider.dart';
 import 'package:checkgrid/providers/board_provider.dart';
 import 'package:checkgrid/providers/skin_provider.dart';
@@ -9,7 +10,7 @@ import 'package:flutter/services.dart';
 import 'package:checkgrid/providers/general_provider.dart';
 import 'package:checkgrid/providers/settings_provider.dart';
 import 'package:checkgrid/providers/router.dart';
-import 'package:checkgrid/settings/noti_service.dart';
+import 'package:checkgrid/pages/settings/noti_service.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
@@ -50,6 +51,7 @@ void main() async {
       providers: [
         // Initialize providers
         ChangeNotifierProvider.value(value: boardProvider),
+        ChangeNotifierProvider(create: (_) => TutorialController()),
         ChangeNotifierProvider(create: (_) => GeneralProvider()),
         ChangeNotifierProvider(create: (_) => AdProvider()),
         ChangeNotifierProvider(create: (_) => Board()),

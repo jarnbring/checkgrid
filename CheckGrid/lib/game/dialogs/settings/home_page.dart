@@ -54,7 +54,11 @@ class HomePage extends StatelessWidget {
                   OptionTile(
                     title: "Restart game",
                     icon: Icons.restart_alt_rounded,
-                    onTap: () => board.restartGame(),
+                    onTap:
+                        () => {
+                          board.restartGame(context),
+                          Navigator.pop(context),
+                        },
                   ),
                   OptionTile(
                     title: "Difficulty",
@@ -63,7 +67,7 @@ class HomePage extends StatelessWidget {
                   ),
                   OptionTile(
                     title: "Skins",
-                    icon: FontAwesomeIcons.chessKnight,
+                    icon: FontAwesomeIcons.chessQueen,
                     onTap: () => onNavigate(DialogPage.skins),
                   ),
                   OptionTile(
@@ -74,7 +78,7 @@ class HomePage extends StatelessWidget {
                     },
                   ),
                   const Spacer(),
-                  DialogButton(
+                  DialogBackButton(
                     text: "Back",
                     onPressed: () => Navigator.pop(context),
                   ),

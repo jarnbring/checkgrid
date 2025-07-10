@@ -192,7 +192,7 @@ class Board extends ChangeNotifier {
   // Clears all placed pieces, selected pieces, targeted cells, and resets flags.
   // Spawns new initial active cells and selects new pieces for the player.
   // Notifies listeners so the UI can update.
-  void restartGame() {
+  void restartGame(BuildContext context) {
     clearBoard();
     placedPieces.clear();
     selectedPieces.clear();
@@ -205,6 +205,7 @@ class Board extends ChangeNotifier {
     clearPiecesOnBoard();
     spawnInitialActiveCells();
     setNewSelectedPieces();
+    saveBoard(context);
 
     notifyListeners();
   }

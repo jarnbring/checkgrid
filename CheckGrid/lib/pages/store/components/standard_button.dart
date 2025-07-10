@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-class StandardButton extends StatelessWidget {
+class StoreButton extends StatelessWidget {
   final String title;
   final double price;
   final IconData icon;
@@ -8,7 +8,7 @@ class StandardButton extends StatelessWidget {
   final bool isHighlighted = false;
   final String? discountText;
 
-  const StandardButton({
+  const StoreButton({
     super.key,
     required this.title,
     required this.price,

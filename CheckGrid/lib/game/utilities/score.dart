@@ -1,3 +1,4 @@
+import 'package:checkgrid/components/outlined_text.dart';
 import 'package:checkgrid/game/board.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:intl/intl.dart';
@@ -10,11 +11,12 @@ class Score extends StatelessWidget {
   Widget build(BuildContext context) {
     final board = context.watch<Board>();
 
-    return Text(
-      board.currentScore >= BigInt.from(9223372036854775807)
-          ? "∞"
-          : NumberFormat("#,###").format(board.currentScore.toInt()),
-      style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
+    return OutlinedText(
+      text:
+          board.currentScore >= BigInt.from(9223372036854775807)
+              ? "∞"
+              : NumberFormat("#,###").format(board.currentScore.toInt()),
+      fontSize: 32,
     );
   }
 }

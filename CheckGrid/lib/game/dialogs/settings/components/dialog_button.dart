@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 
-class DialogButton extends StatelessWidget {
+class DialogBackButton extends StatelessWidget {
   final String text;
   final VoidCallback onPressed;
 
-  const DialogButton({super.key, required this.text, required this.onPressed});
+  const DialogBackButton({
+    super.key,
+    required this.text,
+    required this.onPressed,
+  });
 
   @override
   Widget build(BuildContext context) {

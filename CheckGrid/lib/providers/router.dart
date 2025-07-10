@@ -1,33 +1,22 @@
 import 'package:checkgrid/game/board.dart';
 import 'package:checkgrid/game/dialogs/game_over/gameover_dialog.dart';
 import 'package:checkgrid/game/game_ui.dart';
+import 'package:checkgrid/pages/settings/socials.dart';
 import 'package:checkgrid/pages/statistics_page.dart';
 import 'package:checkgrid/pages/splash_screen.dart';
 import 'package:checkgrid/pages/menu_page.dart';
+import 'package:checkgrid/pages/tutorial_page.dart';
 import 'package:checkgrid/providers/wrapper.dart';
-import 'package:checkgrid/settings/privacy_policy.dart';
+import 'package:checkgrid/pages/settings/privacy_policy.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:go_router/go_router.dart';
 import 'package:checkgrid/pages/store/store_page.dart';
-import 'package:checkgrid/pages/feedback_page.dart';
-import 'package:checkgrid/pages/settings_page.dart';
+import 'package:checkgrid/pages/settings/feedback_page.dart';
+import 'package:checkgrid/pages/settings/settings_page.dart';
 
 final GoRouter router = GoRouter(
   initialLocation: "/splash",
   routes: [
-    GoRoute(
-      name: '/home',
-      path: '/home',
-      builder: (context, state) => const HomeWrapper(),
-    ),
-
-    GoRoute(
-      name: '/menu',
-      path: '/menu',
-      pageBuilder:
-          (context, state) =>
-              CupertinoPage(key: state.pageKey, child: GameMenu()),
-    ),
     GoRoute(
       name: '/splash',
       path: '/splash',
@@ -44,6 +33,24 @@ final GoRouter router = GoRouter(
               return FadeTransition(opacity: animation, child: child);
             },
           ),
+    ),
+    GoRoute(
+      name: '/tutorial',
+      path: '/tutorial',
+      builder: (context, state) => const TutorialPage(),
+    ),
+    GoRoute(
+      name: '/home',
+      path: '/home',
+      builder: (context, state) => const HomeWrapper(),
+    ),
+    // Not in use
+    GoRoute(
+      name: '/menu',
+      path: '/menu',
+      pageBuilder:
+          (context, state) =>
+              CupertinoPage(key: state.pageKey, child: GameMenu()),
     ),
     GoRoute(
       name: '/play',
@@ -87,6 +94,13 @@ final GoRouter router = GoRouter(
       pageBuilder:
           (context, state) =>
               CupertinoPage(key: state.pageKey, child: FeedbackPage()),
+    ),
+    GoRoute(
+      name: '/socials',
+      path: '/socials',
+      pageBuilder:
+          (context, state) =>
+              CupertinoPage(key: state.pageKey, child: SocialsPage()),
     ),
     GoRoute(
       name: '/privacy_policy',

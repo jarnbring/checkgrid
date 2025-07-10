@@ -50,7 +50,7 @@ class _GameOverPageState extends State<GameOverPage> {
                 _button(
                   "Restart",
                   () {
-                    widget.board.restartGame();
+                    widget.board.restartGame(context);
                     context.go('/play');
                   },
                   isPressedRestart,

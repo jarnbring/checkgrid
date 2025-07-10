@@ -8,17 +8,15 @@ import 'package:provider/provider.dart';
 
 class SkinItem extends StatefulWidget {
   final Skin skin;
-  final bool unlocked;
+  final bool isUnlocked;
   final bool isNew;
-  final String? unlockText;
   final VoidCallback? onTap;
 
   const SkinItem({
     super.key,
     required this.skin,
-    required this.unlocked,
+    required this.isUnlocked,
     this.isNew = false,
-    this.unlockText,
     this.onTap,
   });
   @override
@@ -43,53 +41,39 @@ class _SkinItemState extends State<SkinItem> {
             borderRadius: BorderRadius.circular(16),
             borderWidth: 2,
             child: Container(
+              alignment: Alignment.center,
               width: generalProvider.screenWidth(context) / 3,
               decoration: BoxDecoration(
                 color:
-                    widget.unlocked ? Colors.blueAccent : Colors.grey.shade400,
+                    widget.isUnlocked
+                        ? const Color.fromARGB(255, 26, 132, 231)
+                        : Colors.grey.shade400,
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: widget.unlocked ? Colors.amber : Colors.grey,
+                  color: widget.isUnlocked ? Colors.amber : Colors.grey,
                   width: 2,
                 ),
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 20, 8, 16),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Image.asset(
-                          'assets/images/pieces/${widget.imageName}/${widget.imageName}_bishop.png',
-                          width: 64,
-                          height: 64,
-                          fit: BoxFit.cover,
-                        ),
-                        const SizedBox(height: 8),
-                        OutlinedText(text: widget.skin.name),
-
-                        if (!widget.unlocked && widget.unlockText != null)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 4),
-                            child: Text(
-                              widget.unlockText!,
-                              style: const TextStyle(
-                                color: Colors.black54,
-                                fontSize: 9,
-                                fontStyle: FontStyle.italic,
-                              ),
-                              textAlign: TextAlign.center,
-                              softWrap: true,
-                              maxLines: 5,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                      ],
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Image.asset(
+                      'assets/images/pieces/${widget.skin.name}/${widget.skin.name}_bishop.png',
+                      width: 64,
+                      height: 64,
+                      fit: BoxFit.cover,
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 8),
+                    widget.isUnlocked
+                        ? OutlinedText(text: 'Owned')
+                        : OutlinedText(
+                          text: widget.skin.price.toString(),
+                          isPrice: true,
+                        ),
+                  ],
+                ),
               ),
             ),
           ),

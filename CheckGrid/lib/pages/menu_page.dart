@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:shimmer/shimmer.dart';
 
+// Currently not in use
+
 class GameMenu extends StatefulWidget {
   const GameMenu({super.key});
 

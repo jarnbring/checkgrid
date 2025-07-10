@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:checkgrid/components/group_settings.dart';
 import 'package:checkgrid/components/icon_widget.dart';
 import 'package:checkgrid/providers/settings_provider.dart';
-import 'package:checkgrid/settings/noti_service.dart';
+import 'package:checkgrid/pages/settings/noti_service.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
@@ -47,7 +47,11 @@ class SettingsPageState extends State<SettingsPage> {
           children: [
             GroupSettingsWidget(
               header: "General",
-              children: [_buildDarkmode(), _buildVibration(), _buildBoldText()],
+              children: [
+                //_buildDarkmode(),
+                _buildVibration(),
+                _buildBoldText(),
+              ],
             ),
             GroupSettingsWidget(header: "Sound", children: [_buildSound()]),
             GroupSettingsWidget(
@@ -56,7 +60,11 @@ class SettingsPageState extends State<SettingsPage> {
             ),
             GroupSettingsWidget(
               header: "Other",
-              children: [_buildFeedback(), _buildPrivacyPolicy()],
+              children: [
+                _buildSocials(),
+                _buildFeedback(),
+                _buildPrivacyPolicy(),
+              ],
             ),
             const SizedBox(height: 20),
             Column(
@@ -96,28 +104,28 @@ class SettingsPageState extends State<SettingsPage> {
   }
 
   // General
-  Widget _buildDarkmode() {
-    return SwitchListTile(
-      title: const Text('Darkmode'),
-      secondary: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 300),
-        transitionBuilder:
-            (child, animation) => FadeTransition(
-              opacity: animation,
-              child: ScaleTransition(scale: animation, child: child),
-            ),
-        child:
-            context.watch<SettingsProvider>().isDarkMode
-                ? IconWidget(key: ValueKey('dark'), icon: Icons.dark_mode)
-                : IconWidget(key: ValueKey('light'), icon: Icons.light_mode),
-      ),
-      value: context.watch<SettingsProvider>().isDarkMode,
-      activeTrackColor: Colors.lightBlue,
-      onChanged: (bool value) {
-        context.read<SettingsProvider>().setDarkMode(value);
-      },
-    );
-  }
+  // Widget _buildDarkmode() {
+  //   return SwitchListTile(
+  //     title: const Text('Darkmode'),
+  //     secondary: AnimatedSwitcher(
+  //       duration: const Duration(milliseconds: 300),
+  //       transitionBuilder:
+  //           (child, animation) => FadeTransition(
+  //             opacity: animation,
+  //             child: ScaleTransition(scale: animation, child: child),
+  //           ),
+  //       child:
+  //           context.watch<SettingsProvider>().isDarkMode
+  //               ? IconWidget(key: ValueKey('dark'), icon: Icons.dark_mode)
+  //               : IconWidget(key: ValueKey('light'), icon: Icons.light_mode),
+  //     ),
+  //     value: context.watch<SettingsProvider>().isDarkMode,
+  //     activeTrackColor: Colors.lightBlue,
+  //     onChanged: (bool value) {
+  //       context.read<SettingsProvider>().setDarkMode(value);
+  //     },
+  //   );
+  // }
 
   Widget _buildVibration() {
     return SwitchListTile(
@@ -150,27 +158,29 @@ class SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  Widget _buildPrivacyPolicy() {
-    return ListTile(
-      title: const Text('Privacy Policy'),
-      leading: IconWidget(icon: Icons.privacy_tip_outlined),
-      trailing: Icon(
-        Icons.arrow_forward_ios,
-        color: Theme.of(context).iconTheme.color?.withAlpha(100),
+  Widget _buildBoldText() {
+    return SwitchListTile(
+      title: const Text('Bold text'),
+      secondary: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 300),
+        transitionBuilder:
+            (child, animation) => FadeTransition(
+              opacity: animation,
+              child: ScaleTransition(scale: animation, child: child),
+            ),
+        child:
+            context.watch<SettingsProvider>().isBoldText
+                ? IconWidget(key: ValueKey('bold_on'), icon: Icons.format_bold)
+                : IconWidget(
+                  key: ValueKey('bold_off'),
+                  icon: Icons.format_clear,
+                ),
       ),
-      onTap: () => context.pushNamed('/privacy_policy'),
-    );
-  }
-
-  Widget _buildFeedback() {
-    return ListTile(
-      title: const Text('Feedback'),
-      leading: IconWidget(icon: Icons.feedback_outlined),
-      trailing: Icon(
-        Icons.arrow_forward_ios,
-        color: Theme.of(context).iconTheme.color?.withAlpha(100),
-      ),
-      onTap: () => context.pushNamed('/feedback'),
+      value: context.watch<SettingsProvider>().isBoldText,
+      activeTrackColor: Colors.lightBlue,
+      onChanged: (bool value) {
+        context.read<SettingsProvider>().setBoldText(value);
+      },
     );
   }
 
@@ -199,33 +209,6 @@ class SettingsPageState extends State<SettingsPage> {
         setState(() {
           tempSound = value;
         });
-      },
-    );
-  }
-
-  // Text
-  Widget _buildBoldText() {
-    return SwitchListTile(
-      title: const Text('Bold text'),
-      secondary: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 300),
-        transitionBuilder:
-            (child, animation) => FadeTransition(
-              opacity: animation,
-              child: ScaleTransition(scale: animation, child: child),
-            ),
-        child:
-            context.watch<SettingsProvider>().isBoldText
-                ? IconWidget(key: ValueKey('bold_on'), icon: Icons.format_bold)
-                : IconWidget(
-                  key: ValueKey('bold_off'),
-                  icon: Icons.format_clear,
-                ),
-      ),
-      value: context.watch<SettingsProvider>().isBoldText,
-      activeTrackColor: Colors.lightBlue,
-      onChanged: (bool value) {
-        context.read<SettingsProvider>().setBoldText(value);
       },
     );
   }
@@ -259,6 +242,43 @@ class SettingsPageState extends State<SettingsPage> {
           context.read<SettingsProvider>().setNotificationReminder(value);
         });
       },
+    );
+  }
+
+  // Other
+  Widget _buildSocials() {
+    return ListTile(
+      title: const Text('Socials'),
+      leading: IconWidget(icon: Icons.account_circle),
+      trailing: Icon(
+        Icons.arrow_forward_ios,
+        color: Theme.of(context).iconTheme.color?.withAlpha(100),
+      ),
+      onTap: () => context.pushNamed('/socials'),
+    );
+  }
+
+  Widget _buildPrivacyPolicy() {
+    return ListTile(
+      title: const Text('Privacy Policy'),
+      leading: IconWidget(icon: Icons.privacy_tip_outlined),
+      trailing: Icon(
+        Icons.arrow_forward_ios,
+        color: Theme.of(context).iconTheme.color?.withAlpha(100),
+      ),
+      onTap: () => context.pushNamed('/privacy_policy'),
+    );
+  }
+
+  Widget _buildFeedback() {
+    return ListTile(
+      title: const Text('Feedback'),
+      leading: IconWidget(icon: Icons.feedback_outlined),
+      trailing: Icon(
+        Icons.arrow_forward_ios,
+        color: Theme.of(context).iconTheme.color?.withAlpha(100),
+      ),
+      onTap: () => context.pushNamed('/feedback'),
     );
   }
 }

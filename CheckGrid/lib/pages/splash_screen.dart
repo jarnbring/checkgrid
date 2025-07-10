@@ -2,11 +2,11 @@ import 'dart:async';
 
 import 'package:checkgrid/components/error_dialog.dart';
 import 'package:checkgrid/game/board.dart';
+import 'package:checkgrid/providers/general_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -59,19 +59,10 @@ class _SplashScreenState extends State<SplashScreen>
     }
   }
 
-  Future<bool> isFirstTime() async {
-    final prefs = await SharedPreferences.getInstance();
-    final firstTime = prefs.getBool('first_time') ?? true;
-    if (firstTime) {
-      await prefs.setBool('first_time', false);
-    }
-    return firstTime;
-  }
-
   Future<void> _load() async {
     if (!mounted) return;
     final board = context.read<Board>();
-    final isFirstTimeUser = await isFirstTime();
+    final isFirstTimeUser = await GeneralProvider.isFirstTime();
 
     if (!isFirstTimeUser) {
       bool shouldAskAgain = true;
@@ -110,11 +101,18 @@ class _SplashScreenState extends State<SplashScreen>
     _loadingDone = true;
     _shouldRepeat = false;
 
-    if (_lottieController.status == AnimationStatus.completed && mounted) {
+    if (_lottieController.status != AnimationStatus.completed) return;
+
+    if (isFirstTimeUser) {
       _fadeController.forward().then((_) {
-        if (mounted) context.go('/home');
+        context.go('/tutorial');
       });
+      return;
     }
+
+    _fadeController.forward().then((_) {
+      context.go('/home');
+    });
   }
 
   @override

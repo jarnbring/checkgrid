@@ -1,4 +1,5 @@
 import 'package:checkgrid/game/utilities/cell.dart';
+import 'package:checkgrid/pages/tutorial_page.dart';
 import 'package:checkgrid/providers/general_provider.dart';
 import 'package:checkgrid/providers/settings_provider.dart';
 import 'package:checkgrid/providers/skin_provider.dart';
@@ -78,6 +79,13 @@ class BoardCell extends StatelessWidget {
             board.markTargetedCells(details.data, row, col);
             board.clearPreview();
             board.updateColors(); // Needed for the blue color of the piece
+
+            final tutorial = context.read<TutorialController>();
+            if (tutorial.tutorialStep <= 4) {
+              tutorial.nextStep();
+              return;
+            }
+
             board.saveBoard(context);
             board.updatePlacedPiecesStatistic(
               context,

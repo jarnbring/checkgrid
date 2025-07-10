@@ -52,7 +52,7 @@ class _DifficultyPageState extends State<DifficultyPage> {
               ),
             ),
             child: Padding(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 20),
               child: Column(
                 children: [
                   const SizedBox(height: 20),
@@ -121,11 +121,11 @@ class _DifficultyPageState extends State<DifficultyPage> {
                         }).toList(),
                   ),
                   const Spacer(),
-                  DialogButton(
+                  DialogBackButton(
                     text: "Restart",
                     onPressed: () {
                       widget.board.difficulty = selectedDifficulty;
-                      widget.board.restartGame();
+                      widget.board.restartGame(context);
                       Navigator.pop(context);
                     },
                   ),

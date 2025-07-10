@@ -6,6 +6,8 @@ import 'package:checkgrid/components/textfield.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
+// Can be cleaned up with screenshot and screenshotlist by sending in index instead of screenshot directly
+
 class FeedbackPage extends StatefulWidget {
   const FeedbackPage({super.key});
 
@@ -162,174 +164,23 @@ class _FeedbackPageState extends State<FeedbackPage>
     );
   }
 
-  void _buildPreview(List<XFile> screenshotList, int startIndex) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        int currentIndex = startIndex;
-
-        return StatefulBuilder(
-          builder: (context, setState) {
-            // Loop runt
-            if (currentIndex >= screenshotList.length) currentIndex = 0;
-            if (currentIndex < 0) currentIndex = screenshotList.length - 1;
-
-            return Dialog(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  Container(
-                    width: 400,
-                    height: 600,
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(25),
-                      color: Colors.black,
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: Image.file(
-                        File(screenshotList[currentIndex].path),
-                        fit: BoxFit.contain,
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    top: -10,
-                    right: -10,
-                    child: GestureDetector(
-                      onTap: () => Navigator.of(context).pop(),
-                      child: Container(
-                        decoration: const BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Color.fromARGB(164, 158, 158, 158),
-                        ),
-                        child: const Icon(
-                          Icons.close,
-                          size: 30,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    top: (600 - 30) / 2,
-                    right: -15,
-                    child: GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          currentIndex++;
-                          if (currentIndex >= screenshotList.length) {
-                            currentIndex = 0;
-                          }
-                        });
-                      },
-                      child: Container(
-                        decoration: const BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Color.fromARGB(164, 158, 158, 158),
-                        ),
-                        child: const Padding(
-                          padding: EdgeInsets.all(3),
-                          child: Icon(
-                            Icons.arrow_forward_ios,
-                            size: 30,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    top: (600 - 30) / 2,
-                    left: -15,
-                    child: GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          currentIndex--;
-                          if (currentIndex < 0) {
-                            currentIndex = screenshotList.length - 1;
-                          }
-                        });
-                      },
-                      child: Container(
-                        decoration: const BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Color.fromARGB(164, 158, 158, 158),
-                        ),
-                        child: const Padding(
-                          padding: EdgeInsets.all(3),
-                          child: Icon(
-                            Icons.arrow_back_ios_new,
-                            size: 30,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-
   Widget _buildScreenshots(List<XFile> screenshotList) {
-    // Add an animation that plays when the user removes an image.
-
     return SizedBox(
       height: 120,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         itemCount: screenshotList.length,
         itemBuilder: (context, index) {
-          return GestureDetector(
-            onTap: () => _buildPreview(screenshotList, index),
-            child: Stack(
-              clipBehavior: Clip.none,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(4.0),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: Image.file(
-                      File(screenshotList[index].path),
-                      width: 120,
-                      height: 120,
-                      fit: BoxFit.contain,
-                    ),
-                  ),
-                ),
-                Positioned(
-                  top: 0,
-                  right: 0,
-                  child: GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        screenshotList.removeAt(index);
-                      });
-                    },
-                    child: Container(
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: const Color.fromARGB(164, 158, 158, 158),
-                      ),
-                      child: const Icon(
-                        Icons.close,
-                        size: 22,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
+          final screenshot = screenshotList[index];
+          return _ShrinkableImage(
+            key: ValueKey(screenshot.path),
+            screenshot: screenshot,
+            screenshotList: screenshotList,
+            onRemove: () {
+              setState(() {
+                screenshotList.removeAt(index);
+              });
+            },
           );
         },
       ),
@@ -425,8 +276,10 @@ class _FeedbackPageState extends State<FeedbackPage>
                 SizedBox(height: 30),
                 _buildFeedbackForm(),
                 SizedBox(height: 30),
-                if (screenshots.isNotEmpty) _buildScreenshots(screenshots),
-                SizedBox(height: 30),
+                if (screenshots.isNotEmpty) ...[
+                  _buildScreenshots(screenshots),
+                  SizedBox(height: 30),
+                ],
                 _buildEmailField(),
                 SizedBox(height: 50),
                 _buildSubmitButton(),
@@ -467,6 +320,224 @@ class _FeedbackPageState extends State<FeedbackPage>
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+// Animation for images being removed
+
+class _ShrinkableImage extends StatefulWidget {
+  final List<XFile> screenshotList;
+  final XFile screenshot;
+  final VoidCallback onRemove;
+
+  const _ShrinkableImage({
+    super.key,
+    required this.screenshotList,
+    required this.screenshot,
+    required this.onRemove,
+  });
+
+  @override
+  _ShrinkableImageState createState() => _ShrinkableImageState();
+}
+
+class _ShrinkableImageState extends State<_ShrinkableImage>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _scaleAnim;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+    );
+    _scaleAnim = Tween<double>(
+      begin: 1.0,
+      end: 0.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+    _controller.addStatusListener((status) {
+      if (status == AnimationStatus.completed) {
+        widget.onRemove();
+      }
+    });
+  }
+
+  void _startRemove() {
+    _controller.forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _buildPreview(List<XFile> screenshotList, int startIndex) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        int currentIndex = startIndex;
+
+        return StatefulBuilder(
+          builder: (context, setState) {
+            // Loop runt
+            if (currentIndex >= screenshotList.length) currentIndex = 0;
+            if (currentIndex < 0) currentIndex = screenshotList.length - 1;
+
+            return Dialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Container(
+                    width: 400,
+                    height: 600,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(25),
+                      color: Colors.black,
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Image.file(
+                        File(screenshotList[currentIndex].path),
+                        fit: BoxFit.contain,
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    top: 10,
+                    right: 10,
+                    child: GestureDetector(
+                      onTap: () => Navigator.of(context).pop(),
+                      child: Container(
+                        decoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Color.fromARGB(164, 158, 158, 158),
+                        ),
+                        child: const Icon(
+                          Icons.close,
+                          size: 30,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    top: (600 - 30) / 2,
+                    right: 0,
+                    child: GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          currentIndex++;
+                          if (currentIndex >= screenshotList.length) {
+                            currentIndex = 0;
+                          }
+                        });
+                      },
+                      child: Container(
+                        decoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Color.fromARGB(163, 100, 100, 100),
+                        ),
+                        child: const Padding(
+                          padding: EdgeInsets.all(3),
+                          child: Icon(
+                            Icons.arrow_forward_ios,
+                            size: 30,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    top: (600 - 30) / 2,
+                    left: 0,
+                    child: GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          currentIndex--;
+                          if (currentIndex < 0) {
+                            currentIndex = screenshotList.length - 1;
+                          }
+                        });
+                      },
+                      child: Container(
+                        decoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Color.fromARGB(163, 100, 100, 100),
+                        ),
+                        child: const Padding(
+                          padding: EdgeInsets.all(3),
+                          child: Icon(
+                            Icons.arrow_back_ios_new,
+                            size: 30,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ScaleTransition(
+      scale: _scaleAnim,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          // Image
+          Padding(
+            padding: const EdgeInsets.all(4.0),
+            child: GestureDetector(
+              onTap:
+                  () => _buildPreview(
+                    widget.screenshotList,
+                    widget.screenshotList.indexOf(widget.screenshot),
+                  ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Image.file(
+                  File(widget.screenshot.path),
+                  width: 120,
+                  height: 120,
+                  fit: BoxFit.contain,
+                ),
+              ),
+            ),
+          ),
+
+          // Remove icon
+          Positioned(
+            top: 8,
+            right: 0,
+            child: GestureDetector(
+              onTap: _startRemove,
+              child: Container(
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Color.fromARGB(163, 114, 114, 114),
+                ),
+                child: const Icon(Icons.remove, size: 22, color: Colors.white),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
