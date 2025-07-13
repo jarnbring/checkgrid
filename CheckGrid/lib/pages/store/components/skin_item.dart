@@ -9,14 +9,12 @@ import 'package:provider/provider.dart';
 class SkinItem extends StatefulWidget {
   final Skin skin;
   final bool isUnlocked;
-  final bool isNew;
   final VoidCallback? onTap;
 
   const SkinItem({
     super.key,
     required this.skin,
     required this.isUnlocked,
-    this.isNew = false,
     this.onTap,
   });
   @override
@@ -77,7 +75,7 @@ class _SkinItemState extends State<SkinItem> {
               ),
             ),
           ),
-          widget.isNew ? NewWidget() : const SizedBox.shrink(),
+          widget.skin.isNew ? NewWidget() : const SizedBox.shrink(),
         ],
       ),
     );

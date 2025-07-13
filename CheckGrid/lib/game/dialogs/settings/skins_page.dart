@@ -28,10 +28,8 @@ class _SkinsPageState extends State<SkinsPage> {
   @override
   Widget build(BuildContext context) {
     final skinProvider = context.watch<SkinProvider>();
-    final skins = skinProvider.allSkins;
+    final unlockedSkins = skinProvider.unlockedSkins;
     final selectedSkin = skinProvider.selectedSkin;
-
-    skinProvider.unlockSkin(Skin.black);
 
     return Center(
       child: Stack(
@@ -49,12 +47,15 @@ class _SkinsPageState extends State<SkinsPage> {
               ),
             ),
             child: Padding(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 20),
               child: Column(
                 children: [
-                  const SizedBox(height: 20),
                   const DefaultTextStyle(
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
                     child: Text("Select Skin"),
                   ),
                   const SizedBox(height: 20),
@@ -64,40 +65,29 @@ class _SkinsPageState extends State<SkinsPage> {
                       gridDelegate:
                           const SliverGridDelegateWithFixedCrossAxisCount(
                             crossAxisCount: 2,
-                            mainAxisSpacing: 30,
-                            crossAxisSpacing: 30,
+                            mainAxisSpacing: 40,
+                            crossAxisSpacing: 40,
                             childAspectRatio: 1,
                           ),
-                      itemCount: skins.length,
+                      itemCount: unlockedSkins.length,
                       itemBuilder: (context, index) {
-                        final skin = skins[index];
+                        final skin = unlockedSkins[index];
                         final isSelected = skin == selectedSkin;
-                        final isUnlocked = skinProvider.unlockedSkins.contains(
-                          skin,
-                        );
-
                         return GestureDetector(
-                          onTap:
-                              isUnlocked
-                                  ? () {
-                                    skinProvider.selectSkin(skin);
-                                  }
-                                  : null,
+                          onTap: () => skinProvider.selectSkin(skin),
                           child: Container(
                             decoration: BoxDecoration(
+                              color: const Color.fromARGB(255, 16, 79, 131),
+                              borderRadius: BorderRadius.circular(8),
                               border: Border.all(
                                 color:
                                     isSelected ? Colors.lightBlue : Colors.grey,
                                 width: 3,
                               ),
-                              borderRadius: BorderRadius.circular(8),
                             ),
                             child: Center(
-                              child: Opacity(
-                                opacity: isUnlocked ? 1.0 : 0.1,
-                                child: Image.asset(
-                                  "assets/images/pieces/${skin.name}/${skin.name}_knight.png",
-                                ),
+                              child: Image.asset(
+                                "assets/images/pieces/${skin.name}/${skin.name}_knight.png",
                               ),
                             ),
                           ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class CustomBottomNav extends StatelessWidget {
   final int currentIndex;
@@ -17,17 +18,28 @@ class CustomBottomNav extends StatelessWidget {
       left: 0,
       right: 0,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
         decoration: BoxDecoration(
-          color: Colors.black,
-          borderRadius: BorderRadius.circular(0),
+          color: const Color.fromARGB(255, 54, 78, 100),
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(20),
+            topRight: Radius.circular(20),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.3),
+              spreadRadius: 0,
+              blurRadius: 10,
+              offset: const Offset(0, -4),
+            ),
+          ],
         ),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            _navItem(0, Icons.bar_chart),
-            _navItem(1, Icons.home),
-            _navItem(2, Icons.store),
+            _navItem(0, FontAwesomeIcons.chartColumn),
+            _navItem(1, FontAwesomeIcons.solidChessKnight),
+            _navItem(2, FontAwesomeIcons.store),
           ],
         ),
       ),
@@ -39,16 +51,15 @@ class CustomBottomNav extends StatelessWidget {
 
     return GestureDetector(
       onTap: () => onItemTap(index),
-      child: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: isSelected ? Colors.blue : Colors.transparent,
-          shape: BoxShape.circle,
-        ),
-        child: Icon(
-          icon,
-          size: 30,
-          color: isSelected ? Colors.white : Colors.grey,
+      child: SizedBox(
+        width: 50,
+        height: 50,
+        child: Center(
+          child: Icon(
+            icon,
+            size: isSelected ? 36 : 24,
+            color: isSelected ? Colors.blue : Colors.grey,
+          ),
         ),
       ),
     );

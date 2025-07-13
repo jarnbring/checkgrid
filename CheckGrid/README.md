@@ -4,6 +4,8 @@ To do:
 
     Add a tutorial for first time users
     Fix vibrations on iOS
+    Feedback system
+    IOS 26!!!
     Sound
     Notifications
     Remake Widget methods to classes for performance increase
@@ -26,7 +28,6 @@ To do:
     **Future ideas:**
     // Requires backend
 
-    Feedback system
 
     *Store*
     Watch ads to unlock skins

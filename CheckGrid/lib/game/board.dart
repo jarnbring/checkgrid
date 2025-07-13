@@ -424,7 +424,6 @@ class Board extends ChangeNotifier {
 
   // Updates the amountOfRounds statistic
   void updateAmountOfRounds(BuildContext context) async {
-    debugPrint("UPDATING AMOUNT OF ROUNDS...");
     final boardProvider = context.read<BoardProvider>();
 
     // Amount of games

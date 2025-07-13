@@ -81,7 +81,7 @@ class BoardCell extends StatelessWidget {
             board.updateColors(); // Needed for the blue color of the piece
 
             final tutorial = context.read<TutorialController>();
-            if (tutorial.tutorialStep <= 4) {
+            if (tutorial.tutorialStep <= 4 && tutorial.isActive) {
               tutorial.nextStep();
               return;
             }

@@ -37,12 +37,36 @@ final GoRouter router = GoRouter(
     GoRoute(
       name: '/tutorial',
       path: '/tutorial',
-      builder: (context, state) => const TutorialPage(),
+      pageBuilder:
+          (context, state) => CustomTransitionPage(
+            key: state.pageKey,
+            child: const TutorialPage(),
+            transitionsBuilder: (
+              context,
+              animation,
+              secondaryAnimation,
+              child,
+            ) {
+              return FadeTransition(opacity: animation, child: child);
+            },
+          ),
     ),
     GoRoute(
       name: '/home',
       path: '/home',
-      builder: (context, state) => const HomeWrapper(),
+      pageBuilder:
+          (context, state) => CustomTransitionPage(
+            key: state.pageKey,
+            child: const HomeWrapper(),
+            transitionsBuilder: (
+              context,
+              animation,
+              secondaryAnimation,
+              child,
+            ) {
+              return FadeTransition(opacity: animation, child: child);
+            },
+          ),
     ),
     // Not in use
     GoRoute(

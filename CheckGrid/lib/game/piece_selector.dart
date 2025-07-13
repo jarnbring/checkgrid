@@ -148,7 +148,6 @@ class _PieceSelectorState extends State<PieceSelector> {
         board.removeTargetedCells();
         board.removePlacedPieces();
 
-        // Lägg till denna rad för att rensa ALLA pjäser på brädet:
         board.clearPiecesOnBoard();
 
         // Create a new state
@@ -171,13 +170,15 @@ class _PieceSelectorState extends State<PieceSelector> {
         }
 
         final tutorial = context.read<TutorialController>();
-        if (tutorial.tutorialStep == 4) {
+        if (tutorial.tutorialStep == 4 && tutorial.isActive) {
           tutorial.nextStep();
           board.selectedPieces = [];
           return;
         }
 
         board.updateHighscore(context);
+
+        board.saveBoard(context);
       },
       child: Container(
         width: boxWidth,

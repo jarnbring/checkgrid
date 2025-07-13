@@ -12,11 +12,6 @@ extension DifficultyExtension on Difficulty {
     }
   }
 
-  // int newRows = 2;
-  // Just an example, you can adjust this based on difficulty
-  // if (_difficulty == Difficulty.hard) {
-  //   newRows = 3;
-  // }
   int get initialRows {
     switch (this) {
       case Difficulty.easy:

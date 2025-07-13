@@ -24,13 +24,17 @@ class _TutorialPageState extends State<TutorialPage> {
     rootContext = context;
 
     board = rootContext.read<Board>();
+
     tutorial = rootContext.read<TutorialController>();
+    tutorial.isActive = true;
 
     tutorial.addListener(() {
       showTutorial();
     });
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      // Set a clear board for the tutorial
+      board.restartGame(context);
       showTutorial();
     });
   }
@@ -80,6 +84,8 @@ class _TutorialPageState extends State<TutorialPage> {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
+                    elevation: 10,
+                    shadowColor: Colors.black.withOpacity(0.8),
                   ),
                   child: Text(
                     tutorial.tutorialStep == 5 ? "Done" : "Next",
@@ -160,7 +166,8 @@ class _TutorialPageState extends State<TutorialPage> {
           pageBuilder: (context, animation, secondaryAnimation) {
             return _buildStepDialog(
               title: "Awesome",
-              description: "You are now ready, have fun!",
+              description:
+                  "You are now ready to score points and reach highscores, have fun!",
               step: tutorial.tutorialStep,
               onNext: () async {
                 Navigator.of(context).pop();
@@ -169,6 +176,7 @@ class _TutorialPageState extends State<TutorialPage> {
                 rootContext.pushNamed('/home');
                 if (!mounted) return;
                 board.restartGame(rootContext);
+                tutorial.isActive = false;
               },
             );
           },
@@ -201,6 +209,7 @@ class _TutorialPageState extends State<TutorialPage> {
 
 class TutorialController extends ChangeNotifier {
   int tutorialStep = 1;
+  bool isActive = false;
 
   void nextStep() {
     tutorialStep++;

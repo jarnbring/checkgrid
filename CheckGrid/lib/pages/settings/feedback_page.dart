@@ -7,6 +7,8 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
 // Can be cleaned up with screenshot and screenshotlist by sending in index instead of screenshot directly
+// Cursor color
+// Make smaller images (ex 100 MB => 50 MB)
 
 class FeedbackPage extends StatefulWidget {
   const FeedbackPage({super.key});
@@ -312,7 +314,7 @@ class _FeedbackPageState extends State<FeedbackPage>
                 "Submit feedback",
                 style: TextStyle(
                   color: Colors.white,
-                  fontSize: 20,
+                  fontSize: 14,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -503,7 +505,7 @@ class _ShrinkableImageState extends State<_ShrinkableImage>
         children: [
           // Image
           Padding(
-            padding: const EdgeInsets.all(4.0),
+            padding: const EdgeInsets.all(10.0),
             child: GestureDetector(
               onTap:
                   () => _buildPreview(
@@ -514,9 +516,9 @@ class _ShrinkableImageState extends State<_ShrinkableImage>
                 borderRadius: BorderRadius.circular(12),
                 child: Image.file(
                   File(widget.screenshot.path),
-                  width: 120,
+                  width: 100,
                   height: 120,
-                  fit: BoxFit.contain,
+                  fit: BoxFit.cover,
                 ),
               ),
             ),
@@ -524,7 +526,7 @@ class _ShrinkableImageState extends State<_ShrinkableImage>
 
           // Remove icon
           Positioned(
-            top: 8,
+            top: 0,
             right: 0,
             child: GestureDetector(
               onTap: _startRemove,

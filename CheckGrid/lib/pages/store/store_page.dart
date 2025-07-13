@@ -36,45 +36,22 @@ class _StorePageState extends State<StorePage> {
                 Wrap(
                   spacing: 60,
                   runSpacing: 60,
-                  children: [
-                    SkinItem(
-                      skin: Skin.white,
-                      isNew: false,
-                      isUnlocked: false, // Fix here!
-                      onTap: () {
-                        // If is owned, show "Owned" text
-                        // If equipped
-                        if (!skinProvider.unlockedSkins.contains(Skin.white)) {
-                          skinProvider.unlockSkin(Skin.white);
-                        }
-                      },
-                    ),
-                    SkinItem(
-                      skin: Skin.black,
-                      isUnlocked: skinProvider.unlockedSkins.contains(
-                        Skin.black,
-                      ),
-                      isNew: true,
-                      onTap: () {
-                        if (!skinProvider.unlockedSkins.contains(Skin.black)) {
-                          skinProvider.unlockSkin(Skin.black);
-                        }
-                      },
-                    ),
-                    SkinItem(
-                      skin: Skin.blue,
-                      isUnlocked: skinProvider.unlockedSkins.contains(
-                        Skin.blue,
-                      ),
-                      isNew: true,
-                      onTap: () {
-                        // Buy skin!
-                        if (!skinProvider.unlockedSkins.contains(Skin.blue)) {
-                          skinProvider.unlockSkin(Skin.blue);
-                        }
-                      },
-                    ),
-                  ],
+                  children:
+                      Skin.values.map((skin) {
+                        final isUnlocked = skinProvider.unlockedSkins.contains(
+                          skin,
+                        );
+
+                        return SkinItem(
+                          skin: skin,
+                          isUnlocked: isUnlocked,
+                          onTap: () {
+                            if (!isUnlocked) {
+                              skinProvider.unlockSkin(skin);
+                            }
+                          },
+                        );
+                      }).toList(),
                 ),
                 const SizedBox(height: 24),
                 AdProgressBar(

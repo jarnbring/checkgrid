@@ -132,17 +132,9 @@ class StatisticsPage extends StatelessWidget {
                             : highscore.toDouble(),
                         isWide: true,
                       ),
-                      _buildStatistic(
-                        "Rounds",
-                        amountOfRounds.toDouble(),
-                        isWide: true,
-                      ),
+                      _buildStatistic("Rounds", amountOfRounds.toDouble()),
                       //_buildStatistic("Time played", 0, isTime: true),
-                      _buildStatistic(
-                        "Pieces placed",
-                        placedPieces.toDouble(),
-                        isWide: true,
-                      ),
+                      _buildStatistic("Pieces placed", placedPieces.toDouble()),
                       // _buildStatistic(
                       //  "Highest combo",
                       //  0, //longestComboStreak.toDouble(),
