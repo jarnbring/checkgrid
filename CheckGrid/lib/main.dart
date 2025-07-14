@@ -3,6 +3,7 @@ import 'package:checkgrid/game/utilities/cell.dart';
 import 'package:checkgrid/game/utilities/piecetype.dart';
 import 'package:checkgrid/pages/tutorial_page.dart';
 import 'package:checkgrid/providers/ad_provider.dart';
+import 'package:checkgrid/providers/audio_provider.dart';
 import 'package:checkgrid/providers/board_provider.dart';
 import 'package:checkgrid/providers/skin_provider.dart';
 import 'package:flutter/material.dart';
@@ -38,6 +39,9 @@ void main() async {
   final settingsProvider = SettingsProvider();
   await settingsProvider.loadSettings();
 
+  // Initialize AudioProvider with SettingsProvider
+  final audioProvider = AudioProvider(settingsProvider);
+
   // Init NotificationService
   final notiService = NotiService();
 
@@ -51,6 +55,7 @@ void main() async {
       providers: [
         // Initialize providers
         ChangeNotifierProvider.value(value: boardProvider),
+        ChangeNotifierProvider.value(value: audioProvider),
         ChangeNotifierProvider(create: (_) => TutorialController()),
         ChangeNotifierProvider(create: (_) => GeneralProvider()),
         ChangeNotifierProvider(create: (_) => AdProvider()),

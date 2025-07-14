@@ -4,9 +4,12 @@ To do:
 
     DONE: Add a tutorial for first time users
     DONE: Fix vibrations on iOS
+    DONE: IOS 26!!! (Look again before release)
+    
     Feedback system
-    IOS 26!!!
+
     Sound
+    
     Notifications
     Remake Widget methods to classes for performance increase
     Responsive UI

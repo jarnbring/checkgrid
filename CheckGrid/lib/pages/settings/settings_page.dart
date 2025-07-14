@@ -15,12 +15,6 @@ class SettingsPage extends StatefulWidget {
 }
 
 class SettingsPageState extends State<SettingsPage> {
-  bool tempDarkmode = false;
-  bool tempVibration = false;
-  bool tempSound = false;
-  bool tempNotificationReminder = false;
-  bool tempClearCache = false;
-
   @override
   void initState() {
     super.initState();
@@ -185,7 +179,7 @@ class SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  // Sound
+  // Sound - FIXAD VERSION
   Widget _buildSound() {
     return SwitchListTile(
       title: const Text('Sound'),
@@ -197,20 +191,26 @@ class SettingsPageState extends State<SettingsPage> {
               child: ScaleTransition(scale: animation, child: child),
             ),
         child:
-            tempSound
+            context
+                    .watch<SettingsProvider>()
+                    .isSoundOn // ÄNDRAT: använder provider istället för tempSound
                 ? IconWidget(key: ValueKey('sound_on'), icon: Icons.volume_up)
                 : IconWidget(
                   key: ValueKey('sound_off'),
                   icon: Icons.volume_off,
                 ),
       ),
-      value: tempSound,
+      value:
+          context
+              .watch<SettingsProvider>()
+              .isSoundOn, // ÄNDRAT: använder provider istället för tempSound
       activeTrackColor: Colors.lightBlue,
-      onChanged: (bool value) {
+      onChanged: (bool value) async {
+        // ÄNDRAT: gjorde async
         context.read<SettingsProvider>().doVibration(1);
-        setState(() {
-          tempSound = value;
-        });
+        await context.read<SettingsProvider>().setSound(
+          value,
+        ); // ÄNDRAT: anropar setSound istället för setState
       },
     );
   }

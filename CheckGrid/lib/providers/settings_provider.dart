@@ -3,12 +3,14 @@ import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SettingsProvider with ChangeNotifier {
+  // Default settings
   bool _isBoldText = false;
   bool _isDarkMode = true;
   bool _isVibrationOn = true;
   bool _isSoundOn = true;
   bool _notificationReminder = true;
   ThemeMode _themeMode = ThemeMode.system;
+  bool _isLoading = true;
 
   bool get isBoldText => _isBoldText;
   bool get isDarkMode => _isDarkMode;
@@ -16,6 +18,7 @@ class SettingsProvider with ChangeNotifier {
   bool get isSoundOn => _isSoundOn;
   bool get notificationReminder => _notificationReminder;
   ThemeMode get themeMode => _themeMode;
+  bool get isLoading => _isLoading;
 
   SettingsProvider() {
     loadSettings();
@@ -23,6 +26,7 @@ class SettingsProvider with ChangeNotifier {
 
   Future<void> loadSettings() async {
     try {
+      debugPrint("Loading settings...");
       final prefs = await SharedPreferences.getInstance();
       _isBoldText = prefs.getBool('isBoldText') ?? false;
       _isDarkMode = prefs.getBool('isDarkMode') ?? true;
@@ -30,42 +34,51 @@ class SettingsProvider with ChangeNotifier {
       _isSoundOn = prefs.getBool('isSoundOn') ?? true;
       _notificationReminder = prefs.getBool('notificationReminder') ?? true;
       _themeMode = _isDarkMode ? ThemeMode.dark : ThemeMode.light;
+      _isLoading = false;
 
+      debugPrint("Settings loaded - isSoundOn: $_isSoundOn");
       notifyListeners();
     } catch (e) {
       debugPrint("Error loading settings: $e");
+      _isLoading = false;
+      notifyListeners();
     }
   }
 
   Future<void> _saveSettings() async {
     try {
+      debugPrint("Saving settings - isSoundOn: $_isSoundOn");
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool('isBoldText', _isBoldText);
       await prefs.setBool('isDarkMode', _isDarkMode);
       await prefs.setBool('isVibrationOn', _isVibrationOn);
       await prefs.setBool('isSoundOn', _isSoundOn);
       await prefs.setBool('notificationReminder', _notificationReminder);
+
+      // Verifiera att värdet verkligen sparades
+      final savedValue = prefs.getBool('isSoundOn');
+      debugPrint("Verified saved isSoundOn: $savedValue");
     } catch (e) {
       debugPrint('Error saving settings: $e');
     }
   }
 
-  void setBoldText(bool value) {
+  Future<void> setBoldText(bool value) async {
     _isBoldText = value;
-    _saveSettings();
+    await _saveSettings();
     notifyListeners();
   }
 
-  void setDarkMode(bool value) {
+  Future<void> setDarkMode(bool value) async {
     _isDarkMode = value;
     _themeMode = value ? ThemeMode.dark : ThemeMode.light;
-    _saveSettings();
+    await _saveSettings();
     notifyListeners();
   }
 
-  void setVibration(bool value) {
+  Future<void> setVibration(bool value) async {
     _isVibrationOn = value;
-    _saveSettings();
+    await _saveSettings();
     notifyListeners();
   }
 
@@ -73,7 +86,6 @@ class SettingsProvider with ChangeNotifier {
     if (!isVibrationOn) {
       return;
     }
-
     switch (impact) {
       case 1:
         HapticFeedback.lightImpact();
@@ -90,15 +102,15 @@ class SettingsProvider with ChangeNotifier {
     }
   }
 
-  void setSound(bool value) {
+  Future<void> setSound(bool value) async {
     _isSoundOn = value;
-    _saveSettings();
+    await _saveSettings();
     notifyListeners();
   }
 
-  void setNotificationReminder(bool value) {
+  Future<void> setNotificationReminder(bool value) async {
     _notificationReminder = value;
-    _saveSettings();
+    await _saveSettings();
     notifyListeners();
   }
 }

@@ -1,5 +1,6 @@
 import 'package:checkgrid/game/utilities/cell.dart';
 import 'package:checkgrid/pages/tutorial_page.dart';
+import 'package:checkgrid/providers/audio_provider.dart';
 import 'package:checkgrid/providers/general_provider.dart';
 import 'package:checkgrid/providers/settings_provider.dart';
 import 'package:checkgrid/providers/skin_provider.dart';
@@ -75,6 +76,7 @@ class BoardCell extends StatelessWidget {
             board.clearPreview();
           },
           onAcceptWithDetails: (details) {
+            context.read<AudioProvider>().playPlacePiece();
             board.placePiece(details.data, row, col);
             board.markTargetedCells(details.data, row, col);
             board.clearPreview();
