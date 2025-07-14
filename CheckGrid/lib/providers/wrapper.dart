@@ -15,16 +15,22 @@ class HomeWrapper extends StatefulWidget {
 class _HomeWrapperState extends State<HomeWrapper> {
   final PageController _controller = PageController(initialPage: 1);
   int _currentIndex = 1;
+  bool _isAnimating = false;
 
   void _onItemTapped(int index) {
-    _controller.animateToPage(
-      index,
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeInOut,
-    );
-    setState(() {
-      _currentIndex = index;
-    });
+    _isAnimating = true;
+    _controller
+        .animateToPage(
+          index,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+        )
+        .then((_) {
+          setState(() {
+            _currentIndex = index;
+            _isAnimating = false;
+          });
+        });
   }
 
   void _swipeLeft() {
@@ -48,9 +54,11 @@ class _HomeWrapperState extends State<HomeWrapper> {
             physics: const NeverScrollableScrollPhysics(),
             controller: _controller,
             onPageChanged: (index) {
-              setState(() {
-                _currentIndex = index;
-              });
+              if (!_isAnimating) {
+                setState(() {
+                  _currentIndex = index;
+                });
+              }
             },
             children: const [StatisticsPage(), Game(), StorePage()],
           ),

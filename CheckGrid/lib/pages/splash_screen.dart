@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:checkgrid/components/error_dialog.dart';
 import 'package:checkgrid/game/board.dart';
+import 'package:checkgrid/providers/ad_provider.dart';
 import 'package:checkgrid/providers/general_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
@@ -60,7 +61,6 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Future<void> _load() async {
-    if (!mounted) return;
     final board = context.read<Board>();
     final isFirstTimeUser = await GeneralProvider.isFirstTime();
 
@@ -97,6 +97,12 @@ class _SplashScreenState extends State<SplashScreen>
     } else {
       board.createNewBoard();
     }
+
+    // Prepare the first video ad
+    if (!mounted) return;
+    final adToShow =
+        Provider.of<AdProvider>(context, listen: false).rewardedAdService;
+    await adToShow.loadAd();
 
     _loadingDone = true;
     _shouldRepeat = false;

@@ -1,4 +1,6 @@
+import 'package:checkgrid/providers/settings_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class DialogBackButton extends StatelessWidget {
   final String text;
@@ -13,7 +15,10 @@ class DialogBackButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: onPressed,
+      onTap: () {
+        context.read<SettingsProvider>().doVibration(1);
+        onPressed();
+      },
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(15),

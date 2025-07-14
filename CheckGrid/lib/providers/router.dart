@@ -86,9 +86,17 @@ final GoRouter router = GoRouter(
       name: '/gameover',
       path: '/gameover',
       pageBuilder:
-          (context, state) => CupertinoPage(
+          (context, state) => CustomTransitionPage(
             key: state.pageKey,
             child: GameOverPage(board: state.extra as Board),
+            transitionsBuilder: (
+              context,
+              animation,
+              secondaryAnimation,
+              child,
+            ) {
+              return FadeTransition(opacity: animation, child: child);
+            },
           ),
     ),
     GoRoute(

@@ -2,8 +2,8 @@
 
 To do:
 
-    Add a tutorial for first time users
-    Fix vibrations on iOS
+    DONE: Add a tutorial for first time users
+    DONE: Fix vibrations on iOS
     Feedback system
     IOS 26!!!
     Sound

@@ -3,6 +3,7 @@ import 'package:checkgrid/components/group_settings.dart';
 import 'package:checkgrid/components/icon_widget.dart';
 import 'package:checkgrid/providers/settings_provider.dart';
 import 'package:checkgrid/pages/settings/noti_service.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
@@ -151,9 +152,8 @@ class SettingsPageState extends State<SettingsPage> {
       value: context.watch<SettingsProvider>().isVibrationOn,
       activeTrackColor: Colors.lightBlue,
       onChanged: (bool value) {
-        setState(() {
-          context.read<SettingsProvider>().setVibration(value);
-        });
+        HapticFeedback.lightImpact();
+        context.read<SettingsProvider>().setVibration(value);
       },
     );
   }
@@ -179,6 +179,7 @@ class SettingsPageState extends State<SettingsPage> {
       value: context.watch<SettingsProvider>().isBoldText,
       activeTrackColor: Colors.lightBlue,
       onChanged: (bool value) {
+        context.read<SettingsProvider>().doVibration(1);
         context.read<SettingsProvider>().setBoldText(value);
       },
     );
@@ -206,6 +207,7 @@ class SettingsPageState extends State<SettingsPage> {
       value: tempSound,
       activeTrackColor: Colors.lightBlue,
       onChanged: (bool value) {
+        context.read<SettingsProvider>().doVibration(1);
         setState(() {
           tempSound = value;
         });
@@ -238,9 +240,8 @@ class SettingsPageState extends State<SettingsPage> {
       value: context.watch<SettingsProvider>().notificationReminder,
       activeTrackColor: Colors.lightBlue,
       onChanged: (bool value) {
-        setState(() {
-          context.read<SettingsProvider>().setNotificationReminder(value);
-        });
+        context.read<SettingsProvider>().doVibration(1);
+        context.read<SettingsProvider>().setNotificationReminder(value);
       },
     );
   }
@@ -254,7 +255,11 @@ class SettingsPageState extends State<SettingsPage> {
         Icons.arrow_forward_ios,
         color: Theme.of(context).iconTheme.color?.withAlpha(100),
       ),
-      onTap: () => context.pushNamed('/socials'),
+      onTap:
+          () => {
+            context.read<SettingsProvider>().doVibration(1),
+            context.pushNamed('/socials'),
+          },
     );
   }
 
@@ -266,7 +271,11 @@ class SettingsPageState extends State<SettingsPage> {
         Icons.arrow_forward_ios,
         color: Theme.of(context).iconTheme.color?.withAlpha(100),
       ),
-      onTap: () => context.pushNamed('/privacy_policy'),
+      onTap:
+          () => {
+            context.read<SettingsProvider>().doVibration(1),
+            context.pushNamed('/privacy_policy'),
+          },
     );
   }
 
@@ -278,7 +287,11 @@ class SettingsPageState extends State<SettingsPage> {
         Icons.arrow_forward_ios,
         color: Theme.of(context).iconTheme.color?.withAlpha(100),
       ),
-      onTap: () => context.pushNamed('/feedback'),
+      onTap:
+          () => {
+            context.read<SettingsProvider>().doVibration(1),
+            context.pushNamed('/feedback'),
+          },
     );
   }
 }

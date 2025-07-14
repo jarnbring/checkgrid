@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:checkgrid/game/board.dart';
 import 'package:checkgrid/game/game_board.dart';
 import 'package:checkgrid/game/piece_selector.dart';
@@ -113,7 +115,7 @@ class _TutorialPageState extends State<TutorialPage> {
             return _buildStepDialog(
               title: "Welcome to CheckGrid!",
               description:
-                  "To play the game, drag a piece from the blue rectangle and place it near the green cells.",
+                  "To play the game, drag a piece from the blue rectangle and place it on a grey cell near the green cells.",
               step: tutorial.tutorialStep,
               onNext: () {
                 Navigator.of(context).pop();
@@ -149,32 +151,15 @@ class _TutorialPageState extends State<TutorialPage> {
             return _buildStepDialog(
               title: "Almost done!",
               description:
-                  "When all pieces are placed, the blue rectangle will say \"Continue\". When you press it, the ${Difficulty.medium.initialRows} first rows will move down ${Difficulty.medium.rowsToSpawn} rows. Try pressing it!",
-              step: tutorial.tutorialStep,
-              onNext: () {
-                Navigator.of(context).pop();
-              },
-            );
-          },
-        );
-        break;
-      case 5:
-        await showGeneralDialog(
-          context: rootContext,
-          barrierDismissible: false,
-          barrierLabel: "Tutorial",
-          pageBuilder: (context, animation, secondaryAnimation) {
-            return _buildStepDialog(
-              title: "Awesome",
-              description:
-                  "You are now ready to score points and reach highscores, have fun!",
+                  "When all pieces are placed, the ${Difficulty.medium.initialRows} first rows will move down ${Difficulty.medium.rowsToSpawn} rows and the next round of pieces appears.\nYou are now ready to score points and reach highscores, have fun!",
               step: tutorial.tutorialStep,
               onNext: () async {
                 Navigator.of(context).pop();
-                await Future.delayed(const Duration(milliseconds: 1500));
+                await Future.delayed(const Duration(milliseconds: 300));
+                tutorial.completeStep();
+                await Future.delayed(const Duration(milliseconds: 1000));
                 if (!mounted) return;
                 rootContext.pushNamed('/home');
-                if (!mounted) return;
                 board.restartGame(rootContext);
                 tutorial.isActive = false;
               },
@@ -210,9 +195,17 @@ class _TutorialPageState extends State<TutorialPage> {
 class TutorialController extends ChangeNotifier {
   int tutorialStep = 1;
   bool isActive = false;
+  Completer<void>? _stepCompleter;
 
-  void nextStep() {
+  Future<void> nextStep() {
     tutorialStep++;
     notifyListeners();
+    _stepCompleter = Completer<void>();
+    return _stepCompleter!.future;
+  }
+
+  void completeStep() {
+    _stepCompleter?.complete();
+    _stepCompleter = null;
   }
 }

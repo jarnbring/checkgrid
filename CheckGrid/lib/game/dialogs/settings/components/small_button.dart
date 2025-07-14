@@ -1,4 +1,6 @@
+import 'package:checkgrid/providers/settings_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class SmallUpperButton extends StatelessWidget {
   final VoidCallback onPressed;
@@ -16,7 +18,10 @@ class SmallUpperButton extends StatelessWidget {
       top: 10,
       left: 10,
       child: GestureDetector(
-        onTap: onPressed,
+        onTap: () {
+          context.read<SettingsProvider>().doVibration(1);
+          onPressed();
+        },
         child: Container(
           decoration: const BoxDecoration(
             shape: BoxShape.circle,

@@ -8,9 +8,10 @@ class RewardedAdManager {
   final VoidCallback onRewardEarned;
   final VoidCallback onAdDismissed;
 
-  final String adUnitId = Platform.isAndroid
-      ? 'ca-app-pub-3940256099942544/5224354917' // Test ID för Android
-      : 'ca-app-pub-3940256099942544/1712485313'; // Test ID för iOS
+  final String adUnitId =
+      Platform.isAndroid
+          ? 'ca-app-pub-3940256099942544/5224354917' // Test ID för Android
+          : 'ca-app-pub-3940256099942544/1712485313'; // Test ID för iOS
 
   RewardedAdManager({
     required this.onRewardEarned,
@@ -67,24 +68,25 @@ class RewardedAdManager {
 
 class RewardedAdService {
   RewardedAd? _rewardedAd;
-  bool _isAdLoaded = false;
 
-  final String adUnitId = Platform.isAndroid
-      ? 'ca-app-pub-3940256099942544/5224354917' // Android test ID
-      : 'ca-app-pub-3940256099942544/1712485313'; // iOS test ID
+  final String adUnitId =
+      Platform.isAndroid
+          ? 'ca-app-pub-3940256099942544/5224354917' // Android
+          : 'ca-app-pub-3940256099942544/1712485313'; // IOS
 
-  void loadAd() {
-    RewardedAd.load(
+  bool get isLoaded => _rewardedAd != null;
+
+  Future<void> loadAd() async {
+    await RewardedAd.load(
       adUnitId: adUnitId,
       request: const AdRequest(),
       rewardedAdLoadCallback: RewardedAdLoadCallback(
         onAdLoaded: (ad) {
           _rewardedAd = ad;
-          _isAdLoaded = true;
         },
         onAdFailedToLoad: (error) {
           debugPrint('RewardedAd failed to load: $error');
-          _isAdLoaded = false;
+          _rewardedAd = null;
         },
       ),
     );
@@ -94,12 +96,12 @@ class RewardedAdService {
     required VoidCallback onUserEarnedReward,
     required VoidCallback onAdDismissed,
   }) {
-    if (_isAdLoaded && _rewardedAd != null) {
+    if (isLoaded) {
       _rewardedAd!.fullScreenContentCallback = FullScreenContentCallback(
         onAdDismissedFullScreenContent: (ad) {
           ad.dispose();
           onAdDismissed();
-          loadAd(); // ladda ny annons
+          loadAd();
         },
         onAdFailedToShowFullScreenContent: (ad, error) {
           debugPrint('Ad failed to show: $error');
@@ -116,11 +118,8 @@ class RewardedAdService {
       );
 
       _rewardedAd = null;
-      _isAdLoaded = false;
     } else {
       debugPrint('RewardedAd not ready yet');
-      onAdDismissed(); // tvinga stänga om något går fel
     }
   }
 }
-

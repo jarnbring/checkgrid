@@ -1,7 +1,9 @@
 import 'package:checkgrid/game/board.dart';
 import 'package:checkgrid/components/background.dart';
+import 'package:checkgrid/providers/settings_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 
 class GameOverPage extends StatefulWidget {
   final Board board;
@@ -50,21 +52,14 @@ class _GameOverPageState extends State<GameOverPage> {
                 _button(
                   "Restart",
                   () {
+                    context.read<SettingsProvider>().doVibration(1);
                     widget.board.restartGame(context);
-                    context.go('/play');
+                    context.go('/home');
                   },
                   isPressedRestart,
                   (v) => setState(() => isPressedRestart = v),
                 ),
                 const SizedBox(height: 24),
-                _button(
-                  "Back to Menu",
-                  () {
-                    context.go('/home');
-                  },
-                  isPressedMenu,
-                  (v) => setState(() => isPressedMenu = v),
-                ),
               ],
             ),
           ),

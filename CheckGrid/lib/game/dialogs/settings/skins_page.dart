@@ -1,6 +1,7 @@
 import 'package:checkgrid/game/dialogs/settings/components/dialog_image.dart';
 import 'package:checkgrid/game/dialogs/settings/components/small_button.dart';
 import 'package:checkgrid/game/dialogs/settings/settings_dialog.dart';
+import 'package:checkgrid/providers/settings_provider.dart';
 import 'package:checkgrid/providers/skin_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:checkgrid/game/board.dart';
@@ -74,7 +75,11 @@ class _SkinsPageState extends State<SkinsPage> {
                         final skin = unlockedSkins[index];
                         final isSelected = skin == selectedSkin;
                         return GestureDetector(
-                          onTap: () => skinProvider.selectSkin(skin),
+                          onTap:
+                              () => {
+                                context.read<SettingsProvider>().doVibration(1),
+                                skinProvider.selectSkin(skin),
+                              },
                           child: Container(
                             decoration: BoxDecoration(
                               color: const Color.fromARGB(255, 16, 79, 131),

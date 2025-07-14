@@ -1,4 +1,6 @@
+import 'package:checkgrid/providers/settings_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class OptionTile extends StatelessWidget {
   final String title;
@@ -27,7 +29,8 @@ class OptionTile extends StatelessWidget {
           title: Text(title, style: const TextStyle(color: Colors.white)),
           leading: Icon(icon, color: Colors.white),
           trailing: const Icon(Icons.arrow_forward_ios, color: Colors.white),
-          onTap: () => onTap(),
+          onTap:
+              () => {context.read<SettingsProvider>().doVibration(1), onTap()},
         ),
       ),
     );

@@ -6,6 +6,7 @@ import 'package:checkgrid/game/utilities/score.dart';
 import 'package:checkgrid/game/board.dart';
 import 'package:checkgrid/game/piece_selector.dart';
 import 'package:checkgrid/providers/general_provider.dart';
+import 'package:checkgrid/providers/settings_provider.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -47,6 +48,7 @@ class _GameState extends State<Game> {
               child: GestureDetector(
                 onTap: () {
                   showSettingsDialog(board: board, context: context);
+                  context.read<SettingsProvider>().doVibration(1);
                 },
                 child: const Icon(Icons.settings),
               ),

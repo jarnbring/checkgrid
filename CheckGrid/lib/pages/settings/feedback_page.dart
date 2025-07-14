@@ -1,10 +1,12 @@
 import 'dart:io';
 
+import 'package:checkgrid/providers/settings_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:checkgrid/components/photopicker.dart';
 import 'package:checkgrid/components/textfield.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
 
 // Can be cleaned up with screenshot and screenshotlist by sending in index instead of screenshot directly
 // Cursor color
@@ -298,6 +300,7 @@ class _FeedbackPageState extends State<FeedbackPage>
     return GestureDetector(
       onTap:
           () => {
+            context.read<SettingsProvider>().doVibration(1),
             // Request the database, i.e ApiClient() from data.dart
           },
       child: Container(

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:checkgrid/game/board.dart';
 import 'package:checkgrid/providers/ad_provider.dart';
 import 'package:checkgrid/providers/general_provider.dart';
+import 'package:checkgrid/providers/settings_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:checkgrid/ads/reward_ad.dart';
@@ -92,19 +93,17 @@ class _CountdownLoadingState extends State<CountdownLoading> {
     }
   }
 
-  /// Handles the revive action via rewarded ad.
+  // Handles the revive action via rewarded ad.
   void _onRevivePressed() {
     // These are necessary to avoid bugs, ex spam-clicking "Revive?"
     if (isAdBeingShown) return;
     if (isRevived) return;
+    if (!adToShow.isLoaded) return;
 
     isAdBeingShown = true;
-    setState(() {});
 
     adToShow.showAd(
       onUserEarnedReward: () {
-        if (isRevived) return;
-
         isRevived = true;
         widget.afterAd();
         widget.board.saveBoard(context);
@@ -112,6 +111,7 @@ class _CountdownLoadingState extends State<CountdownLoading> {
       },
       onAdDismissed: () {
         if (isRevived) return;
+
         widget.board.updateAmountOfRounds(context);
         widget.board.restartGame(context);
 
@@ -160,6 +160,8 @@ class _CountdownLoadingState extends State<CountdownLoading> {
                 builder: (context, setLocalState) {
                   return GestureDetector(
                     onTap: () {
+                      context.read<SettingsProvider>().doVibration(1);
+
                       if (isAdBeingShown) return;
                       _onRevivePressed();
                     },

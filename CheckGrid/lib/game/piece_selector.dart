@@ -39,15 +39,52 @@ class _PieceSelectorState extends State<PieceSelector> {
         ),
         borderRadius: BorderRadius.circular(30),
       ),
-      child:
-          selectedPieces.isEmpty
-              ? _buildContinue(board)
-              : _buildPieceSelector(selectedPieces),
+      child: _buildPieceSelector(selectedPieces, board),
     );
   }
 
+  void _handleLastPiece(Board board) async {
+    // Last step in tutorial
+    final tutorial = context.read<TutorialController>();
+    if (tutorial.tutorialStep == 4 && tutorial.isActive) {
+      await tutorial.nextStep();
+      board.selectedPieces = [];
+    }
+
+    // Add score
+    board.addScore();
+
+    // Clear old state
+    board.removeTargetedCells();
+    board.removePlacedPieces();
+
+    board.clearPiecesOnBoard();
+
+    // Create a new state
+    board.setNewSelectedPieces();
+    await board.spawnActiveCells();
+
+    // Update colors on the board
+    board.updateColors();
+
+    // Check if the game is over
+    board.checkGameOver();
+
+    if (!mounted) return;
+
+    // If the game was over, show the dialogs
+    if (board.isGameOver && (board.watchedAds <= 3)) {
+      showReviveDialog(context, board);
+    } else if (board.isGameOver) {
+      context.go('/gameover', extra: board);
+    }
+
+    board.updateHighscore(context);
+    board.saveBoard(context);
+  }
+
   // Builds a row of draggable chess pieces that the player can pick and place on the board
-  Widget _buildPieceSelector(List<PieceType> selectedPieces) {
+  Widget _buildPieceSelector(List<PieceType> selectedPieces, Board board) {
     final generalProvider = context.watch<GeneralProvider>();
     final largePieceIconSize = generalProvider.pieceInSelectorSize;
 
@@ -120,6 +157,7 @@ class _PieceSelectorState extends State<PieceSelector> {
                         setLocalState(() {
                           dragStartLocalPosition = null;
                         });
+                        if (selectedPieces.isEmpty) _handleLastPiece(board);
                       },
 
                       // The static piece image shown in the selector
@@ -135,65 +173,6 @@ class _PieceSelectorState extends State<PieceSelector> {
               ),
             );
           }).toList(),
-    );
-  }
-
-  Widget _buildContinue(Board board) {
-    return GestureDetector(
-      onTap: () async {
-        // Add score
-        board.addScore();
-
-        // Clear old state
-        board.removeTargetedCells();
-        board.removePlacedPieces();
-
-        board.clearPiecesOnBoard();
-
-        // Create a new state
-        board.setNewSelectedPieces();
-        await board.spawnActiveCells();
-
-        // Update colors on the board
-        board.updateColors();
-
-        // Check if the game is over
-        board.checkGameOver();
-
-        if (!mounted) return;
-
-        // If the game was over, show the dialogs
-        if (board.isGameOver && (board.watchedAds <= 3)) {
-          showReviveDialog(context, board);
-        } else if (board.isGameOver) {
-          context.go('/gameover', extra: board);
-        }
-
-        final tutorial = context.read<TutorialController>();
-        if (tutorial.tutorialStep == 4 && tutorial.isActive) {
-          tutorial.nextStep();
-          board.selectedPieces = [];
-          return;
-        }
-
-        board.updateHighscore(context);
-
-        board.saveBoard(context);
-      },
-      child: Container(
-        width: boxWidth,
-        height: boxHeight,
-        decoration: BoxDecoration(color: Colors.transparent),
-        alignment: Alignment.center,
-        child: const Text(
-          "Continue",
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ),
     );
   }
 }

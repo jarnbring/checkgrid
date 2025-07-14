@@ -1,5 +1,7 @@
+import 'package:checkgrid/providers/settings_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:provider/provider.dart';
 
 class CustomBottomNav extends StatelessWidget {
   final int currentIndex;
@@ -37,20 +39,24 @@ class CustomBottomNav extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            _navItem(0, FontAwesomeIcons.chartColumn),
-            _navItem(1, FontAwesomeIcons.solidChessKnight),
-            _navItem(2, FontAwesomeIcons.store),
+            _navItem(0, FontAwesomeIcons.chartColumn, context),
+            _navItem(1, FontAwesomeIcons.solidChessKnight, context),
+            _navItem(2, FontAwesomeIcons.store, context),
           ],
         ),
       ),
     );
   }
 
-  Widget _navItem(int index, IconData icon) {
+  Widget _navItem(int index, IconData icon, BuildContext context) {
     final isSelected = index == currentIndex;
 
     return GestureDetector(
-      onTap: () => onItemTap(index),
+      onTap:
+          () => {
+            context.read<SettingsProvider>().doVibration(2),
+            onItemTap(index),
+          },
       child: SizedBox(
         width: 50,
         height: 50,

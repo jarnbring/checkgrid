@@ -4,7 +4,9 @@ import 'package:checkgrid/game/dialogs/settings/components/dialog_image.dart';
 import 'package:checkgrid/game/dialogs/settings/components/small_button.dart';
 import 'package:checkgrid/game/dialogs/settings/settings_dialog.dart';
 import 'package:checkgrid/game/utilities/difficulty.dart';
+import 'package:checkgrid/providers/settings_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class DifficultyPage extends StatefulWidget {
   final Board board;
@@ -101,6 +103,7 @@ class _DifficultyPageState extends State<DifficultyPage> {
                           final isSelected = selectedDifficulty == difficulty;
                           return GestureDetector(
                             onTap: () {
+                              context.read<SettingsProvider>().doVibration(1);
                               setState(() {
                                 selectedDifficulty = difficulty;
                               });
@@ -137,7 +140,13 @@ class _DifficultyPageState extends State<DifficultyPage> {
             dialogWidth: widget.dialogWidth,
             currentPage: DialogPage.difficulty,
           ),
-          SmallUpperButton(isX: false, onPressed: widget.onBack),
+          SmallUpperButton(
+            isX: false,
+            onPressed: () {
+              context.read<SettingsProvider>().doVibration(1);
+              widget.onBack();
+            },
+          ),
         ],
       ),
     );

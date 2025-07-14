@@ -80,6 +80,13 @@ class BoardCell extends StatelessWidget {
             board.clearPreview();
             board.updateColors(); // Needed for the blue color of the piece
 
+            // Do a vibration
+            if (board.selectedPieces.isNotEmpty) {
+              context.read<SettingsProvider>().doVibration(1);
+            } else if (board.selectedPieces.isEmpty) {
+              context.read<SettingsProvider>().doVibration(3);
+            }
+
             final tutorial = context.read<TutorialController>();
             if (tutorial.tutorialStep <= 4 && tutorial.isActive) {
               tutorial.nextStep();

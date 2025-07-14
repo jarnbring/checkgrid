@@ -2,6 +2,7 @@ import 'package:checkgrid/components/outlined_text.dart';
 import 'package:checkgrid/pages/store/components/progress_bar.dart';
 import 'package:checkgrid/pages/store/components/skin_item.dart';
 import 'package:checkgrid/pages/store/components/standard_button.dart';
+import 'package:checkgrid/providers/settings_provider.dart';
 import 'package:checkgrid/providers/skin_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -49,6 +50,7 @@ class _StorePageState extends State<StorePage> {
                             if (!isUnlocked) {
                               skinProvider.unlockSkin(skin);
                             }
+                            context.read<SettingsProvider>().doVibration(1);
                           },
                         );
                       }).toList(),
