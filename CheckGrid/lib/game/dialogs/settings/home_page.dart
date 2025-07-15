@@ -66,17 +66,26 @@ class HomePage extends StatelessWidget {
                   OptionTile(
                     title: "Difficulty",
                     icon: Icons.admin_panel_settings_outlined,
-                    onTap: () => onNavigate(DialogPage.difficulty),
+                    onTap:
+                        () => {
+                          context.read<AudioProvider>().playOpenMenu(),
+                          onNavigate(DialogPage.difficulty),
+                        },
                   ),
                   OptionTile(
                     title: "Skins",
                     icon: FontAwesomeIcons.chessQueen,
-                    onTap: () => onNavigate(DialogPage.skins),
+                    onTap:
+                        () => {
+                          context.read<AudioProvider>().playOpenMenu(),
+                          onNavigate(DialogPage.skins),
+                        },
                   ),
                   OptionTile(
                     title: "Settings",
                     icon: Icons.settings,
                     onTap: () {
+                      context.read<AudioProvider>().playOpenMenu();
                       context.push("/settings").then((_) => board.update());
                     },
                   ),

@@ -37,7 +37,7 @@ class _GameOverPageState extends State<GameOverPage> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const Text(
-                  "Game\n Over",
+                  "Game Over",
                   style: TextStyle(
                     fontSize: 60,
                     fontWeight: FontWeight.bold,
