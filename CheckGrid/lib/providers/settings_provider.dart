@@ -26,7 +26,6 @@ class SettingsProvider with ChangeNotifier {
 
   Future<void> loadSettings() async {
     try {
-      debugPrint("Loading settings...");
       final prefs = await SharedPreferences.getInstance();
       _isBoldText = prefs.getBool('isBoldText') ?? false;
       _isDarkMode = prefs.getBool('isDarkMode') ?? true;
@@ -36,7 +35,6 @@ class SettingsProvider with ChangeNotifier {
       _themeMode = _isDarkMode ? ThemeMode.dark : ThemeMode.light;
       _isLoading = false;
 
-      debugPrint("Settings loaded - isSoundOn: $_isSoundOn");
       notifyListeners();
     } catch (e) {
       debugPrint("Error loading settings: $e");
@@ -47,17 +45,12 @@ class SettingsProvider with ChangeNotifier {
 
   Future<void> _saveSettings() async {
     try {
-      debugPrint("Saving settings - isSoundOn: $_isSoundOn");
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool('isBoldText', _isBoldText);
       await prefs.setBool('isDarkMode', _isDarkMode);
       await prefs.setBool('isVibrationOn', _isVibrationOn);
       await prefs.setBool('isSoundOn', _isSoundOn);
       await prefs.setBool('notificationReminder', _notificationReminder);
-
-      // Verifiera att värdet verkligen sparades
-      final savedValue = prefs.getBool('isSoundOn');
-      debugPrint("Verified saved isSoundOn: $savedValue");
     } catch (e) {
       debugPrint('Error saving settings: $e');
     }

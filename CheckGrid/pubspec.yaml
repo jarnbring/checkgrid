@@ -61,6 +61,8 @@ flutter:
     # Audio assets
     - assets/audio/
     - assets/audio/place_piece/
+    - assets/audio/pick_up/
+    - assets/audio/menu/
 
     # Image assets
     - assets/images/

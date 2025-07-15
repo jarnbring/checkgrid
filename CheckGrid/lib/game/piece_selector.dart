@@ -1,5 +1,6 @@
 import 'package:checkgrid/game/dialogs/game_over/revive_dialog.dart';
 import 'package:checkgrid/pages/tutorial_page.dart';
+import 'package:checkgrid/providers/audio_provider.dart';
 import 'package:checkgrid/providers/general_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:checkgrid/game/board.dart';
@@ -44,7 +45,11 @@ class _PieceSelectorState extends State<PieceSelector> {
   }
 
   void _handleLastPiece(Board board) async {
+    // Add a small delay
+    await Future.delayed(Duration(milliseconds: 100));
+
     // Last step in tutorial
+    if (!mounted) return;
     final tutorial = context.read<TutorialController>();
     if (tutorial.tutorialStep == 4 && tutorial.isActive) {
       await tutorial.nextStep();
@@ -113,6 +118,9 @@ class _PieceSelectorState extends State<PieceSelector> {
                     },
                     child: Draggable<PieceType>(
                       data: pieceType, // This is the piece type being dragged
+                      onDragStarted:
+                          () => context.read<AudioProvider>().playPickUpPiece(),
+
                       // The visual shown while dragging
                       feedback:
                           dragStartLocalPosition == null
@@ -157,6 +165,11 @@ class _PieceSelectorState extends State<PieceSelector> {
                         setLocalState(() {
                           dragStartLocalPosition = null;
                         });
+
+                        if (!dragDetails.wasAccepted) {
+                          context.read<AudioProvider>().playError();
+                        }
+
                         if (selectedPieces.isEmpty) _handleLastPiece(board);
                       },
 

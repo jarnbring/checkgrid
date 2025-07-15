@@ -102,11 +102,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.inactive) {
-      // debugPrint("SAVING BOARD...");
-      // final stopwatch = Stopwatch()..start();
-      // board.saveBoard(context);
-      // stopwatch.stop();
-      // print('Sparande tog ${stopwatch.elapsedMilliseconds} ms');
+      // Background process
     }
   }
 

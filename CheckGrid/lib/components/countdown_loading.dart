@@ -6,6 +6,7 @@ import 'package:checkgrid/providers/settings_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:checkgrid/ads/reward_ad.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 class CountdownLoading extends StatefulWidget {
@@ -86,11 +87,10 @@ class _CountdownLoadingState extends State<CountdownLoading> {
     if (isAdBeingShown) return;
     if (!mounted) return;
 
-    widget.board.updateAmountOfRounds(context);
-    widget.board.restartGame(context);
     if (Navigator.canPop(context)) {
       Navigator.pop(context);
     }
+    context.go('/gameover', extra: widget.board);
   }
 
   // Handles the revive action via rewarded ad.
@@ -112,8 +112,7 @@ class _CountdownLoadingState extends State<CountdownLoading> {
       onAdDismissed: () {
         if (isRevived) return;
 
-        widget.board.updateAmountOfRounds(context);
-        widget.board.restartGame(context);
+        context.go('/gameover', extra: widget.board);
 
         setState(() {
           isAdBeingShown = false;

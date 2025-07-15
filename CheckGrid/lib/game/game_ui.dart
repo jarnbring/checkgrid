@@ -5,6 +5,7 @@ import 'package:checkgrid/game/game_board.dart';
 import 'package:checkgrid/game/utilities/score.dart';
 import 'package:checkgrid/game/board.dart';
 import 'package:checkgrid/game/piece_selector.dart';
+import 'package:checkgrid/providers/audio_provider.dart';
 import 'package:checkgrid/providers/general_provider.dart';
 import 'package:checkgrid/providers/settings_provider.dart';
 import 'package:flutter/foundation.dart';
@@ -47,6 +48,7 @@ class _GameState extends State<Game> {
               height: 50,
               child: GestureDetector(
                 onTap: () {
+                  context.read<AudioProvider>().playOpenMenu();
                   showSettingsDialog(board: board, context: context);
                   context.read<SettingsProvider>().doVibration(1);
                 },

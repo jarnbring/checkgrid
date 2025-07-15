@@ -7,9 +7,13 @@ To do:
     DONE: IOS 26!!! (Look again before release)
     
     Feedback system
-
-    Sound
+    Keeping count of ads watched
+    Gameover row not 100% correct
+    Bottom nav bar slow blue lightning on icons
+    Too large scores
     
+    Sound
+
     Notifications
     Remake Widget methods to classes for performance increase
     Responsive UI

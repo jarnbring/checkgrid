@@ -1,5 +1,6 @@
 import 'package:checkgrid/game/board.dart';
 import 'package:checkgrid/components/background.dart';
+import 'package:checkgrid/providers/audio_provider.dart';
 import 'package:checkgrid/providers/settings_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -20,6 +21,8 @@ class _GameOverPageState extends State<GameOverPage> {
   @override
   void initState() {
     super.initState();
+    context.read<AudioProvider>().playGameOver();
+    widget.board.updateAmountOfRounds(context);
   }
 
   @override

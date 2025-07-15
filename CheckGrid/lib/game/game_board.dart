@@ -68,9 +68,9 @@ class BoardCell extends StatelessWidget {
       builder: (context, cell, _) {
         return DragTarget<PieceType>(
           onWillAcceptWithDetails: (details) {
+            bool canPlace = !cell.hasPiece && !cell.isActive;
             board.previewTargetedCells(details.data, row, col);
-            // Returnera true/false beroende på om cellen är tillgänglig
-            return !cell.hasPiece && !cell.isActive;
+            return canPlace;
           },
           onLeave: (_) {
             board.clearPreview();
@@ -100,6 +100,7 @@ class BoardCell extends StatelessWidget {
               context,
             ); // Update the statistic for placed pieces
           },
+
           builder: (context, candidateData, rejectedData) {
             return Container(
               decoration: BoxDecoration(
