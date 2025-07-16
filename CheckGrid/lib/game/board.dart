@@ -7,6 +7,7 @@ import 'package:checkgrid/game/utilities/difficulty.dart';
 import 'package:checkgrid/providers/board_provider.dart';
 import 'package:checkgrid/providers/general_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 // Handle board logic, ex clearBoard etc.
@@ -491,10 +492,16 @@ class Board extends ChangeNotifier {
 
   Future<void> loadBoard(BuildContext context) async {
     try {
-      // For debug
-      // await Future.delayed(const Duration(seconds: 10));
-
       final boardBox = context.read<BoardProvider>().getBoardBox;
+
+      // Start by looking if the game is over, if so, the user should be redirected to the gameover page
+      isGameOver = await boardBox.get('isGameOver');
+      print(isGameOver);
+      if (isGameOver) {
+        // ignore: use_build_context_synchronously
+        context.go('/gameover', extra: this);
+        return;
+      }
 
       // Load selected pieces
       final savedSelectedPieces = boardBox.get(
@@ -556,7 +563,6 @@ class Board extends ChangeNotifier {
 
       // Load other variables
       watchedAds = await boardBox.get('watchedAds');
-      isGameOver = await boardBox.get('isGameOver');
       isReviveShowing = await boardBox.get('isReviveShowing');
 
       updateColors();

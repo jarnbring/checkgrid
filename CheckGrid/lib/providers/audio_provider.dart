@@ -45,23 +45,23 @@ class AudioProvider with ChangeNotifier {
   }
 
   Future<void> playPickUpPiece() async {
-    await playSound('audio/pick_up/pickuppiece_lowered.mp3');
-  }
-
-  Future<void> playError() async {
-    await playSound('audio/error.mp3');
+    await playSound('audio/pick_up/pick_up_piece.mp3');
   }
 
   Future<void> playGameOver() async {
-    await playSound('audio/gameover.mp3');
+    await playSound('audio/game_over.mp3');
+  }
+
+  Future<void> playNewGame() async {
+    await playSound('audio/new_game.mp3');
   }
 
   Future<void> playOpenMenu() async {
-    await playSound('audio/menu/openmenu.mp3');
+    await playSound('audio/menu/open_menu.mp3');
   }
 
   Future<void> playCloseMenu() async {
-    await playSound('audio/menu/closemenu.mp3');
+    await playSound('audio/menu/close_menu.mp3');
   }
 
   @override
@@ -73,9 +73,8 @@ class AudioProvider with ChangeNotifier {
 }
 
 enum PlacePieceSounds {
-  sound1('audio/place_piece/placepiece1.mp3'),
-  sound2('audio/place_piece/placepiece2.mp3'),
-  sound3('audio/place_piece/placepiece3.mp3');
+  sound1('audio/place_piece/place_piece_1.mp3'),
+  sound2('audio/place_piece/place_piece_2.mp3');
 
   const PlacePieceSounds(this.soundPath);
   final String soundPath;

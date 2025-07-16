@@ -43,7 +43,7 @@ class _PieceSelectorState extends State<PieceSelector> {
           colors: [
             Color.fromARGB(255, 57, 159, 255),
             Color.fromARGB(255, 107, 193, 255),
-            Color.fromARGB(255, 125, 227, 255),
+            Color.fromARGB(255, 111, 192, 215),
           ],
           stops: [0.0, 0.5, 1.0],
           begin: Alignment.topLeft,
@@ -74,10 +74,10 @@ class _PieceSelectorState extends State<PieceSelector> {
     board.checkGameOver();
 
     if (!mounted) return;
-    if (board.isGameOver && (board.watchedAds <= 3)) {
-      showReviveDialog(context, board);
-    } else if (board.isGameOver) {
+    if (board.isGameOver && (board.watchedAds >= 3)) {
       context.go('/gameover', extra: board);
+    } else if (board.isGameOver) {
+      showReviveDialog(context, board);
     }
 
     board.updateHighscore(context);

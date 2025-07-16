@@ -5,17 +5,17 @@ To do:
     DONE: Add a tutorial for first time users
     DONE: Fix vibrations on iOS
     DONE: IOS 26!!! (Look again before release)
+    DONE: Bug exit app when in revive dialog or game over dialog, after this happends, you cannot die in game, needs fix!
+    DONE: Keeping count of ads watched
+    DONE: Gameover row not 100% correct
 
-    Change sound when picking up a piece
     App Icons
     Launch screen (and new animation?)
-    Adjust volume on sounds, SÄNK FÖR I HELVETE
-    Bug exit app when in revive dialog or game over dialog, after this happends, you cannot die in game, needs fix!
+    
     Feedback system
-    Keeping count of ads watched
-    Gameover row not 100% correct
     Bottom nav bar slow blue lightning on icons
     Too large scores
+    Log errors
     
     Sound
 
