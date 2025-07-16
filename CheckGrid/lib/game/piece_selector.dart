@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:checkgrid/game/dialogs/game_over/revive_dialog.dart';
 import 'package:checkgrid/pages/tutorial_page.dart';
 import 'package:checkgrid/providers/audio_provider.dart';
@@ -30,13 +32,22 @@ class _PieceSelectorState extends State<PieceSelector> {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         border: BoxBorder.all(color: Colors.black, width: 4),
+        boxShadow: [
+          BoxShadow(
+            blurRadius: 20,
+            color: Colors.black45,
+            offset: Offset(0, 0),
+          ),
+        ],
         gradient: const LinearGradient(
           colors: [
             Color.fromARGB(255, 57, 159, 255),
-            Color.fromARGB(255, 111, 185, 255),
+            Color.fromARGB(255, 107, 193, 255),
+            Color.fromARGB(255, 125, 227, 255),
           ],
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
+          stops: [0.0, 0.5, 1.0],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(30),
       ),
@@ -45,10 +56,7 @@ class _PieceSelectorState extends State<PieceSelector> {
   }
 
   void _handleLastPiece(Board board) async {
-    // Add a small delay
-    await Future.delayed(Duration(milliseconds: 100));
-
-    // Last step in tutorial
+    await Future.delayed(const Duration(milliseconds: 100));
     if (!mounted) return;
     final tutorial = context.read<TutorialController>();
     if (tutorial.tutorialStep == 4 && tutorial.isActive) {
@@ -56,28 +64,16 @@ class _PieceSelectorState extends State<PieceSelector> {
       board.selectedPieces = [];
     }
 
-    // Add score
     board.addScore();
-
-    // Clear old state
     board.removeTargetedCells();
     board.removePlacedPieces();
-
     board.clearPiecesOnBoard();
-
-    // Create a new state
     board.setNewSelectedPieces();
     await board.spawnActiveCells();
-
-    // Update colors on the board
     board.updateColors();
-
-    // Check if the game is over
     board.checkGameOver();
 
     if (!mounted) return;
-
-    // If the game was over, show the dialogs
     if (board.isGameOver && (board.watchedAds <= 3)) {
       showReviveDialog(context, board);
     } else if (board.isGameOver) {
@@ -88,7 +84,6 @@ class _PieceSelectorState extends State<PieceSelector> {
     board.saveBoard(context);
   }
 
-  // Builds a row of draggable chess pieces that the player can pick and place on the board
   Widget _buildPieceSelector(List<PieceType> selectedPieces, Board board) {
     final generalProvider = context.watch<GeneralProvider>();
     final largePieceIconSize = generalProvider.pieceInSelectorSize;
@@ -97,87 +92,66 @@ class _PieceSelectorState extends State<PieceSelector> {
       mainAxisAlignment: MainAxisAlignment.center,
       children:
           selectedPieces.map((pieceType) {
-            Offset?
-            dragStartLocalPosition; // Stores where the drag started for offset adjustments
+            Offset? dragStartLocalPosition;
 
             return Flexible(
               child: StatefulBuilder(
                 builder: (context, setLocalState) {
                   return GestureDetector(
-                    // Called when user starts dragging a piece
                     onPanStart: (details) {
                       setLocalState(() {
                         dragStartLocalPosition = details.localPosition;
                       });
                     },
-                    // Called when the drag ends
                     onPanEnd: (_) {
                       setLocalState(() {
                         dragStartLocalPosition = null;
                       });
                     },
                     child: Draggable<PieceType>(
-                      data: pieceType, // This is the piece type being dragged
+                      data: pieceType,
                       onDragStarted:
                           () => context.read<AudioProvider>().playPickUpPiece(),
-
-                      // The visual shown while dragging
                       feedback:
                           dragStartLocalPosition == null
-                              ? generalProvider.pieceImage(
+                              ? _buildShadowedPiece(
+                                generalProvider,
                                 largePieceIconSize,
                                 pieceType,
-                                null,
                                 context,
                               )
                               : Transform.translate(
-                                // Offsets the image so it appears correctly under the finger
                                 offset: -dragStartLocalPosition!,
-                                // + extraVisualOffset,
-                                child: generalProvider.pieceImage(
+                                child: _buildShadowedPiece(
+                                  generalProvider,
                                   largePieceIconSize,
                                   pieceType,
-                                  null,
                                   context,
                                 ),
                               ),
-
-                      // Where the feedback should appear relative to the finger
                       feedbackOffset:
                           dragStartLocalPosition == null
                               ? Offset.zero
                               : -dragStartLocalPosition!,
-                      // + extraVisualOffset,
-
-                      // The appearance of the original piece during dragging
                       childWhenDragging: Opacity(
                         opacity: 0.2,
-                        child: generalProvider.pieceImage(
+                        child: _buildShadowedPiece(
+                          generalProvider,
                           largePieceIconSize,
                           pieceType,
-                          null,
                           context,
                         ),
                       ),
-
-                      // Called after the drag is completed
                       onDragEnd: (dragDetails) {
                         setLocalState(() {
                           dragStartLocalPosition = null;
                         });
-
-                        if (!dragDetails.wasAccepted) {
-                          context.read<AudioProvider>().playError();
-                        }
-
                         if (selectedPieces.isEmpty) _handleLastPiece(board);
                       },
-
-                      // The static piece image shown in the selector
-                      child: generalProvider.pieceImage(
+                      child: _buildShadowedPiece(
+                        generalProvider,
                         largePieceIconSize,
                         pieceType,
-                        null,
                         context,
                       ),
                     ),
@@ -186,6 +160,27 @@ class _PieceSelectorState extends State<PieceSelector> {
               ),
             );
           }).toList(),
+    );
+  }
+
+  Widget _buildShadowedPiece(
+    GeneralProvider generalProvider,
+    double size,
+    PieceType pieceType,
+    BuildContext context,
+  ) {
+    return Stack(
+      children: [
+        // Fake a shadow
+        Positioned.fill(
+          child: ImageFiltered(
+            imageFilter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
+            child: generalProvider.pieceImage(size, pieceType, null, context),
+          ),
+        ),
+        // Original image
+        generalProvider.pieceImage(size, pieceType, null, context),
+      ],
     );
   }
 }

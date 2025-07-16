@@ -45,7 +45,7 @@ class AudioProvider with ChangeNotifier {
   }
 
   Future<void> playPickUpPiece() async {
-    await playSound('audio/pick_up/pickuppiece.mp3');
+    await playSound('audio/pick_up/pickuppiece_lowered.mp3');
   }
 
   Future<void> playError() async {

@@ -1,8 +1,7 @@
 import Flutter
 import UIKit
-
-// add this...
 import flutter_local_notifications
+import AVFoundation
 
 @main
 @objc class AppDelegate: FlutterAppDelegate {
@@ -10,16 +9,17 @@ import flutter_local_notifications
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
-    // add this...
     FlutterLocalNotificationsPlugin.setPluginRegistrantCallback { (registry) in
-    GeneratedPluginRegistrant.register(with: registry)}
+      GeneratedPluginRegistrant.register(with: registry)
+    }
 
     GeneratedPluginRegistrant.register(with: self)
 
-    // add this...
     if #available(iOS 10.0, *) {
       UNUserNotificationCenter.current().delegate = self as? UNUserNotificationCenterDelegate
     }
+
+    try? AVAudioSession.sharedInstance().setCategory(.playback, options: [.mixWithOthers])
 
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }

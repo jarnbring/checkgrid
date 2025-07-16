@@ -1,3 +1,4 @@
+import 'package:checkgrid/components/outlined_text.dart';
 import 'package:checkgrid/game/board.dart';
 import 'package:checkgrid/components/background.dart';
 import 'package:checkgrid/providers/audio_provider.dart';
@@ -36,22 +37,30 @@ class _GameOverPageState extends State<GameOverPage> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Text(
-                  "Game Over",
-                  style: TextStyle(
-                    fontSize: 60,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF81D4FA),
-                    shadows: [
-                      Shadow(
-                        color: Colors.black45,
-                        offset: Offset(2, 2),
-                        blurRadius: 4,
-                      ),
-                    ],
-                  ),
+                OutlinedText(
+                  text: "Game Over",
+                  fontSize: 60,
+                  color: Color.fromARGB(255, 174, 174, 174),
+                  textAlign: TextAlign.center,
+                  shadows: [
+                    Shadow(
+                      color: Colors.black45,
+                      offset: Offset(3, 3),
+                      blurRadius: 10,
+                    ),
+                    Shadow(
+                      color: Colors.black45,
+                      offset: Offset(3, 3),
+                      blurRadius: 10,
+                    ),
+                    Shadow(
+                      color: Colors.black45,
+                      offset: Offset(3, 3),
+                      blurRadius: 10,
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 50),
+                const SizedBox(height: 100),
                 _button(
                   "Restart",
                   () {

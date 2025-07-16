@@ -4,18 +4,24 @@ class OutlinedText extends StatelessWidget {
   final String text;
   final double fontSize;
   final bool isPrice;
+  final Color color;
+  final String fontFamily;
+  final TextAlign textAlign;
+  final List<Shadow>? shadows;
 
   const OutlinedText({
     super.key,
     required this.text,
     this.fontSize = 22,
     this.isPrice = false,
+    this.color = Colors.white,
+    this.fontFamily = "Antonio",
+    this.textAlign = TextAlign.start,
+    this.shadows,
   });
 
   @override
   Widget build(BuildContext context) {
-    final String fontFamily = 'Antonio';
-
     String temp;
     if (isPrice) {
       try {
@@ -32,6 +38,7 @@ class OutlinedText extends StatelessWidget {
       children: [
         Text(
           temp,
+          textAlign: textAlign,
           style: TextStyle(
             fontSize: fontSize,
             foreground:
@@ -45,11 +52,13 @@ class OutlinedText extends StatelessWidget {
         ),
         Text(
           temp,
+          textAlign: textAlign,
           style: TextStyle(
             fontSize: fontSize,
-            color: Colors.white,
+            color: color,
             fontWeight: FontWeight.bold,
             fontFamily: fontFamily,
+            shadows: shadows,
           ),
         ),
       ],

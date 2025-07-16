@@ -144,6 +144,7 @@ class Board extends ChangeNotifier {
         final Cell cell = board[row][col];
         if (cell.isActive) {
           isGameOver = true;
+
           return; // Avsluta direkt om vi hittar en aktiv cell
         }
       }
