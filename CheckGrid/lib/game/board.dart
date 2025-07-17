@@ -496,7 +496,6 @@ class Board extends ChangeNotifier {
 
       // Start by looking if the game is over, if so, the user should be redirected to the gameover page
       isGameOver = await boardBox.get('isGameOver');
-      print(isGameOver);
       if (isGameOver) {
         // ignore: use_build_context_synchronously
         context.go('/gameover', extra: this);

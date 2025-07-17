@@ -12,24 +12,78 @@ class HomeWrapper extends StatefulWidget {
   State<HomeWrapper> createState() => _HomeWrapperState();
 }
 
-class _HomeWrapperState extends State<HomeWrapper> {
+class _HomeWrapperState extends State<HomeWrapper>
+    with TickerProviderStateMixin {
   final PageController _controller = PageController(initialPage: 1);
   int _currentIndex = 1;
+  double _currentPageValue = 1.0;
   bool _isAnimating = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Lägg till listener för realtidssynkronisering
+    _controller.addListener(_pageListener);
+  }
+
+  @override
+  void dispose() {
+    _controller.removeListener(_pageListener);
+    _controller.dispose();
+    super.dispose();
+  }
+
+  // Ny listener för realtidssynkronisering
+  void _pageListener() {
+    if (_controller.hasClients && _controller.page != null) {
+      setState(() {
+        _currentPageValue = _controller.page!;
+      });
+      final currentPage = _controller.page!.round();
+      if (currentPage != _currentIndex && !_isAnimating) {
+        setState(() {
+          _currentIndex = currentPage;
+        });
+      }
+    }
+  }
 
   void _onItemTapped(int index) {
     _isAnimating = true;
+
+    // Animera currentPageValue manuellt för smooth transition
+    final targetValue = index.toDouble();
+    final duration = const Duration(milliseconds: 300);
+
+    // Skapa egen animation för currentPageValue
+    final animationController = AnimationController(
+      duration: duration,
+      vsync: this,
+    );
+
+    final animation = Tween<double>(
+      begin: _currentPageValue,
+      end: targetValue,
+    ).animate(
+      CurvedAnimation(parent: animationController, curve: Curves.easeInOut),
+    );
+
+    animation.addListener(() {
+      setState(() {
+        _currentPageValue = animation.value;
+      });
+    });
+
+    animationController.forward();
+
     _controller
-        .animateToPage(
-          index,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeInOut,
-        )
+        .animateToPage(index, duration: duration, curve: Curves.easeInOut)
         .then((_) {
           setState(() {
             _currentIndex = index;
             _isAnimating = false;
           });
+          animationController.dispose();
         });
   }
 
@@ -51,7 +105,7 @@ class _HomeWrapperState extends State<HomeWrapper> {
       child: Stack(
         children: [
           PageView(
-            physics: const NeverScrollableScrollPhysics(),
+            physics: const ClampingScrollPhysics(),
             controller: _controller,
             onPageChanged: (index) {
               if (!_isAnimating) {
@@ -96,6 +150,7 @@ class _HomeWrapperState extends State<HomeWrapper> {
           ),
           CustomBottomNav(
             currentIndex: _currentIndex,
+            currentPageValue: _currentPageValue,
             onItemTap: _onItemTapped,
           ),
         ],
