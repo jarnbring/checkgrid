@@ -8,21 +8,20 @@ To do:
     DONE: Bug exit app when in revive dialog or game over dialog, after this happends, you cannot die in game, needs fix!
     DONE: Keeping count of ads watched
     DONE: Gameover row not 100% correct
+    DONE: iPhone activate Game Mode, should be fixed automaticly in appstore
 
-    App Icons
-    Launch screen (and new animation?)
-    
-    Feedback system
+
     Bottom nav bar slow blue lightning on icons
     Too large scores
     Log errors
+    10 ads for black skin
     
     Sound
 
     Notifications
     Remake Widget methods to classes for performance increase
     Responsive UI
-    iPhone activate Game Mode?
+    
     App Size
     Add logging for errors and crashes
     Test on android
@@ -37,6 +36,10 @@ To do:
     Highscore
     Place piece
     Navigationbar
+
+    App Icons
+    Launch screen (and new animation?)
+    Feedback system (may need backend for images)
 
     **Future ideas:**
     // Requires backend

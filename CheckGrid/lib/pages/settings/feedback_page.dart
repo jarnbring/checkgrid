@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:checkgrid/providers/settings_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:checkgrid/components/photopicker.dart';
@@ -7,10 +6,6 @@ import 'package:checkgrid/components/textfield.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
-
-// Can be cleaned up with screenshot and screenshotlist by sending in index instead of screenshot directly
-// Cursor color
-// Make smaller images (ex 100 MB => 50 MB)
 
 class FeedbackPage extends StatefulWidget {
   const FeedbackPage({super.key});
@@ -21,10 +16,9 @@ class FeedbackPage extends StatefulWidget {
 
 class _FeedbackPageState extends State<FeedbackPage>
     with TickerProviderStateMixin {
-  // Controllers
   final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _feedbackController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
-  XFile? userScreenshot;
   List<XFile> screenshots = [];
 
   final Map<String, bool> _selectedItems = {
@@ -58,7 +52,7 @@ class _FeedbackPageState extends State<FeedbackPage>
   @override
   void dispose() {
     _emailController.dispose();
-    // Dispose all animation controllers
+    _feedbackController.dispose();
     for (var controller in _animationControllers.values) {
       controller.dispose();
     }
@@ -103,11 +97,11 @@ class _FeedbackPageState extends State<FeedbackPage>
         borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
-        mainAxisSize: MainAxisSize.min,
         children: [
           SizedBox(
             height: 300,
             child: TextField(
+              controller: _feedbackController,
               maxLines: null,
               expands: true,
               textAlignVertical: TextAlignVertical.top,
@@ -146,7 +140,7 @@ class _FeedbackPageState extends State<FeedbackPage>
                       shape: BoxShape.circle,
                     ),
                     child: Padding(
-                      padding: EdgeInsetsGeometry.all(5),
+                      padding: EdgeInsets.all(5),
                       child: const Icon(
                         Icons.add,
                         color: Colors.white,
@@ -176,15 +170,36 @@ class _FeedbackPageState extends State<FeedbackPage>
         itemCount: screenshotList.length,
         itemBuilder: (context, index) {
           final screenshot = screenshotList[index];
-          return _ShrinkableImage(
-            key: ValueKey(screenshot.path),
-            screenshot: screenshot,
-            screenshotList: screenshotList,
-            onRemove: () {
-              setState(() {
-                screenshotList.removeAt(index);
-              });
-            },
+          return Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Stack(
+              children: [
+                Image.file(
+                  File(screenshot.path),
+                  width: 100,
+                  height: 100,
+                  fit: BoxFit.cover,
+                ),
+                Positioned(
+                  top: 0,
+                  right: 0,
+                  child: GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        screenshotList.removeAt(index);
+                      });
+                    },
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.black45,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(Icons.close, color: Colors.white),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           );
         },
       ),
@@ -199,9 +214,7 @@ class _FeedbackPageState extends State<FeedbackPage>
     return GestureDetector(
       onTap: () {
         setState(() {
-          // Set all items to false
           _selectedItems.updateAll((key, value) => false);
-          // Set the tapped item to true
           _selectedItems[title] = true;
           if (animationController != null) {
             animationController.forward().then(
@@ -236,6 +249,38 @@ class _FeedbackPageState extends State<FeedbackPage>
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSubmitButton() {
+    return GestureDetector(
+      onTap: () {
+        context.read<SettingsProvider>().doVibration(1);
+        // Call API
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.blue,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Padding(
+          padding: EdgeInsets.all(20),
+          child: Row(
+            children: [
+              const Spacer(),
+              Text(
+                "Submit feedback",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const Spacer(),
+            ],
+          ),
         ),
       ),
     );
@@ -280,10 +325,8 @@ class _FeedbackPageState extends State<FeedbackPage>
                 SizedBox(height: 30),
                 _buildFeedbackForm(),
                 SizedBox(height: 30),
-                if (screenshots.isNotEmpty) ...[
-                  _buildScreenshots(screenshots),
-                  SizedBox(height: 30),
-                ],
+                if (screenshots.isNotEmpty) _buildScreenshots(screenshots),
+                SizedBox(height: 30),
                 _buildEmailField(),
                 SizedBox(height: 50),
                 _buildSubmitButton(),
@@ -292,257 +335,6 @@ class _FeedbackPageState extends State<FeedbackPage>
             ),
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildSubmitButton() {
-    return GestureDetector(
-      onTap:
-          () => {
-            context.read<SettingsProvider>().doVibration(1),
-            // Request the database, i.e ApiClient() from data.dart
-          },
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.blue,
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Padding(
-          padding: EdgeInsetsGeometry.all(20),
-          child: Row(
-            children: [
-              const Spacer(),
-              Text(
-                "Submit feedback",
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const Spacer(),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// Animation for images being removed
-
-class _ShrinkableImage extends StatefulWidget {
-  final List<XFile> screenshotList;
-  final XFile screenshot;
-  final VoidCallback onRemove;
-
-  const _ShrinkableImage({
-    super.key,
-    required this.screenshotList,
-    required this.screenshot,
-    required this.onRemove,
-  });
-
-  @override
-  _ShrinkableImageState createState() => _ShrinkableImageState();
-}
-
-class _ShrinkableImageState extends State<_ShrinkableImage>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _scaleAnim;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 300),
-    );
-    _scaleAnim = Tween<double>(
-      begin: 1.0,
-      end: 0.0,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
-    _controller.addStatusListener((status) {
-      if (status == AnimationStatus.completed) {
-        widget.onRemove();
-      }
-    });
-  }
-
-  void _startRemove() {
-    _controller.forward();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  void _buildPreview(List<XFile> screenshotList, int startIndex) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        int currentIndex = startIndex;
-
-        return StatefulBuilder(
-          builder: (context, setState) {
-            // Loop runt
-            if (currentIndex >= screenshotList.length) currentIndex = 0;
-            if (currentIndex < 0) currentIndex = screenshotList.length - 1;
-
-            return Dialog(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  Container(
-                    width: 400,
-                    height: 600,
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(25),
-                      color: Colors.black,
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: Image.file(
-                        File(screenshotList[currentIndex].path),
-                        fit: BoxFit.contain,
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    top: 10,
-                    right: 10,
-                    child: GestureDetector(
-                      onTap: () => Navigator.of(context).pop(),
-                      child: Container(
-                        decoration: const BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Color.fromARGB(164, 158, 158, 158),
-                        ),
-                        child: const Icon(
-                          Icons.close,
-                          size: 30,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    top: (600 - 30) / 2,
-                    right: 0,
-                    child: GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          currentIndex++;
-                          if (currentIndex >= screenshotList.length) {
-                            currentIndex = 0;
-                          }
-                        });
-                      },
-                      child: Container(
-                        decoration: const BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Color.fromARGB(163, 100, 100, 100),
-                        ),
-                        child: const Padding(
-                          padding: EdgeInsets.all(3),
-                          child: Icon(
-                            Icons.arrow_forward_ios,
-                            size: 30,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    top: (600 - 30) / 2,
-                    left: 0,
-                    child: GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          currentIndex--;
-                          if (currentIndex < 0) {
-                            currentIndex = screenshotList.length - 1;
-                          }
-                        });
-                      },
-                      child: Container(
-                        decoration: const BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Color.fromARGB(163, 100, 100, 100),
-                        ),
-                        child: const Padding(
-                          padding: EdgeInsets.all(3),
-                          child: Icon(
-                            Icons.arrow_back_ios_new,
-                            size: 30,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return ScaleTransition(
-      scale: _scaleAnim,
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          // Image
-          Padding(
-            padding: const EdgeInsets.all(10.0),
-            child: GestureDetector(
-              onTap:
-                  () => _buildPreview(
-                    widget.screenshotList,
-                    widget.screenshotList.indexOf(widget.screenshot),
-                  ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: Image.file(
-                  File(widget.screenshot.path),
-                  width: 100,
-                  height: 120,
-                  fit: BoxFit.cover,
-                ),
-              ),
-            ),
-          ),
-
-          // Remove icon
-          Positioned(
-            top: 0,
-            right: 0,
-            child: GestureDetector(
-              onTap: _startRemove,
-              child: Container(
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Color.fromARGB(163, 114, 114, 114),
-                ),
-                child: const Icon(Icons.remove, size: 22, color: Colors.white),
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }

@@ -94,7 +94,6 @@ class _HomeWrapperState extends State<HomeWrapper> {
               ),
             ),
           ),
-
           CustomBottomNav(
             currentIndex: _currentIndex,
             onItemTap: _onItemTapped,
