@@ -31,6 +31,7 @@ To do:
     Set everything up for iOS and Android, App store, Google play store
     Buy domain? @checkgrid.com
     Code review
+    Implement real ads
 
     Animations:
     Highscore

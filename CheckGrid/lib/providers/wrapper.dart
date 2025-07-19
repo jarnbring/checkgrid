@@ -18,6 +18,9 @@ class _HomeWrapperState extends State<HomeWrapper>
   int _currentIndex = 1;
   double _currentPageValue = 1.0;
   bool _isAnimating = false;
+  double _dragStartX = 0;
+  double _dragStartPageValue = 0;
+  bool _isDragging = false;
 
   @override
   void initState() {
@@ -105,7 +108,7 @@ class _HomeWrapperState extends State<HomeWrapper>
       child: Stack(
         children: [
           PageView(
-            physics: const ClampingScrollPhysics(),
+            physics: const NeverScrollableScrollPhysics(),
             controller: _controller,
             onPageChanged: (index) {
               if (!_isAnimating) {
@@ -126,6 +129,7 @@ class _HomeWrapperState extends State<HomeWrapper>
                 onHorizontalDragEnd: (details) {
                   if (details.primaryVelocity != null &&
                       details.primaryVelocity! > 0) {
+                    // Känslig på vänster sida
                     _swipeRight();
                   }
                 },
@@ -142,16 +146,86 @@ class _HomeWrapperState extends State<HomeWrapper>
                 onHorizontalDragEnd: (details) {
                   if (details.primaryVelocity != null &&
                       details.primaryVelocity! < 0) {
+                    // Känslig på höger sida
                     _swipeLeft();
                   }
                 },
               ),
             ),
           ),
-          CustomBottomNav(
-            currentIndex: _currentIndex,
-            currentPageValue: _currentPageValue,
-            onItemTap: _onItemTapped,
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onHorizontalDragStart: (details) {
+                _isDragging = true;
+                _dragStartX = details.globalPosition.dx;
+                _dragStartPageValue = _currentPageValue;
+              },
+              onHorizontalDragUpdate: (details) {
+                if (_isDragging) {
+                  final dragDistance = details.globalPosition.dx - _dragStartX;
+                  final screenWidth = MediaQuery.of(context).size.width;
+
+                  // Öka känsligheten - dela med mindre värde för snabbare rörelse
+                  final pageValueChange = dragDistance / (screenWidth / 3);
+                  final newPageValue = (_dragStartPageValue + pageValueChange)
+                      .clamp(0.0, 2.0);
+
+                  setState(() {
+                    _currentPageValue = newPageValue;
+                  });
+                }
+              },
+              onHorizontalDragEnd: (details) {
+                if (_isDragging) {
+                  _isDragging = false;
+
+                  // Snappa alltid till närmaste ikon baserat på position
+                  final targetIndex = _currentPageValue.round().clamp(0, 2);
+
+                  // Uppdatera _currentIndex direkt för att undvika animation från fel position
+                  setState(() {
+                    _currentIndex = targetIndex;
+                  });
+
+                  // Animera bara currentPageValue, inte hela sidan
+                  final animationController = AnimationController(
+                    duration: const Duration(milliseconds: 200),
+                    vsync: this,
+                  );
+
+                  final animation = Tween<double>(
+                    begin: _currentPageValue,
+                    end: targetIndex.toDouble(),
+                  ).animate(
+                    CurvedAnimation(
+                      parent: animationController,
+                      curve: Curves.easeOut,
+                    ),
+                  );
+
+                  animation.addListener(() {
+                    setState(() {
+                      _currentPageValue = animation.value;
+                    });
+                  });
+
+                  animationController.forward().then((_) {
+                    // Byt sida när animationen är klar
+                    _controller.jumpToPage(targetIndex);
+                    animationController.dispose();
+                  });
+                }
+              },
+              child: CustomBottomNav(
+                currentIndex: _currentIndex,
+                currentPageValue: _currentPageValue,
+                onItemTap: _onItemTapped,
+              ),
+            ),
           ),
         ],
       ),

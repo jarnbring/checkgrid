@@ -18,91 +18,81 @@ class CustomBottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Positioned(
-      bottom: 0,
-      left: 0,
-      right: 0,
-      child: SafeArea(
-        top: false,
-        child: Container(
-          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(30),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.15),
-                blurRadius: 20,
-                spreadRadius: 1,
-                offset: const Offset(0, -2),
-              ),
+    // Ta bort Positioned härifrån - låt HomeWrapper hantera positionering
+    return SafeArea(
+      top: false,
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(30),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.15),
+              blurRadius: 20,
+              spreadRadius: 1,
+              offset: const Offset(0, -2),
+            ),
+          ],
+          border: Border.all(color: Colors.white.withOpacity(0.2), width: 0.5),
+          gradient: LinearGradient(
+            colors: [
+              Colors.white.withOpacity(0.2),
+              Colors.white.withOpacity(0.05),
             ],
-            border: Border.all(
-              color: Colors.white.withOpacity(0.2),
-              width: 0.5,
-            ),
-            gradient: LinearGradient(
-              colors: [
-                Colors.white.withOpacity(0.2),
-                Colors.white.withOpacity(0.05),
-              ],
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-            ),
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
           ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(30),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 12,
-                ),
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    return Stack(
-                      children: [
-                        // Glidande blå bakgrund med realtidsanimation
-                        Positioned(
-                          left: _getIndicatorPosition(
-                            currentPageValue,
-                            constraints.maxWidth,
-                          ),
-                          top: 0,
-                          child: Container(
-                            width: 60,
-                            height: 60,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: Colors.blue.withOpacity(0.2),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.blue.withOpacity(0.3),
-                                  blurRadius: 8,
-                                  spreadRadius: 2,
-                                ),
-                              ],
-                            ),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(30),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  return Stack(
+                    children: [
+                      // Glidande blå bakgrund med realtidsanimation
+                      Positioned(
+                        left: _getIndicatorPosition(
+                          currentPageValue,
+                          constraints.maxWidth,
+                        ),
+                        top: 0,
+                        child: Container(
+                          width: 60,
+                          height: 60,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.blue.withOpacity(0.2),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.blue.withOpacity(0.3),
+                                blurRadius: 8,
+                                spreadRadius: 2,
+                              ),
+                            ],
                           ),
                         ),
-                        // Nav items
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                          children: [
-                            _navItem(0, FontAwesomeIcons.chartColumn, context),
-                            _navItem(
-                              1,
-                              FontAwesomeIcons.solidChessKnight,
-                              context,
-                            ),
-                            _navItem(2, FontAwesomeIcons.tags, context),
-                          ],
-                        ),
-                      ],
-                    );
-                  },
-                ),
+                      ),
+                      // Nav items
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          _navItem(0, FontAwesomeIcons.chartColumn, context),
+                          _navItem(
+                            1,
+                            FontAwesomeIcons.solidChessKnight,
+                            context,
+                          ),
+                          _navItem(2, FontAwesomeIcons.tags, context),
+                        ],
+                      ),
+                    ],
+                  );
+                },
               ),
             ),
           ),
@@ -142,27 +132,22 @@ class CustomBottomNav extends StatelessWidget {
 
   Widget _navItem(int index, IconData icon, BuildContext context) {
     final isSelected = index == currentIndex;
-
     return GestureDetector(
       onTap: () {
         context.read<SettingsProvider>().doVibration(2);
         onItemTap(index);
       },
-      child: SizedBox(
-        width: 60,
-        height: 60,
-        child: Center(
-          child: AnimatedScale(
-            scale: isSelected ? 1.2 : 1.0,
-            duration: const Duration(milliseconds: 200),
-            child: Icon(
-              icon,
-              size: isSelected ? 28 : 24,
-              color:
-                  isSelected
-                      ? Colors.blueAccent
-                      : Colors.white.withOpacity(0.7),
-            ),
+      behavior: HitTestBehavior.opaque, // Gör hela området klickbart
+      child: Padding(
+        padding: const EdgeInsets.all(18), // Osynlig klickbar padding
+        child: AnimatedScale(
+          scale: isSelected ? 1.2 : 1.0,
+          duration: const Duration(milliseconds: 200),
+          child: Icon(
+            icon,
+            size: isSelected ? 28 : 24,
+            color:
+                isSelected ? Colors.blueAccent : Colors.white.withOpacity(0.7),
           ),
         ),
       ),
