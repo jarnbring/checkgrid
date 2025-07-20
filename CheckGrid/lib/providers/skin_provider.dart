@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 
 enum Skin {
   white(0, 0, false),
-  black(1, 4.99, true),
-  blue(2, 9.99, true);
+  black(1, 4.99, true);
+  //blue(2, 9.99, true);
 
   final int id;
   final double price;

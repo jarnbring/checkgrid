@@ -40,7 +40,7 @@ To do:
     Launch screen (and new animation?)
     Feedback system (may need backend for images)
 
-    **Future ideas:**
+    *Future ideas:*
     // Requires backend
 
 

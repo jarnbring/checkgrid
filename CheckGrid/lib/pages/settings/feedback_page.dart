@@ -108,7 +108,7 @@ class _FeedbackPageState extends State<FeedbackPage>
         if (emailError == null) {
           // Email är valid, fortsätt med submit
           // Här kan du lägga till din API-kod
-          print("Email is valid, submitting...");
+          debugPrint("Email is valid, submitting...");
 
           // Eventuellt återställ error state efter lyckad submit
           setState(() {

@@ -10,12 +10,14 @@ class SkinItem extends StatefulWidget {
   final Skin skin;
   final bool isUnlocked;
   final VoidCallback? onTap;
+  final Widget? child;
 
   const SkinItem({
     super.key,
     required this.skin,
     required this.isUnlocked,
     this.onTap,
+    this.child,
   });
   @override
   State<SkinItem> createState() => _SkinItemState();
@@ -66,10 +68,11 @@ class _SkinItemState extends State<SkinItem> {
                     const SizedBox(height: 8),
                     widget.isUnlocked
                         ? OutlinedText(text: 'Owned')
-                        : OutlinedText(
-                          text: widget.skin.price.toString(),
-                          isPrice: true,
-                        ),
+                        : widget.child ??
+                            OutlinedText(
+                              text: widget.skin.price.toString(),
+                              isPrice: true,
+                            ),
                   ],
                 ),
               ),

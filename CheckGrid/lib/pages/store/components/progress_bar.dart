@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class AdProgressBar extends StatelessWidget {
@@ -12,6 +13,7 @@ class AdProgressBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final double progress = rewardedAdsWatched / adsRequired;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -20,15 +22,32 @@ class AdProgressBar extends StatelessWidget {
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 8),
-        LinearProgressIndicator(
-          value: rewardedAdsWatched / adsRequired,
-          minHeight: 12,
-          backgroundColor: Colors.grey.shade300,
-          color: Colors.orange,
+        Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 4,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(10),
+            child: LinearProgressIndicator(
+              value: progress,
+              minHeight: 12,
+              backgroundColor: Colors.grey[300],
+              valueColor: AlwaysStoppedAnimation<Color>(
+                CupertinoColors.systemGreen,
+              ),
+            ),
+          ),
         ),
         const SizedBox(height: 4),
         Text(
-          "$rewardedAdsWatched / $adsRequired ads watched",
+          "$rewardedAdsWatched / $adsRequired",
           style: const TextStyle(fontSize: 12),
         ),
       ],

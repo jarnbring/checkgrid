@@ -52,13 +52,12 @@ class _StorePageState extends State<StorePage> {
                             }
                             context.read<SettingsProvider>().doVibration(1);
                           },
+                          child: AdProgressBar(
+                            adsRequired: adsRequiredForSkin,
+                            rewardedAdsWatched: rewardedAdsWatched,
+                          ),
                         );
                       }).toList(),
-                ),
-                const SizedBox(height: 24),
-                AdProgressBar(
-                  adsRequired: adsRequiredForSkin,
-                  rewardedAdsWatched: rewardedAdsWatched,
                 ),
                 const SizedBox(height: 24),
 
