@@ -2,7 +2,7 @@ import 'package:checkgrid/game/dialogs/settings/settings_dialog.dart';
 import 'package:flutter/material.dart';
 
 class DialogImageWidget extends StatelessWidget {
-  final int dialogWidth;
+  final double dialogWidth;
   final DialogPage currentPage;
   const DialogImageWidget({
     super.key,

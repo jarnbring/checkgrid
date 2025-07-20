@@ -11,8 +11,8 @@ import 'package:provider/provider.dart';
 class DifficultyPage extends StatefulWidget {
   final Board board;
   final VoidCallback onBack;
-  final int dialogWidth;
-  final int dialogHeight;
+  final double dialogWidth;
+  final double dialogHeight;
 
   const DifficultyPage({
     super.key,
@@ -43,8 +43,8 @@ class _DifficultyPageState extends State<DifficultyPage> {
         clipBehavior: Clip.none,
         children: [
           Container(
-            width: 300,
-            height: 500,
+            width: widget.dialogWidth,
+            height: widget.dialogHeight,
             decoration: BoxDecoration(
               color: const Color.fromARGB(255, 41, 107, 161),
               borderRadius: BorderRadius.circular(15),

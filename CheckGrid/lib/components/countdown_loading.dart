@@ -3,6 +3,7 @@ import 'package:checkgrid/game/board.dart';
 import 'package:checkgrid/providers/ad_provider.dart';
 import 'package:checkgrid/providers/general_provider.dart';
 import 'package:checkgrid/providers/settings_provider.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:checkgrid/ads/reward_ad.dart';
@@ -143,7 +144,10 @@ class _CountdownLoadingState extends State<CountdownLoading> {
               Stack(
                 alignment: Alignment.center,
                 children: [
-                  const SpinKitCircle(color: Colors.blue, size: 250.0),
+                  const SpinKitCircle(
+                    color: CupertinoColors.systemBlue,
+                    size: 250.0,
+                  ),
                   Text(
                     '$_counter',
                     style: const TextStyle(

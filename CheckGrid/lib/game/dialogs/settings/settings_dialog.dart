@@ -47,8 +47,8 @@ class _SettingsDialog extends StatefulWidget {
 
 class _SettingsDialogState extends State<_SettingsDialog> {
   DialogPage currentPage = DialogPage.settings;
-  final int dialogWidth = 300;
-  final int dialogHeight = 500;
+  final double dialogWidth = 300;
+  final double dialogHeight = 450;
 
   @override
   Widget build(BuildContext context) {

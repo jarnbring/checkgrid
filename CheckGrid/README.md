@@ -9,16 +9,14 @@ To do:
     DONE: Keeping count of ads watched
     DONE: Gameover row not 100% correct
     DONE: iPhone activate Game Mode, should be fixed automaticly in appstore
+    DONE: Bottom nav bar slow blue lightning on icons
 
+    ALMOST DONE: Sound
+    ALMOST DONE: Notifications
 
-    Bottom nav bar slow blue lightning on icons
     Too large scores
     Log errors
     10 ads for black skin
-    
-    Sound
-
-    Notifications
     Remake Widget methods to classes for performance increase
     Responsive UI
     

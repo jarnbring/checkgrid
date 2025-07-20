@@ -8,6 +8,8 @@ class GeneralProvider with ChangeNotifier {
   double _bannerAdHeight = 90.0;
   double fontSizeInAppbar = 20.0;
   final double pieceInSelectorSize = 75.0;
+  final double dialogWidth = 300;
+  final double dialogHeight = 450;
 
   // General constants
   final double iconSize = 50.0;

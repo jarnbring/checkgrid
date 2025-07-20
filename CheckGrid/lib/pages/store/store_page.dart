@@ -1,7 +1,5 @@
-import 'package:checkgrid/components/outlined_text.dart';
 import 'package:checkgrid/pages/store/components/progress_bar.dart';
 import 'package:checkgrid/pages/store/components/skin_item.dart';
-import 'package:checkgrid/pages/store/components/standard_button.dart';
 import 'package:checkgrid/providers/settings_provider.dart';
 import 'package:checkgrid/providers/skin_provider.dart';
 import 'package:flutter/material.dart';
@@ -16,27 +14,29 @@ class StorePage extends StatefulWidget {
 
 class _StorePageState extends State<StorePage> {
   final int adsRequiredForSkin = 20;
+  int rewardedAdsWatched = 19;
 
   @override
   Widget build(BuildContext context) {
     final skinProvider = context.watch<SkinProvider>();
-    final double screenWidth = MediaQuery.of(context).size.width;
-    int rewardedAdsWatched = 19;
 
     return Scaffold(
       backgroundColor: Colors.transparent,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        title: const Text("Store", style: TextStyle(fontSize: 30)),
+        centerTitle: true,
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 30),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                OutlinedText(text: "Store", fontSize: 34),
-                const SizedBox(height: 60),
                 Wrap(
-                  spacing: 60,
-                  runSpacing: 60,
+                  spacing: 50,
+                  runSpacing: 50,
                   children:
                       Skin.values.map((skin) {
                         final isUnlocked = skinProvider.unlockedSkins.contains(
@@ -61,20 +61,7 @@ class _StorePageState extends State<StorePage> {
                   rewardedAdsWatched: rewardedAdsWatched,
                 ),
                 const SizedBox(height: 24),
-                Wrap(
-                  spacing: 10,
-                  runSpacing: 10,
-                  alignment: WrapAlignment.center,
-                  children: [
-                    StoreButton(
-                      title: "Remove Ads",
-                      price: 9.99,
-                      icon: Icons.block,
-                      screenWidth: screenWidth,
-                      discountText: "Enjoy ad-free gaming!",
-                    ),
-                  ],
-                ),
+
                 const SizedBox(height: 500),
               ],
             ),

@@ -10,8 +10,8 @@ import 'package:provider/provider.dart';
 class SkinsPage extends StatefulWidget {
   final Board board;
   final VoidCallback onBack;
-  final int dialogWidth;
-  final int dialogHeight;
+  final double dialogWidth;
+  final double dialogHeight;
 
   const SkinsPage({
     super.key,
@@ -37,8 +37,8 @@ class _SkinsPageState extends State<SkinsPage> {
         clipBehavior: Clip.none,
         children: [
           Container(
-            width: widget.dialogWidth.toDouble(),
-            height: widget.dialogHeight.toDouble(),
+            width: widget.dialogWidth,
+            height: widget.dialogHeight,
             decoration: BoxDecoration(
               color: const Color.fromARGB(255, 41, 107, 161),
               borderRadius: BorderRadius.circular(15),

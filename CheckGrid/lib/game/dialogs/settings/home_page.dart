@@ -12,8 +12,8 @@ import 'package:provider/provider.dart';
 class HomePage extends StatelessWidget {
   final Board board;
   final void Function(DialogPage) onNavigate;
-  final int dialogWidth;
-  final int dialogHeight;
+  final double dialogWidth;
+  final double dialogHeight;
 
   const HomePage({
     super.key,
@@ -30,8 +30,8 @@ class HomePage extends StatelessWidget {
         clipBehavior: Clip.none,
         children: [
           Container(
-            width: 300,
-            height: 500,
+            width: dialogWidth,
+            height: dialogHeight,
             decoration: BoxDecoration(
               color: const Color.fromARGB(255, 41, 107, 161),
               borderRadius: BorderRadius.circular(15),
@@ -63,15 +63,15 @@ class HomePage extends StatelessWidget {
                           Navigator.pop(context),
                         },
                   ),
-                  OptionTile(
-                    title: "Difficulty",
-                    icon: Icons.admin_panel_settings_outlined,
-                    onTap:
-                        () => {
-                          context.read<AudioProvider>().playOpenMenu(),
-                          onNavigate(DialogPage.difficulty),
-                        },
-                  ),
+                  // OptionTile(
+                  //   title: "Difficulty",
+                  //   icon: Icons.admin_panel_settings_outlined,
+                  //   onTap:
+                  //       () => {
+                  //         context.read<AudioProvider>().playOpenMenu(),
+                  //         onNavigate(DialogPage.difficulty),
+                  //       },
+                  // ),
                   OptionTile(
                     title: "Skins",
                     icon: FontAwesomeIcons.chessQueen,

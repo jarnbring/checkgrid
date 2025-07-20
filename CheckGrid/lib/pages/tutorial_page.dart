@@ -4,6 +4,7 @@ import 'package:checkgrid/game/board.dart';
 import 'package:checkgrid/game/game_board.dart';
 import 'package:checkgrid/game/piece_selector.dart';
 import 'package:checkgrid/game/utilities/difficulty.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -80,7 +81,7 @@ class _TutorialPageState extends State<TutorialPage> {
                 child: ElevatedButton(
                   onPressed: onNext,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
+                    backgroundColor: CupertinoColors.systemBlue,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(

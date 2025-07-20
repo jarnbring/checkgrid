@@ -41,7 +41,7 @@ class _PieceSelectorState extends State<PieceSelector> {
         ],
         gradient: const LinearGradient(
           colors: [
-            Color.fromARGB(255, 57, 159, 255),
+            Color.fromARGB(255, 81, 168, 249),
             Color.fromARGB(255, 107, 193, 255),
             Color.fromARGB(255, 111, 192, 215),
           ],

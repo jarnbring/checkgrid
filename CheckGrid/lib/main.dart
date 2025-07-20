@@ -8,6 +8,8 @@ import 'package:checkgrid/providers/board_provider.dart';
 import 'package:checkgrid/providers/skin_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:checkgrid/providers/general_provider.dart';
 import 'package:checkgrid/providers/settings_provider.dart';
 import 'package:checkgrid/providers/router.dart';
@@ -120,10 +122,12 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       title: 'CheckGrid',
       routerConfig: router,
       theme: ThemeData(
+        // Använd enhetens native plattform för automatisk adaptation
+        platform: defaultTargetPlatform,
+
         appBarTheme: AppBarTheme(
           iconTheme: IconThemeData(color: lightmodeTextColor),
           backgroundColor: Colors.transparent,
-          //backgroundColor: lightmodeBackgroundColor,
           titleTextStyle: GoogleFonts.poppins(
             color: lightmodeTextColor,
             fontWeight:
@@ -168,8 +172,19 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
                     : FontWeight.normal,
           ),
         ),
+        // Exakta iOS-färger som i Safari
+        textSelectionTheme: TextSelectionThemeData(
+          cursorColor: CupertinoColors.systemBlue,
+          selectionColor: CupertinoColors.systemBlue.withOpacity(
+            0.2,
+          ), // Ljusblå transparent bakgrund
+          selectionHandleColor: CupertinoColors.systemBlue, // Blåa handtag
+        ),
       ),
       darkTheme: ThemeData(
+        // Använd enhetens native plattform för automatisk adaptation
+        platform: defaultTargetPlatform,
+
         appBarTheme: AppBarTheme(
           iconTheme: IconThemeData(color: darkmodeTextColor),
           backgroundColor: darkmodeBackgroundColor,
@@ -181,6 +196,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
                     : FontWeight.normal,
           ),
         ),
+        // textSelectionTheme borttaget - låt iOS använda sina standardfärger
         dialogTheme: DialogThemeData(backgroundColor: darkmodeBackgroundColor),
         menuTheme: MenuThemeData(
           style: MenuStyle(
@@ -216,6 +232,17 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
                     ? FontWeight.bold
                     : FontWeight.normal,
           ),
+        ),
+        // Korrekta iOS-standard färger för textSelection
+        textSelectionTheme: const TextSelectionThemeData(
+          cursorColor: CupertinoColors.systemBlue,
+          selectionColor: Color.fromRGBO(
+            0,
+            122,
+            255,
+            0.3,
+          ), // systemBlue med 30% opacity
+          selectionHandleColor: CupertinoColors.systemBlue, // Blå handtag
         ),
       ),
       themeMode: context.watch<SettingsProvider>().themeMode,
