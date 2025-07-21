@@ -83,7 +83,7 @@ class _CountdownLoadingState extends State<CountdownLoading> {
 
   /// Handles what happens when the countdown reaches zero.
   void _onCountdownFinished() {
-    // The user did not watch the ad
+    // The user did not watch the ad, maybe extract if-statements to a void function?
     if (isRevived) return;
     if (isAdBeingShown) return;
     if (!mounted) return;
@@ -104,6 +104,7 @@ class _CountdownLoadingState extends State<CountdownLoading> {
     isAdBeingShown = true;
 
     adToShow.showAd(
+      context: context,
       onUserEarnedReward: () {
         isRevived = true;
         widget.afterAd();

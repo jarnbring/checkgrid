@@ -95,6 +95,7 @@ class RewardedAdService {
   void showAd({
     required VoidCallback onUserEarnedReward,
     required VoidCallback onAdDismissed,
+    required BuildContext context,
   }) {
     if (isLoaded) {
       _rewardedAd!.fullScreenContentCallback = FullScreenContentCallback(
@@ -119,7 +120,7 @@ class RewardedAdService {
 
       _rewardedAd = null;
     } else {
-      debugPrint('RewardedAd not ready yet');
+      debugPrint("RewardedAd not ready yet");
     }
   }
 }

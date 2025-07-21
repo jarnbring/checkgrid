@@ -4,6 +4,7 @@ import 'package:checkgrid/components/error_dialog.dart';
 import 'package:checkgrid/game/board.dart';
 import 'package:checkgrid/providers/ad_provider.dart';
 import 'package:checkgrid/providers/general_provider.dart';
+import 'package:checkgrid/providers/skin_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import 'package:go_router/go_router.dart';
@@ -97,6 +98,10 @@ class _SplashScreenState extends State<SplashScreen>
     } else {
       board.createNewBoard();
     }
+
+    // Prepare the store
+    if (!mounted) return;
+    await context.read<SkinProvider>().initialize();
 
     // Prepare the first video ad
     if (!mounted) return;

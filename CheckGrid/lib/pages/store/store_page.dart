@@ -14,7 +14,7 @@ class StorePage extends StatefulWidget {
 
 class _StorePageState extends State<StorePage> {
   final int adsRequiredForSkin = 20;
-  int rewardedAdsWatched = 19;
+  int rewardedAdsWatched = 2;
 
   @override
   Widget build(BuildContext context) {
@@ -38,23 +38,28 @@ class _StorePageState extends State<StorePage> {
                   spacing: 50,
                   runSpacing: 50,
                   children:
-                      Skin.values.map((skin) {
+                      // Om koden redan är i en Consumer eller setState-kontext
+                      skinProvider.allSkins.map((skin) {
                         final isUnlocked = skinProvider.unlockedSkins.contains(
                           skin,
                         );
+                        final watchedAds = skinProvider.getWatchedAds(skin);
+                        final adsRequired = skin.adsRequired ?? 0;
 
                         return SkinItem(
                           skin: skin,
                           isUnlocked: isUnlocked,
                           onTap: () {
                             if (!isUnlocked) {
-                              skinProvider.unlockSkin(skin);
+                              skinProvider.watchAdForSkin(skin, context);
+                            } else {
+                              skinProvider.selectSkin(skin);
                             }
                             context.read<SettingsProvider>().doVibration(1);
                           },
                           child: AdProgressBar(
-                            adsRequired: adsRequiredForSkin,
-                            rewardedAdsWatched: rewardedAdsWatched,
+                            adsRequired: adsRequired,
+                            rewardedAdsWatched: watchedAds,
                           ),
                         );
                       }).toList(),

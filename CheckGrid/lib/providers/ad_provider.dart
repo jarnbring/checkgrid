@@ -55,20 +55,6 @@ class AdProvider with ChangeNotifier {
     await _bannerAd!.load();
   }
 
-  void showRewardedAd({
-    required VoidCallback onReward,
-    required VoidCallback onDismissed,
-  }) {
-    if (!isRewardedAdLoaded) return;
-    _rewardedAdService.showAd(
-      onUserEarnedReward: onReward,
-      onAdDismissed: onDismissed,
-    );
-    isRewardedAdLoaded = false;
-    notifyListeners();
-    loadRewardedAd();
-  }
-
   // Getters
   RewardedAdService get rewardedAdService => _rewardedAdService;
   BannerAd? get bannerAd => _bannerAd;
