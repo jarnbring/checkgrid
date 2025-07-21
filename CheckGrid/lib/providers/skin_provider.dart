@@ -5,14 +5,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 enum Skin {
   white(0, 0, null, false),
-  black(1, 4.99, 10, true);
-  //blue(2, 9.99, true);
+  black(1, 4.99, 15, true),
+  blue(2, 9.99, null, true);
 
   final int id;
   final double price;
   final int? adsRequired;
   final bool isNew;
-  // final String description
 
   const Skin(this.id, this.price, this.adsRequired, this.isNew);
 
@@ -28,13 +27,12 @@ class SkinProvider with ChangeNotifier {
   List<Skin> unlockedSkins = [Skin.white];
 
   // Cache för watched ads - ladda en gång, använd många gånger
-  Map<String, int> _watchedAdsCache = {};
+  final Map<String, int> _watchedAdsCache = {};
   bool _isInitialized = false;
 
   List<Skin> get unlockedSkinsList => unlockedSkins;
   bool get isInitialized => _isInitialized;
 
-  // Ladda all data en gång vid start
   Future<void> initialize() async {
     if (_isInitialized) return;
 

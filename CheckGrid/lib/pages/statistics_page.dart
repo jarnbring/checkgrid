@@ -14,6 +14,7 @@ class StatisticsPage extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.transparent,
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         backgroundColor: Colors.transparent,
         title: const Text("Statistics", style: TextStyle(fontSize: 30)),
         centerTitle: true,

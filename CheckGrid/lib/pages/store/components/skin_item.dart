@@ -42,7 +42,7 @@ class _SkinItemState extends State<SkinItem> {
             borderWidth: 2,
             child: Container(
               alignment: Alignment.center,
-              width: generalProvider.screenWidth(context) / 3.3,
+              width: generalProvider.screenWidth(context) / 2.5,
               decoration: BoxDecoration(
                 color:
                     widget.isUnlocked
@@ -55,14 +55,14 @@ class _SkinItemState extends State<SkinItem> {
                 ),
               ),
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(10, 24, 10, 16),
+                padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Image.asset(
                       'assets/images/pieces/${widget.skin.name}/${widget.skin.name}_bishop.png',
-                      width: 50,
-                      height: 50,
+                      width: 128,
+                      height: 128,
                       fit: BoxFit.cover,
                     ),
                     const SizedBox(height: 8),

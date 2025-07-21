@@ -38,9 +38,10 @@ class _GameState extends State<Game> {
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(
+          automaticallyImplyLeading: false,
           backgroundColor: Colors.transparent,
           centerTitle: true,
-          title: const Text("CheckGrid", style: TextStyle(fontSize: 26)),
+          title: const Text("CheckGrid", style: TextStyle(fontSize: 30)),
           // Settings button
           actions: [
             SizedBox(

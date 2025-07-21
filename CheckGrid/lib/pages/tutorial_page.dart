@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:checkgrid/components/glass_box.dart';
 import 'package:checkgrid/game/board.dart';
 import 'package:checkgrid/game/game_board.dart';
 import 'package:checkgrid/game/piece_selector.dart';
@@ -49,54 +50,56 @@ class _TutorialPageState extends State<TutorialPage> {
     required VoidCallback onNext,
   }) {
     return Material(
-      color: Colors.black.withOpacity(0.7),
+      color: Colors.transparent,
       child: Center(
-        child: Container(
-          width: 300,
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: const Color.fromARGB(255, 51, 51, 51),
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
+        child: GlassBox(
+          child: Container(
+            width: 300,
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              //color: const Color.fromARGB(255, 51, 51, 51),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
                 ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                description,
-                textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 16),
-              ),
-              const SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: onNext,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: CupertinoColors.systemBlue,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
+                const SizedBox(height: 16),
+                Text(
+                  description,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontSize: 16),
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: onNext,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: CupertinoColors.systemBlue,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      elevation: 10,
+                      shadowColor: Colors.black.withOpacity(0.8),
                     ),
-                    elevation: 10,
-                    shadowColor: Colors.black.withOpacity(0.8),
-                  ),
-                  child: Text(
-                    tutorial.tutorialStep == 5 ? "Done" : "Next",
-                    style: const TextStyle(fontSize: 16),
+                    child: Text(
+                      tutorial.tutorialStep == 5 ? "Done" : "Next",
+                      style: const TextStyle(fontSize: 16),
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -150,7 +153,7 @@ class _TutorialPageState extends State<TutorialPage> {
           barrierLabel: "Tutorial",
           pageBuilder: (context, animation, secondaryAnimation) {
             return _buildStepDialog(
-              title: "Almost done!",
+              title: "Done!",
               description:
                   "When all pieces are placed, the ${Difficulty.medium.initialRows} first rows will move down ${Difficulty.medium.rowsToSpawn} rows and the next round of pieces appears.\nYou are now ready to score points and reach highscores, have fun!",
               step: tutorial.tutorialStep,

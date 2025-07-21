@@ -56,6 +56,7 @@ class _GameMenuState extends State<GameMenu> {
     return Scaffold(
       backgroundColor: Colors.transparent,
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         centerTitle: true,
         backgroundColor: Colors.transparent,
         title: _buildShimmerTitle(),

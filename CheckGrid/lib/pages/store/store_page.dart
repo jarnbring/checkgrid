@@ -23,51 +23,60 @@ class _StorePageState extends State<StorePage> {
     return Scaffold(
       backgroundColor: Colors.transparent,
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         backgroundColor: Colors.transparent,
         title: const Text("Store", style: TextStyle(fontSize: 30)),
         centerTitle: true,
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 30),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Wrap(
-                  spacing: 50,
-                  runSpacing: 50,
-                  children:
-                      // Om koden redan är i en Consumer eller setState-kontext
-                      skinProvider.allSkins.map((skin) {
-                        final isUnlocked = skinProvider.unlockedSkins.contains(
-                          skin,
-                        );
-                        final watchedAds = skinProvider.getWatchedAds(skin);
-                        final adsRequired = skin.adsRequired ?? 0;
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 20),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Column(
+                    spacing: 100,
+                    children:
+                        skinProvider.allSkins.map((skin) {
+                          final isUnlocked = skinProvider.unlockedSkins
+                              .contains(skin);
+                          final watchedAds = skinProvider.getWatchedAds(skin);
+                          final adsRequired = skin.adsRequired ?? 0;
 
-                        return SkinItem(
-                          skin: skin,
-                          isUnlocked: isUnlocked,
-                          onTap: () {
-                            if (!isUnlocked) {
-                              skinProvider.watchAdForSkin(skin, context);
-                            } else {
-                              skinProvider.selectSkin(skin);
-                            }
-                            context.read<SettingsProvider>().doVibration(1);
-                          },
-                          child: AdProgressBar(
-                            adsRequired: adsRequired,
-                            rewardedAdsWatched: watchedAds,
-                          ),
-                        );
-                      }).toList(),
-                ),
-                const SizedBox(height: 24),
+                          // Remove the white skin because every user starts with it, should not be in the store!
+                          //if (skin.id == 0) return const SizedBox.shrink();
 
-                const SizedBox(height: 500),
-              ],
+                          return SkinItem(
+                            skin: skin,
+                            isUnlocked: isUnlocked,
+                            onTap: () {
+                              if (!isUnlocked) {
+                                skinProvider.watchAdForSkin(skin, context);
+                              } else {
+                                skinProvider.selectSkin(skin);
+                              }
+                              context.read<SettingsProvider>().doVibration(1);
+                            },
+                            child:
+                                skin.adsRequired != null
+                                    ? AdProgressBar(
+                                      adsRequired: adsRequired,
+                                      rewardedAdsWatched: watchedAds,
+                                    )
+                                    : null,
+                          );
+                        }).toList(),
+                  ),
+                  const SizedBox(height: 80),
+                  const Text(
+                    "More skins coming soon...",
+                    style: TextStyle(fontSize: 20),
+                  ),
+                  const SizedBox(height: 300),
+                ],
+              ),
             ),
           ),
         ),

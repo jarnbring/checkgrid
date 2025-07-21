@@ -17,9 +17,9 @@ class AdProgressBar extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          "Watch ads to unlock special skin:",
-          style: TextStyle(fontWeight: FontWeight.bold),
+        Text(
+          "Watch ads to unlock this skin:\n $rewardedAdsWatched / $adsRequired",
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
         ),
         const SizedBox(height: 8),
         Container(
@@ -44,11 +44,6 @@ class AdProgressBar extends StatelessWidget {
               ),
             ),
           ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          "$rewardedAdsWatched / $adsRequired",
-          style: const TextStyle(fontSize: 12),
         ),
       ],
     );

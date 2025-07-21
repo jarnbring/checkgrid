@@ -16,7 +16,9 @@ To do:
 
     Too large scores
     Log errors
-    10 ads for black skin
+    Tutorial text and UI?
+    Tutorial fix for first time use?
+    loading screen animation?
     Remake Widget methods to classes for performance increase
     Responsive UI
     
