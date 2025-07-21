@@ -10,20 +10,24 @@ To do:
     DONE: Gameover row not 100% correct
     DONE: iPhone activate Game Mode, should be fixed automaticly in appstore
     DONE: Bottom nav bar slow blue lightning on icons
+    DONE: Tutorial text and UI
+    DONE: Tutorial fix for first time use (Needs testing!)
+    DONE: Too large scores (Needs testing!)
 
     ALMOST DONE: Sound
     ALMOST DONE: Notifications
+    ALMOST DONE: Add logging for errors and crashes
 
-    Too large scores
-    Log errors
-    Tutorial text and UI?
-    Tutorial fix for first time use?
-    loading screen animation?
+    Animations:
+    Highscore
+    Place piece
+
+    App Icons
+    Launch screen (and new animation?)
+    Feedback system
     Remake Widget methods to classes for performance increase
     Responsive UI
-    
     App Size
-    Add logging for errors and crashes
     Test on android
     Code cleanup
     Everything around git, README etc.
@@ -33,24 +37,11 @@ To do:
     Code review
     Implement real ads
 
-    Animations:
-    Highscore
-    Place piece
-    Navigationbar
-
-    App Icons
-    Launch screen (and new animation?)
-    Feedback system (may need backend for images)
-
     *Future ideas:*
     // Requires backend
 
-
     *Store*
-    Watch ads to unlock skins
     Get big highscore to unlock skins
     Unlock different backgrounds
     Notifications for new stuff in store
     In app purchase
-
-

@@ -5,6 +5,7 @@ import 'package:checkgrid/game/utilities/cell.dart';
 import 'package:checkgrid/game/utilities/piecetype.dart';
 import 'package:checkgrid/game/utilities/difficulty.dart';
 import 'package:checkgrid/providers/board_provider.dart';
+import 'package:checkgrid/providers/error_service.dart';
 import 'package:checkgrid/providers/general_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -495,7 +496,7 @@ class Board extends ChangeNotifier {
       final boardBox = context.read<BoardProvider>().getBoardBox;
 
       // Start by looking if the game is over, if so, the user should be redirected to the gameover page
-      isGameOver = await boardBox.get('isGameOver');
+      isGameOver = await boardBox.get('isGameOver') ?? false;
       if (isGameOver) {
         // ignore: use_build_context_synchronously
         context.go('/gameover', extra: this);
@@ -567,8 +568,13 @@ class Board extends ChangeNotifier {
       updateColors();
       notifyListeners();
     } catch (e, stacktrace) {
-      debugPrint('Error loading board: $e');
-      debugPrint('$stacktrace');
+      if (!context.mounted) return;
+      ErrorService().showError(
+        context,
+        "Something went wrong while loading the board.",
+        useTopPosition: true,
+      );
+      ErrorService().logError(e, stacktrace);
     }
   }
 

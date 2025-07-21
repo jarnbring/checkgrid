@@ -1,3 +1,4 @@
+import 'package:checkgrid/providers/error_service.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -14,13 +15,19 @@ class PhotoPicker {
       if (pickedFiles.isNotEmpty) {
         final existingPaths = existing.map((e) => e.path).toSet();
         final newFiles = pickedFiles.where(
-          (f) => !existingPaths.contains(f.path),
+          (file) => !existingPaths.contains(file.path),
         );
         final updated = List<XFile>.from(existing)..addAll(newFiles);
         onImagesPicked(updated);
       }
     } catch (e) {
-      debugPrint("Could not pick images: $e");
+      if (!context.mounted) return;
+      ErrorService().showError(
+        context,
+        "Something went wrong while picking image. Please try again later.",
+        useTopPosition: true,
+      );
+      ErrorService().logError(e, StackTrace.current);
     }
   }
 }

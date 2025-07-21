@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -23,8 +24,8 @@ class _SplashScreenState extends State<SplashScreen>
   late final AnimationController _fadeController;
   late final Animation<double> _fadeAnimation;
   bool _loadingDone = false;
-  bool _shouldRepeat = true;
   bool _boardLoaded = false;
+  bool _isFirstTimeUser = false;
 
   @override
   void initState() {
@@ -41,13 +42,31 @@ class _SplashScreenState extends State<SplashScreen>
 
     _lottieController.addStatusListener((status) {
       if (status == AnimationStatus.completed) {
-        if (_loadingDone && mounted) {
-          _fadeController.forward().then((_) {
-            if (mounted) context.go('/home');
-          });
-        } else if (_shouldRepeat) {
-          _lottieController.forward(from: 0);
-        }
+        _handleAnimationCompleted();
+      }
+    });
+  }
+
+  void _handleAnimationCompleted() {
+    if (_loadingDone && mounted) {
+      // Loading är klart, navigera nu
+      _navigateToNextScreen();
+    } else {
+      // Loading inte klart än, upprepa animationen
+      _lottieController.forward(from: 0);
+    }
+  }
+
+  void _navigateToNextScreen() {
+    _fadeController.forward().then((_) async {
+      if (!mounted) return;
+      if (_isFirstTimeUser) {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setBool('first_time', false);
+        if (!mounted) return;
+        context.go('/tutorial');
+      } else {
+        context.go('/home');
       }
     });
   }
@@ -63,9 +82,9 @@ class _SplashScreenState extends State<SplashScreen>
 
   Future<void> _load() async {
     final board = context.read<Board>();
-    final isFirstTimeUser = await GeneralProvider.isFirstTime();
+    _isFirstTimeUser = await GeneralProvider.isFirstTime();
 
-    if (!isFirstTimeUser) {
+    if (!_isFirstTimeUser) {
       bool shouldAskAgain = true;
 
       while (shouldAskAgain) {
@@ -110,20 +129,11 @@ class _SplashScreenState extends State<SplashScreen>
     await adToShow.loadAd();
 
     _loadingDone = true;
-    _shouldRepeat = false;
 
-    if (_lottieController.status != AnimationStatus.completed) return;
-
-    if (isFirstTimeUser) {
-      _fadeController.forward().then((_) {
-        context.go('/tutorial');
-      });
-      return;
+    // Om animationen redan är klar, navigera direkt
+    if (_lottieController.status == AnimationStatus.completed) {
+      _navigateToNextScreen();
     }
-
-    _fadeController.forward().then((_) {
-      context.go('/home');
-    });
   }
 
   @override

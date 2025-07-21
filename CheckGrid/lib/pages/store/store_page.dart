@@ -46,7 +46,7 @@ class _StorePageState extends State<StorePage> {
                           final adsRequired = skin.adsRequired ?? 0;
 
                           // Remove the white skin because every user starts with it, should not be in the store!
-                          //if (skin.id == 0) return const SizedBox.shrink();
+                          if (skin.id == 0) return const SizedBox.shrink();
 
                           return SkinItem(
                             skin: skin,

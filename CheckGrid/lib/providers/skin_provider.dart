@@ -5,8 +5,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 enum Skin {
   white(0, 0, null, false),
-  black(1, 4.99, 15, true),
-  blue(2, 9.99, null, true);
+  black(1, 4.99, 15, true);
+  //blue(2, 9.99, null, true);
 
   final int id;
   final double price;
@@ -26,7 +26,6 @@ class SkinProvider with ChangeNotifier {
   Skin selectedSkin = Skin.white;
   List<Skin> unlockedSkins = [Skin.white];
 
-  // Cache för watched ads - ladda en gång, använd många gånger
   final Map<String, int> _watchedAdsCache = {};
   bool _isInitialized = false;
 

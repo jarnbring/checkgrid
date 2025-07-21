@@ -76,10 +76,8 @@ class GeneralProvider with ChangeNotifier {
   static Future<bool> isFirstTime() async {
     final prefs = await SharedPreferences.getInstance();
     final firstTime = prefs.getBool('first_time') ?? true;
-    if (firstTime) {
-      isFirstTimeUser = true;
-      await prefs.setBool('first_time', false);
-    }
+
+    isFirstTimeUser = firstTime;
     return firstTime;
   }
 }

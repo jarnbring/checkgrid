@@ -6,6 +6,7 @@ import 'package:checkgrid/game/utilities/score.dart';
 import 'package:checkgrid/game/board.dart';
 import 'package:checkgrid/game/piece_selector.dart';
 import 'package:checkgrid/providers/audio_provider.dart';
+import 'package:checkgrid/providers/error_service.dart';
 import 'package:checkgrid/providers/general_provider.dart';
 import 'package:checkgrid/providers/settings_provider.dart';
 import 'package:flutter/foundation.dart';
@@ -73,7 +74,7 @@ class _GameState extends State<Game> {
                   _buildTutorialButton() ?? const SizedBox(),
                   _buildReviveButton() ?? const SizedBox(),
                   _buildGameOverButton() ?? const SizedBox(),
-
+                  _buildErrorButton() ?? const SizedBox(),
                   const Spacer(),
                 ],
               ),
@@ -110,6 +111,40 @@ class _GameState extends State<Game> {
                 },
             child: const Text(
               'Tutorial',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+            ),
+          ),
+        ),
+      );
+    }
+    return null;
+  }
+
+  Widget? _buildErrorButton() {
+    if (kDebugMode) {
+      return Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: SizedBox(
+          height: 36,
+          child: TextButton(
+            style: TextButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+              minimumSize: const Size(80, 36),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+            ),
+            onPressed: () {
+              ErrorService().showError(
+                context,
+                "Something went wrong while loading the board.",
+                useTopPosition: true,
+              );
+            },
+            child: const Text(
+              'Error',
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
             ),
           ),

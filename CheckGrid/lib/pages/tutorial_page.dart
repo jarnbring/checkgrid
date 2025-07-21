@@ -4,7 +4,6 @@ import 'package:checkgrid/components/glass_box.dart';
 import 'package:checkgrid/game/board.dart';
 import 'package:checkgrid/game/game_board.dart';
 import 'package:checkgrid/game/piece_selector.dart';
-import 'package:checkgrid/game/utilities/difficulty.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -26,9 +25,7 @@ class _TutorialPageState extends State<TutorialPage> {
   void initState() {
     super.initState();
     rootContext = context;
-
     board = rootContext.read<Board>();
-
     tutorial = rootContext.read<TutorialController>();
     tutorial.isActive = true;
 
@@ -93,7 +90,7 @@ class _TutorialPageState extends State<TutorialPage> {
                       shadowColor: Colors.black.withOpacity(0.8),
                     ),
                     child: Text(
-                      tutorial.tutorialStep == 5 ? "Done" : "Next",
+                      tutorial.tutorialStep == 4 ? "Done" : "Next",
                       style: const TextStyle(fontSize: 16),
                     ),
                   ),
@@ -119,7 +116,7 @@ class _TutorialPageState extends State<TutorialPage> {
             return _buildStepDialog(
               title: "Welcome to CheckGrid!",
               description:
-                  "To play the game, drag a piece from the blue rectangle and place it on a grey cell near the green cells.",
+                  "Drag a piece from the selection area below and place it on the gray squares adjacent to the green cells.",
               step: tutorial.tutorialStep,
               onNext: () {
                 Navigator.of(context).pop();
@@ -135,9 +132,9 @@ class _TutorialPageState extends State<TutorialPage> {
           barrierLabel: "Tutorial",
           pageBuilder: (context, animation, secondaryAnimation) {
             return _buildStepDialog(
-              title: "Good job!",
+              title: "Great Job!",
               description:
-                  "The X-marked cells are cells that will be removed. The goal is to stop the cells from reaching the blue row at the bottom.\nNow try placing the two remaining pieces on the board.",
+                  "Excellent! The X-marked cells will be cleared from the board. Your goal is to prevent cells from reaching the bottom blue zone.\n\nNow place the remaining pieces to continue.",
               step: tutorial.tutorialStep,
               onNext: () {
                 Navigator.of(context).pop();
@@ -153,9 +150,9 @@ class _TutorialPageState extends State<TutorialPage> {
           barrierLabel: "Tutorial",
           pageBuilder: (context, animation, secondaryAnimation) {
             return _buildStepDialog(
-              title: "Done!",
+              title: "Tutorial Complete!",
               description:
-                  "When all pieces are placed, the ${Difficulty.medium.initialRows} first rows will move down ${Difficulty.medium.rowsToSpawn} rows and the next round of pieces appears.\nYou are now ready to score points and reach highscores, have fun!",
+                  "Perfect! When you place all pieces, the top rows will shift down and new pieces will appear. You're ready to start scoring points.\n\nGood luck and have fun!",
               step: tutorial.tutorialStep,
               onNext: () async {
                 Navigator.of(context).pop();

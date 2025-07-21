@@ -42,7 +42,7 @@ class _SkinItemState extends State<SkinItem> {
             borderWidth: 2,
             child: Container(
               alignment: Alignment.center,
-              width: generalProvider.screenWidth(context) / 2.5,
+              width: generalProvider.screenWidth(context) / 3,
               decoration: BoxDecoration(
                 color:
                     widget.isUnlocked
@@ -61,8 +61,8 @@ class _SkinItemState extends State<SkinItem> {
                   children: [
                     Image.asset(
                       'assets/images/pieces/${widget.skin.name}/${widget.skin.name}_bishop.png',
-                      width: 128,
-                      height: 128,
+                      width: 100,
+                      height: 100,
                       fit: BoxFit.cover,
                     ),
                     const SizedBox(height: 8),

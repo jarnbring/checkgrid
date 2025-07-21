@@ -88,7 +88,6 @@ class BoardCell extends StatelessWidget {
             } else if (board.selectedPieces.isEmpty) {
               context.read<SettingsProvider>().doVibration(3);
             }
-
             final tutorial = context.read<TutorialController>();
             if (tutorial.tutorialStep <= 4 && tutorial.isActive) {
               tutorial.nextStep();

@@ -1,6 +1,7 @@
 import 'package:checkgrid/animations/border_beam.dart';
 import 'package:checkgrid/components/glass_box.dart';
 import 'package:checkgrid/providers/board_provider.dart';
+import 'package:checkgrid/providers/error_service.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -50,7 +51,7 @@ class StatisticsPage extends StatelessWidget {
                       _buildStatistic(
                         "Highscore",
                         highscore >= BigInt.from(9223372036854775807)
-                            ? '∞'
+                            ? 'MAX'
                             : highscore.toDouble(),
                         isWide: true,
                       ),
@@ -89,7 +90,15 @@ class StatisticsPage extends StatelessWidget {
       if (value is String) {
         try {
           return BigInt.parse(value);
-        } catch (_) {
+        } catch (e) {
+          if (context.mounted) {
+            ErrorService().showError(
+              context,
+              "Something went wrong while loading score.",
+              useTopPosition: true,
+            );
+          }
+          ErrorService().logError(e, StackTrace.current);
           return BigInt.zero;
         }
       }
