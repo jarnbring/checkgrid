@@ -94,37 +94,60 @@ class Board extends ChangeNotifier {
 
   // Update every cells color
   void updateColors() {
+    // Update to new fresh colors? -----------------------------
     final height = GeneralProvider.boardHeight;
     final width = GeneralProvider.boardWidth;
     int zoneCount = 3;
-
     for (int row = 0; row < height; row++) {
       for (int col = 0; col < width; col++) {
         final cell = board[row][col];
         final activeCondition =
             cell.hasPiece || cell.isActive || cell.piece != null;
 
-        // Grundfärg
-        cell.color = Colors.grey;
+        // Grundfärg - mjuk gradient base
+        cell.color = Color.fromARGB(255, 59, 64, 83); // Mörk blågrå
+
+        // Nollställ gradient för alla celler först!
+        cell.gradient = null;
 
         // Vilken zon är vi i? (0 = topp, 3 = botten)
         int zone = ((row / height) * zoneCount).floor();
         if (zone >= zoneCount) zone = zoneCount - 1;
 
         if (row == height - 1) {
-          cell.color = Colors.blueGrey;
+          cell.color = Color.fromARGB(
+            255,
+            64,
+            83,
+            117,
+          ); // Djupare grå med lila ton
         }
 
-        // Sätt färg efter zon och status
+        // Sätt färg efter zon och status - riktiga gradienter
         if ((zone == 2) && activeCondition) {
-          cell.color = Colors.red;
+          cell.gradient = LinearGradient(
+            colors: [Color(0xFFFF6B6B), Color.fromARGB(255, 255, 50, 50)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          );
         } else if (zone == 1 && activeCondition) {
-          cell.color = Colors.orange;
+          cell.gradient = LinearGradient(
+            colors: [
+              Color.fromARGB(255, 246, 216, 99),
+              Color.fromARGB(255, 251, 191, 51),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          );
         } else if (zone == 0 && activeCondition) {
-          cell.color = Colors.green;
+          cell.gradient = LinearGradient(
+            colors: [Color(0xFF4FD1C7), Color(0xFF6BCF7F)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          );
         }
 
-        // Prioritera blå för pjäser
+        // Prioritera cyan/turkos för pjäser
         if (cell.hasPiece || cell.piece != null) {
           cell.color = Colors.blue;
         }

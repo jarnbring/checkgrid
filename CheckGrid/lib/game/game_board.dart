@@ -102,9 +102,7 @@ class BoardCell extends StatelessWidget {
 
           builder: (context, candidateData, rejectedData) {
             return Container(
-              decoration: BoxDecoration(
-                // Måste uppdatera färger korrekt!
-                color: cell.color,
+              decoration: (cell.getDecoration() as BoxDecoration).copyWith(
                 borderRadius: BorderRadius.circular(5),
               ),
               child: Stack(

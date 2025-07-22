@@ -61,6 +61,7 @@ class SocialsPage extends StatelessWidget {
       {'icon': FontAwesomeIcons.youtube, 'url': 'https://www.youtube.com/'},
       {'icon': FontAwesomeIcons.xTwitter, 'url': 'https://www.x.com/'},
       {'icon': FontAwesomeIcons.discord, 'url': 'https://www.discord.com/'},
+      // Add for your website
     ];
 
     return socialLinks.map((link) {

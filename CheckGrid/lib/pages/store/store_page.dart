@@ -37,7 +37,7 @@ class _StorePageState extends State<StorePage> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Column(
-                    spacing: 100,
+                    spacing: 50,
                     children:
                         skinProvider.allSkins.map((skin) {
                           final isUnlocked = skinProvider.unlockedSkins
@@ -74,7 +74,6 @@ class _StorePageState extends State<StorePage> {
                     "More skins coming soon...",
                     style: TextStyle(fontSize: 20),
                   ),
-                  const SizedBox(height: 300),
                 ],
               ),
             ),

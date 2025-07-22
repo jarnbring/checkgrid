@@ -18,10 +18,18 @@ To do:
     ALMOST DONE: Notifications
     ALMOST DONE: Add logging for errors and crashes
 
-    Animations:
-    Highscore
-    Place piece
+    RIGHT NOW: Update colors
 
+    Animations:
+    New highscore
+    Place piece
+    Clear cells with animation
+    Game over
+    Revive
+
+    ----
+
+    Make the pond a bit smaller
     App Icons
     Launch screen (and new animation?)
     Feedback system

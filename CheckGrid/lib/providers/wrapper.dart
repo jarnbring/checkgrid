@@ -154,7 +154,7 @@ class _HomeWrapperState extends State<HomeWrapper>
             ),
           ),
           Positioned(
-            bottom: 0,
+            bottom: 62,
             left: 0,
             right: 0,
             child: GestureDetector(
