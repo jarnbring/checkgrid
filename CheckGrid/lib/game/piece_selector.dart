@@ -56,7 +56,7 @@ class _PieceSelectorState extends State<PieceSelector> {
   }
 
   void _handleLastPiece(Board board) async {
-    await Future.delayed(const Duration(milliseconds: 100));
+    await Future.delayed(const Duration(milliseconds: 500));
     if (!mounted) return;
     final tutorial = context.read<TutorialController>();
     if (tutorial.tutorialStep == 4 && tutorial.isActive) {
@@ -71,7 +71,6 @@ class _PieceSelectorState extends State<PieceSelector> {
     board.setNewSelectedPieces();
     await board.spawnActiveCells();
     board.updateColors();
-    board.checkGameOver();
 
     if (!mounted) return;
     if (board.isGameOver && (board.watchedAds >= 3)) {

@@ -1,11 +1,12 @@
-import 'package:flutter/material.dart';
 import 'package:checkgrid/components/group_settings.dart';
 import 'package:checkgrid/components/icon_widget.dart';
-import 'package:checkgrid/providers/settings_provider.dart';
 import 'package:checkgrid/pages/settings/noti_service.dart';
+import 'package:checkgrid/providers/settings_provider.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -57,40 +58,67 @@ class SettingsPageState extends State<SettingsPage> {
               header: "Other",
               children: [
                 _buildSocials(),
-                _buildFeedback(),
+                //_buildFeedback(),
                 _buildPrivacyPolicy(),
               ],
             ),
             const SizedBox(height: 20),
-            Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // Send notification now
-                ElevatedButton(
-                  onPressed: () async {
-                    NotiService().showNotification(
-                      title: "CheckGrid",
-                      body: "Come back baby, I miss you <3",
-                      settingsProvider: SettingsProvider(),
-                    );
-                  },
-                  child: const Text("Send notification"),
-                ),
-                // Send scheduled notification
-                ElevatedButton(
-                  onPressed: () async {
-                    NotiService().scheduleNotification(
-                      title: "We miss you",
-                      body:
-                          "Come back on and keep highering your personal best!",
-                      hour: 23,
-                      minute: 55,
-                      settingsProvider: SettingsProvider(),
-                    );
-                  },
-                  child: const Text("Send delayed notification"),
-                ),
-              ],
+            Padding(
+              padding: EdgeInsetsGeometry.symmetric(horizontal: 40),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                spacing: 20,
+                children: [
+                  Text(
+                    "If you find any bugs or want to report a feature suggestion, please contact:",
+                    style: TextStyle(fontSize: 16),
+                  ),
+                  GestureDetector(
+                    onTap: () async {
+                      final Uri emailLaunchUri = Uri(
+                        scheme: 'mailto',
+                        path: 'checkgrid@jarnbring.com',
+                      );
+                      if (await canLaunchUrl(emailLaunchUri)) {
+                        await launchUrl(emailLaunchUri);
+                      }
+                    },
+                    child: Text(
+                      'checkgrid@jarnbring.com',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blue,
+                      ),
+                    ),
+                  ),
+                  // Send notification now
+                  ElevatedButton(
+                    onPressed: () async {
+                      NotiService().showNotification(
+                        title: "CheckGrid",
+                        body: "Come back baby, I miss you <3",
+                        settingsProvider: SettingsProvider(),
+                      );
+                    },
+                    child: const Text("Send notification"),
+                  ),
+                  // Send scheduled notification
+                  ElevatedButton(
+                    onPressed: () async {
+                      NotiService().scheduleNotification(
+                        title: "We miss you",
+                        body:
+                            "Come back on and keep highering your personal best!",
+                        hour: 23,
+                        minute: 55,
+                        settingsProvider: SettingsProvider(),
+                      );
+                    },
+                    child: const Text("Send delayed notification"),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -279,6 +307,7 @@ class SettingsPageState extends State<SettingsPage> {
     );
   }
 
+  // ignore: unused_element
   Widget _buildFeedback() {
     return ListTile(
       title: const Text('Feedback'),

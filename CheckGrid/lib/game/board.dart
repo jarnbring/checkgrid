@@ -94,7 +94,6 @@ class Board extends ChangeNotifier {
 
   // Update every cells color
   void updateColors() {
-    // Update to new fresh colors? -----------------------------
     final height = GeneralProvider.boardHeight;
     final width = GeneralProvider.boardWidth;
     int zoneCount = 3;
@@ -125,6 +124,7 @@ class Board extends ChangeNotifier {
 
         // Sätt färg efter zon och status - riktiga gradienter
         if ((zone == 2) && activeCondition) {
+          // Used for glowing animation later
           cell.gradient = LinearGradient(
             colors: [Color(0xFFFF6B6B), Color.fromARGB(255, 255, 50, 50)],
             begin: Alignment.topLeft,
@@ -154,27 +154,6 @@ class Board extends ChangeNotifier {
       }
     }
     notifyListeners();
-  }
-
-  // Check if the game is over, change boardSide - x to change when
-  // the game is over.
-  void checkGameOver() {
-    // Kolla sista och näst sista raden
-    for (
-      int row = GeneralProvider.boardHeight - 1;
-      row < GeneralProvider.boardHeight;
-      row++
-    ) {
-      for (int col = 0; col < GeneralProvider.boardWidth; col++) {
-        final Cell cell = board[row][col];
-        if (cell.isActive) {
-          isGameOver = true;
-
-          return; // Avsluta direkt om vi hittar en aktiv cell
-        }
-      }
-    }
-    isGameOver = false;
   }
 
   Cell? getCell(int row, int col) {
@@ -279,25 +258,45 @@ class Board extends ChangeNotifier {
     final height = GeneralProvider.boardHeight;
     final width = GeneralProvider.boardWidth;
     final rowsToSpawn = _difficulty.rowsToSpawn;
+    final int lastRow = height - 1;
 
-    // 1. Flytta ner rader
+    // Checks if we will have an active cell that will end up
+    // outside of the boardheight by calculating how many rows
+    // will spawn and check the bottom of those rows. If an active cell
+    // is there, we know that it will end up outside of the playarea => Gameover
+    for (var row = height - rowsToSpawn; row < height; row++) {
+      for (var col = 0; col < width; col++) {
+        if (board[row][col].isActive) {
+          isGameOver = true;
+        }
+      }
+    }
+
+    // 1. Flytta ner rader (bara om spelet inte är över)
     for (var row = height - 1; row >= rowsToSpawn; row--) {
       for (var col = 0; col < width; col++) {
         board[row][col] = board[row - rowsToSpawn][col];
-        // Uppdatera positionen på cellen
         board[row][col].x = row;
         board[row][col].y = col;
       }
     }
 
-    // 2. Skapa nya rader överst
+    // Create new rows on the top
     for (var row = 0; row < rowsToSpawn; row++) {
       for (var col = 0; col < width; col++) {
         board[row][col] = Cell(position: Point(row, col));
         if (rng.nextDouble() < _difficulty.spawnRate) {
           board[row][col].isActive = true;
-          // Sätt färg/gradient om du vill
         }
+      }
+    }
+
+    // Check if the game is over by checking the last row
+    for (int col = 0; col < GeneralProvider.boardWidth; col++) {
+      final Cell cell = board[lastRow][col];
+      if (cell.isActive) {
+        isGameOver = true;
+        return;
       }
     }
 

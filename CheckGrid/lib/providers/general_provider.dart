@@ -13,8 +13,8 @@ class GeneralProvider with ChangeNotifier {
 
   // General constants
   final double iconSize = 50.0;
-  static final int boardHeight = 8; // Default 8
-  static final int boardWidth = 8; // Default 8
+  static final int boardHeight = 9; // Default 8
+  static final int boardWidth = 9; // Default 8
 
   // Game constants
   final int comboRequirement = 6;

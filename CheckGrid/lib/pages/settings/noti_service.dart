@@ -143,14 +143,14 @@ class NotiService {
 
     for (int i = 0; i < 7; i++) {
       final now = tz.TZDateTime.now(tz.local);
-      final nextDay = now.add(Duration(days: (i + 1 - now.weekday) % 7));
+      final nextDay = now.add(Duration(days: (i - now.weekday + 7) % 7));
       final scheduleDate = tz.TZDateTime(
         tz.local,
         nextDay.year,
         nextDay.month,
         nextDay.day,
-        13,
-        37,
+        22,
+        30,
       );
 
       await notificationsPlugin.zonedSchedule(

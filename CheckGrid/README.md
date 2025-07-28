@@ -13,12 +13,11 @@ To do:
     DONE: Tutorial text and UI
     DONE: Tutorial fix for first time use (Needs testing!)
     DONE: Too large scores (Needs testing!)
+    DONE: Update colors
+    DONE: Sound (Needs testing!)
+    DONE: Buy domain
 
-    ALMOST DONE: Sound
-    ALMOST DONE: Notifications
-    ALMOST DONE: Add logging for errors and crashes
-
-    RIGHT NOW: Update colors
+    Remake Widget methods to classes for performance increase
 
     Animations:
     New highscore
@@ -29,11 +28,11 @@ To do:
 
     ----
 
-    Make the pond a bit smaller
+    Add logging for errors and crashes
+    Weekly notifications
     App Icons
     Launch screen (and new animation?)
-    Feedback system
-    Remake Widget methods to classes for performance increase
+    DOMAIN: Feedback system
     Responsive UI
     App Size
     Test on android
@@ -41,7 +40,7 @@ To do:
     Everything around git, README etc.
     Privacy policy, terms of service
     Set everything up for iOS and Android, App store, Google play store
-    Buy domain? @checkgrid.com
+
     Code review
     Implement real ads
 

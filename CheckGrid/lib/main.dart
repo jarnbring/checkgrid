@@ -50,7 +50,7 @@ void main() async {
   await notiService.initNotification();
 
   // Schedule daily notifications
-  //await notiService.scheduleWeeklyRotatingNotifications(settingsProvider);
+  await notiService.scheduleWeeklyRotatingNotifications(settingsProvider);
 
   runApp(
     MultiProvider(

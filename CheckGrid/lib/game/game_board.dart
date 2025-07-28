@@ -25,8 +25,6 @@ class GameBoard extends StatelessWidget {
             Provider.of<SettingsProvider>(context).themeMode == ThemeMode.dark
                 ? const Color.fromARGB(255, 39, 39, 39)
                 : Colors.white,
-
-        //const Color.fromARGB(255, 46, 46, 46),
       ),
       child: Padding(
         padding: const EdgeInsets.all(10),
@@ -53,10 +51,61 @@ class GameBoard extends StatelessWidget {
   }
 }
 
-class BoardCell extends StatelessWidget {
+class BoardCell extends StatefulWidget {
   final int row, col;
 
   const BoardCell({super.key, required this.row, required this.col});
+
+  @override
+  State<BoardCell> createState() => _BoardCellState();
+}
+
+class _BoardCellState extends State<BoardCell> with TickerProviderStateMixin {
+  late AnimationController _placementController;
+  late AnimationController _hoverController;
+  late Animation<double> _scaleAnimation;
+  late Animation<double> _glowAnimation;
+  late Animation<double> _bounceAnimation;
+  bool _isHovered = false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _placementController = AnimationController(
+      duration: Duration(milliseconds: 600),
+      vsync: this,
+    );
+
+    _hoverController = AnimationController(
+      duration: Duration(milliseconds: 200),
+      vsync: this,
+    );
+
+    // Animationer ska bara köras när en pjäs placeras, annars vara på 1.0
+    _scaleAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _placementController, curve: Curves.elasticOut),
+    );
+
+    _glowAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _hoverController, curve: Curves.easeOut));
+
+    _bounceAnimation = Tween<double>(begin: 1.0, end: 1.2).animate(
+      CurvedAnimation(
+        parent: _placementController,
+        curve: Interval(0.7, 1.0, curve: Curves.bounceOut),
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _placementController.dispose();
+    _hoverController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -66,69 +115,200 @@ class BoardCell extends StatelessWidget {
 
     return Consumer<Cell>(
       builder: (context, cell, _) {
-        return DragTarget<PieceType>(
-          onWillAcceptWithDetails: (details) {
-            bool canPlace = !cell.hasPiece && !cell.isActive;
-            board.previewTargetedCells(details.data, row, col);
-            return canPlace;
+        return MouseRegion(
+          onEnter: (_) {
+            setState(() => _isHovered = true);
+            _hoverController.forward();
           },
-          onLeave: (_) {
-            board.clearPreview();
+          onExit: (_) {
+            setState(() => _isHovered = false);
+            _hoverController.reverse();
           },
-          onAcceptWithDetails: (details) {
-            context.read<AudioProvider>().playPlacePiece();
-            board.placePiece(details.data, row, col);
-            board.markTargetedCells(details.data, row, col);
-            board.clearPreview();
-            board.updateColors(); // Needed for the blue color of the piece
+          child: DragTarget<PieceType>(
+            onWillAcceptWithDetails: (details) {
+              bool canPlace = !cell.hasPiece && !cell.isActive;
+              board.previewTargetedCells(details.data, widget.row, widget.col);
+              return canPlace;
+            },
+            onLeave: (_) {
+              board.clearPreview();
+            },
+            onAcceptWithDetails: (details) {
+              context.read<AudioProvider>().playPlacePiece();
+              board.placePiece(details.data, widget.row, widget.col);
+              board.markTargetedCells(details.data, widget.row, widget.col);
+              board.clearPreview();
+              board.updateColors();
 
-            // Do a vibration
-            if (board.selectedPieces.isNotEmpty) {
-              context.read<SettingsProvider>().doVibration(1);
-            } else if (board.selectedPieces.isEmpty) {
-              context.read<SettingsProvider>().doVibration(3);
-            }
-            final tutorial = context.read<TutorialController>();
-            if (tutorial.tutorialStep <= 4 && tutorial.isActive) {
-              tutorial.nextStep();
-              return;
-            }
+              // RESET och sedan trigger placement animation
+              _placementController.reset();
+              _placementController.forward();
 
-            board.saveBoard(context);
-            board.updatePlacedPiecesStatistic(
-              context,
-            ); // Update the statistic for placed pieces
-          },
+              // Resten av din kod...
+              if (board.selectedPieces.isNotEmpty) {
+                context.read<SettingsProvider>().doVibration(1);
+              } else if (board.selectedPieces.isEmpty) {
+                context.read<SettingsProvider>().doVibration(3);
+              }
 
-          builder: (context, candidateData, rejectedData) {
-            return Container(
-              decoration: (cell.getDecoration() as BoxDecoration).copyWith(
-                borderRadius: BorderRadius.circular(5),
-              ),
-              child: Stack(
-                children: [
-                  if (cell.piece != null)
-                    Image.asset(
-                      'assets/images/pieces/${skinProvider.selectedSkin.name}/${skinProvider.selectedSkin.name}_${cell.piece!.name}.png',
-                      width: generalProvider.iconSize,
-                      height: generalProvider.iconSize,
-                    ),
+              final tutorial = context.read<TutorialController>();
+              if (tutorial.tutorialStep <= 4 && tutorial.isActive) {
+                tutorial.nextStep();
+                return;
+              }
 
-                  if (cell.isPreview || cell.isTargeted)
-                    Opacity(
-                      opacity: cell.isTargeted ? 1.0 : 0.5,
-                      child: Image.asset(
-                        'assets/images/cross.png',
-                        width: generalProvider.iconSize,
-                        height: generalProvider.iconSize,
+              board.saveBoard(context);
+              board.updatePlacedPiecesStatistic(context);
+            },
+            builder: (context, candidateData, rejectedData) {
+              return AnimatedBuilder(
+                animation: Listenable.merge([
+                  _placementController,
+                  _hoverController,
+                ]),
+                builder: (context, child) {
+                  double hoverScale = 1.0 + (_glowAnimation.value * 0.1);
+                  // Bara animera scale när pjäs placeras, annars alltid 1.0
+                  double placementScale =
+                      cell.piece != null ? _scaleAnimation.value : 1.0;
+
+                  return Transform.scale(
+                    scale: placementScale * hoverScale,
+                    child: Container(
+                      decoration: (cell.getDecoration() as BoxDecoration)
+                          .copyWith(
+                            borderRadius: BorderRadius.circular(5),
+                            boxShadow: _buildBoxShadows(cell),
+                          ),
+                      child: Stack(
+                        children: [
+                          if (cell.piece != null)
+                            Transform.scale(
+                              scale: _bounceAnimation.value,
+                              child: Image.asset(
+                                'assets/images/pieces/${skinProvider.selectedSkin.name}/${skinProvider.selectedSkin.name}_${cell.piece!.name}.png',
+                                width: generalProvider.iconSize,
+                                height: generalProvider.iconSize,
+                              ),
+                            ),
+
+                          if (cell.isPreview || cell.isTargeted)
+                            Opacity(
+                              opacity: cell.isTargeted ? 1.0 : 0.5,
+                              child: Image.asset(
+                                'assets/images/cross.png',
+                                width: generalProvider.iconSize,
+                                height: generalProvider.iconSize,
+                              ),
+                            ),
+                        ],
                       ),
                     ),
-                ],
-              ),
-            );
-          },
+                  );
+                },
+              );
+            },
+          ),
         );
       },
     );
+  }
+
+  List<BoxShadow>? _buildBoxShadows(Cell cell) {
+    List<BoxShadow> shadows = [];
+
+    // Hover glow effect
+    if (_isHovered) {
+      shadows.add(
+        BoxShadow(
+          color: Colors.blue.withOpacity(0.6 * _glowAnimation.value),
+          blurRadius: 15 * _glowAnimation.value,
+          spreadRadius: 3 * _glowAnimation.value,
+        ),
+      );
+    }
+
+    // Preview glow effect
+    if (cell.isPreview) {
+      Color glowColor;
+
+      // Definiera dina gradients för jämförelse
+      final greenGradient = LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [
+          Color.fromRGBO(79, 209, 199, 1.0), // 0.3098, 0.8196, 0.7804
+          Color.fromRGBO(107, 207, 127, 1.0), // 0.4196, 0.8118, 0.4980
+        ],
+      );
+
+      final redGradient = LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [
+          Color.fromRGBO(255, 107, 107, 1.0), // 1.0000, 0.4196, 0.4196
+          Color.fromRGBO(255, 50, 50, 1.0), // 1.0000, 0.1961, 0.1961
+        ],
+      );
+
+      final yellowGradient = LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [
+          Color.fromRGBO(246, 216, 99, 1.0), // 0.9647, 0.8471, 0.3882
+          Color.fromRGBO(251, 191, 51, 1.0), // 0.9843, 0.7490, 0.2000
+        ],
+      );
+
+      // Jämför gradienter och sätt glow-färg
+      if (_gradientsEqual(cell.gradient as LinearGradient?, greenGradient)) {
+        glowColor = Color.fromRGBO(79, 209, 199, 1.0); // Grön-cyan
+      } else if (_gradientsEqual(
+        cell.gradient as LinearGradient?,
+        redGradient,
+      )) {
+        glowColor = Color.fromRGBO(255, 107, 107, 1.0); // Röd
+      } else if (_gradientsEqual(
+        cell.gradient as LinearGradient?,
+        yellowGradient,
+      )) {
+        glowColor = Color.fromRGBO(246, 216, 99, 1.0); // Gul
+      } else {
+        glowColor = Colors.white; // fallback
+      }
+
+      shadows.add(
+        BoxShadow(
+          color: glowColor.withOpacity(0.7),
+          blurRadius: 15,
+          spreadRadius: 3,
+        ),
+      );
+    }
+
+    // Placement glow effect
+    if (_placementController.isAnimating && cell.piece != null) {
+      shadows.add(
+        BoxShadow(
+          color: Colors.green.withOpacity(0.8 * _placementController.value),
+          blurRadius: 20 * _placementController.value,
+          spreadRadius: 5 * _placementController.value,
+        ),
+      );
+    }
+
+    return shadows.isEmpty ? null : shadows;
+  }
+
+  // Hjälpmetod för att jämföra gradienter
+  bool _gradientsEqual(LinearGradient? gradient1, LinearGradient gradient2) {
+    if (gradient1 == null) return false;
+
+    // Jämför färgerna (första färgen räcker oftast)
+    if (gradient1.colors.isNotEmpty && gradient2.colors.isNotEmpty) {
+      return gradient1.colors.first.value == gradient2.colors.first.value;
+    }
+
+    return false;
   }
 }

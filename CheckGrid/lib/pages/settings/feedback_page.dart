@@ -8,6 +8,8 @@ import 'package:checkgrid/components/textfield.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
+// Future page, not in use
+
 // Can be cleaned up with screenshot and screenshotlist by sending in index instead of screenshot directly
 
 class FeedbackPage extends StatefulWidget {
