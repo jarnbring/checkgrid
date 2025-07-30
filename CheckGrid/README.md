@@ -19,7 +19,6 @@ To do:
 
     Remake Widget methods to classes for performance increase
     Change game over sound
-    Change size of pawns! and rooks?
 
     Animations:
     New highscore

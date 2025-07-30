@@ -73,7 +73,7 @@ class _BoardCellState extends State<BoardCell> with TickerProviderStateMixin {
     super.initState();
 
     _placementController = AnimationController(
-      duration: Duration(milliseconds: 600),
+      duration: Duration(milliseconds: 700),
       vsync: this,
     );
 
@@ -92,7 +92,7 @@ class _BoardCellState extends State<BoardCell> with TickerProviderStateMixin {
       end: 1.0,
     ).animate(CurvedAnimation(parent: _hoverController, curve: Curves.easeOut));
 
-    _bounceAnimation = Tween<double>(begin: 1.0, end: 1.1).animate(
+    _bounceAnimation = Tween<double>(begin: 1.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _placementController,
         curve: Interval(0.8, 1.0, curve: Curves.elasticOut),
