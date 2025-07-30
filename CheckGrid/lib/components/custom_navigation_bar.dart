@@ -114,7 +114,7 @@ class CustomBottomNav extends StatelessWidget {
             icon,
             color:
                 isSelected
-                    ? CupertinoColors.systemBlue
+                    ? CupertinoColors.white
                     : Colors.white.withOpacity(0.7),
           ),
         ),

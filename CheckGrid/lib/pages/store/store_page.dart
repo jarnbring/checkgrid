@@ -13,9 +13,6 @@ class StorePage extends StatefulWidget {
 }
 
 class _StorePageState extends State<StorePage> {
-  final int adsRequiredForSkin = 20;
-  int rewardedAdsWatched = 2;
-
   @override
   Widget build(BuildContext context) {
     final skinProvider = context.watch<SkinProvider>();

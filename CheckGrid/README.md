@@ -18,10 +18,12 @@ To do:
     DONE: Buy domain
 
     Remake Widget methods to classes for performance increase
+    Change game over sound
+    Change size of pawns! and rooks?
 
     Animations:
     New highscore
-    Place piece
+    CURRENT: Place piece
     Clear cells with animation
     Game over
     Revive

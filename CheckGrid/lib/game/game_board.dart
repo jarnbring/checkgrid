@@ -92,12 +92,26 @@ class _BoardCellState extends State<BoardCell> with TickerProviderStateMixin {
       end: 1.0,
     ).animate(CurvedAnimation(parent: _hoverController, curve: Curves.easeOut));
 
-    _bounceAnimation = Tween<double>(begin: 1.0, end: 1.2).animate(
+    _bounceAnimation = Tween<double>(begin: 1.0, end: 1.1).animate(
       CurvedAnimation(
         parent: _placementController,
-        curve: Interval(0.7, 1.0, curve: Curves.bounceOut),
+        curve: Interval(0.8, 1.0, curve: Curves.elasticOut),
       ),
     );
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    // Sätt placement controller till slutposition för befintliga pjäser
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final cell = context.read<Cell>();
+      if (cell.piece != null && _placementController.value == 0.0) {
+        _placementController.value =
+            1.0; // Sätt till slutposition utan animation
+      }
+    });
   }
 
   @override
@@ -167,7 +181,9 @@ class _BoardCellState extends State<BoardCell> with TickerProviderStateMixin {
                   _hoverController,
                 ]),
                 builder: (context, child) {
-                  double hoverScale = 1.0 + (_glowAnimation.value * 0.1);
+                  double hoverScale =
+                      1.0 +
+                      (_glowAnimation.value * 0.05); // Mindre hover-effekt
                   // Bara animera scale när pjäs placeras, annars alltid 1.0
                   double placementScale =
                       cell.piece != null ? _scaleAnimation.value : 1.0;
@@ -274,7 +290,7 @@ class _BoardCellState extends State<BoardCell> with TickerProviderStateMixin {
       )) {
         glowColor = Color.fromRGBO(246, 216, 99, 1.0); // Gul
       } else {
-        glowColor = Colors.white; // fallback
+        glowColor = Colors.blue; // fallback
       }
 
       shadows.add(
@@ -290,7 +306,12 @@ class _BoardCellState extends State<BoardCell> with TickerProviderStateMixin {
     if (_placementController.isAnimating && cell.piece != null) {
       shadows.add(
         BoxShadow(
-          color: Colors.green.withOpacity(0.8 * _placementController.value),
+          color: const Color.fromARGB(
+            255,
+            17,
+            174,
+            232,
+          ).withOpacity(0.8 * _placementController.value),
           blurRadius: 20 * _placementController.value,
           spreadRadius: 5 * _placementController.value,
         ),
