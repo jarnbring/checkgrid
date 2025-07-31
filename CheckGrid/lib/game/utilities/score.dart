@@ -17,9 +17,8 @@ class _ScoreState extends State<Score> with TickerProviderStateMixin {
   late Animation<double> _pulseAnimation;
   late Animation<double> _glowAnimation;
 
-  BigInt _lastHighScore = BigInt.zero;
   bool _isHighScore = false;
-  bool _hasCheckedInitial = false; // För att undvika flera kontroller
+  bool _hasCheckedInitial = false;
 
   @override
   void initState() {
@@ -93,24 +92,15 @@ class _ScoreState extends State<Score> with TickerProviderStateMixin {
 
     final board = context.read<Board>();
 
-    // Debug: Skriv ut värdena för att se vad som händer
-    print(
-      'Initial check - currentScore: ${board.currentScore}, highScore: ${board.highScore}',
-    );
-
     // Kontrollera om spelaren redan har ett aktivt highscore när appen startar
     // Om currentScore == highScore och båda är > 0, då var spelaren mitt i en highscore-runda
     if (board.currentScore == board.highScore &&
         board.currentScore > BigInt.zero &&
         board.highScore > BigInt.zero) {
-      print('Starting highscore animation on app load!');
-
       setState(() {
         _isHighScore = true;
       });
       _startHighScoreAnimation();
-    } else {
-      print('No initial highscore animation needed');
     }
   }
 
