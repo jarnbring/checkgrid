@@ -302,22 +302,6 @@ class _BoardCellState extends State<BoardCell> with TickerProviderStateMixin {
       );
     }
 
-    // Placement glow effect
-    if (_placementController.isAnimating && cell.piece != null) {
-      shadows.add(
-        BoxShadow(
-          color: const Color.fromARGB(
-            255,
-            17,
-            174,
-            232,
-          ).withOpacity(0.8 * _placementController.value),
-          blurRadius: 20 * _placementController.value,
-          spreadRadius: 5 * _placementController.value,
-        ),
-      );
-    }
-
     return shadows.isEmpty ? null : shadows;
   }
 

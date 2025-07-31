@@ -32,6 +32,7 @@ class Board extends ChangeNotifier {
   // Score vars
   BigInt currentScore = BigInt.zero;
   BigInt highScore = BigInt.zero;
+  bool isAnimatingHighScore = false;
 
   int currentCombo = 0;
   final int comboRequirement = 6;
@@ -61,9 +62,9 @@ class Board extends ChangeNotifier {
         ),
       );
 
+  // Uppdaterad addScore funktion
   void addScore() async {
     final BigInt oldScore = currentScore;
-
     final allTargetedCells =
         targetedCellsMap.values.expand((cells) => cells).toSet().toList();
 
@@ -78,16 +79,43 @@ class Board extends ChangeNotifier {
     final scoreToAdd =
         (baseScore * removedCells * comboMultiplier + cellBonus).floor();
 
-    currentScore = currentScore + BigInt.from(scoreToAdd);
-    final newHigh = currentScore > highScore ? currentScore : highScore;
-    if (currentScore > highScore) {
-      highScore = newHigh;
+    final BigInt finalScore = currentScore + BigInt.from(scoreToAdd);
+
+    // Kontrollera om det blir ett nytt highscore ELLER om vi redan har highscore
+    final bool willBeNewHighScore = finalScore > highScore;
+    final bool wasAlreadyHighScore =
+        currentScore == highScore && currentScore > BigInt.zero;
+
+    if (willBeNewHighScore) {
+      highScore = finalScore;
     }
 
-    await GameAnimations.increaseScore(oldScore, currentScore, (v) {
-      currentScore = v;
+    // Sätt slutgiltiga score
+    currentScore = finalScore;
+
+    // Om vi redan hade highscore eller får nytt highscore, använd highscore-animering
+    if ((wasAlreadyHighScore || willBeNewHighScore) &&
+        currentScore > BigInt.zero) {
+      // Markera att vi animerar highscore
+      isAnimatingHighScore = true;
       notifyListeners();
-    });
+
+      // Använd highscore-animering som behåller guldigt utseende
+      await GameAnimations.increaseScore(oldScore, currentScore, (v) {
+        currentScore = v;
+        notifyListeners();
+      });
+
+      // Animering klar
+      isAnimatingHighScore = false;
+      notifyListeners();
+    } else {
+      // För vanlig score: normal animering
+      await GameAnimations.increaseScore(oldScore, currentScore, (v) {
+        currentScore = v;
+        notifyListeners();
+      });
+    }
 
     notifyListeners();
   }
@@ -516,6 +544,8 @@ class Board extends ChangeNotifier {
   Future<void> loadBoard(BuildContext context) async {
     try {
       final boardBox = context.read<BoardProvider>().getBoardBox;
+      final statisticsBox =
+          context.read<BoardProvider>().getStatisticsBox; // Lägg till detta
 
       // Start by looking if the game is over, if so, the user should be redirected to the gameover page
       isGameOver = await boardBox.get('isGameOver') ?? false;
@@ -539,6 +569,18 @@ class Board extends ChangeNotifier {
       final savedScore = await boardBox.get('currentScore');
       if (savedScore != null) {
         currentScore = BigInt.parse(savedScore);
+      }
+
+      // Load highscore från statistics box
+      final savedHighScore = statisticsBox.get('highScore');
+      if (savedHighScore != null) {
+        try {
+          highScore = BigInt.parse(savedHighScore);
+        } catch (e) {
+          highScore = BigInt.zero;
+        }
+      } else {
+        highScore = BigInt.zero;
       }
 
       // Load board cells
