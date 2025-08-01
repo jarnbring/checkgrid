@@ -26,7 +26,7 @@ To do:
     DONE: New highscore
     DONE: Place piece
     DONE: Clear cells with animation
-    Game over
+    DONE: Game over
     HALF DONE: Revive
 
     ----

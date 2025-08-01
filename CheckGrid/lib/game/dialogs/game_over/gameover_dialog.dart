@@ -1,11 +1,11 @@
-import 'package:checkgrid/components/outlined_text.dart';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:go_router/go_router.dart';
 import 'package:checkgrid/game/board.dart';
+import 'package:checkgrid/components/outlined_text.dart';
 import 'package:checkgrid/components/background.dart';
 import 'package:checkgrid/providers/audio_provider.dart';
 import 'package:checkgrid/providers/settings_provider.dart';
-import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
-import 'package:provider/provider.dart';
 
 class GameOverPage extends StatefulWidget {
   final Board board;
@@ -15,69 +15,79 @@ class GameOverPage extends StatefulWidget {
   State<GameOverPage> createState() => _GameOverPageState();
 }
 
-class _GameOverPageState extends State<GameOverPage> {
+class _GameOverPageState extends State<GameOverPage>
+    with TickerProviderStateMixin {
   bool isPressedRestart = false;
-  bool isPressedMenu = false;
+  late AnimationController _controller;
+  late AnimationController _pulseController;
+  late Animation<Offset> _textOffset;
+  late Animation<double> _textOpacity;
+  late Animation<Offset> _buttonOffset;
+  late Animation<double> _buttonOpacity;
+  late Animation<double> _pulse;
 
   @override
   void initState() {
     super.initState();
     context.read<AudioProvider>().playGameOver();
     widget.board.updateAmountOfRounds(context);
+
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    );
+
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 1),
+    )..repeat(reverse: true);
+
+    _textOffset = Tween<Offset>(
+      begin: const Offset(0, -0.4),
+      end: Offset.zero,
+    ).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.0, 0.5, curve: Curves.easeOut),
+      ),
+    );
+
+    _textOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.0, 0.5, curve: Curves.easeIn),
+      ),
+    );
+
+    _buttonOffset = Tween<Offset>(
+      begin: const Offset(0, 0.4),
+      end: Offset.zero,
+    ).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.5, 1.0, curve: Curves.easeOut),
+      ),
+    );
+
+    _buttonOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.5, 1.0, curve: Curves.easeIn),
+      ),
+    );
+
+    _pulse = Tween<double>(begin: 1.0, end: 1.10).animate(
+      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
+    );
+
+    _controller.forward();
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: Background(
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 80.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                OutlinedText(
-                  text: "Game Over",
-                  fontSize: 60,
-                  color: Color.fromARGB(255, 174, 174, 174),
-                  textAlign: TextAlign.center,
-                  shadows: [
-                    Shadow(
-                      color: Colors.black45,
-                      offset: Offset(3, 3),
-                      blurRadius: 10,
-                    ),
-                    Shadow(
-                      color: Colors.black45,
-                      offset: Offset(3, 3),
-                      blurRadius: 10,
-                    ),
-                    Shadow(
-                      color: Colors.black45,
-                      offset: Offset(3, 3),
-                      blurRadius: 10,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 100),
-                _button(
-                  "Restart",
-                  () {
-                    context.read<SettingsProvider>().doVibration(1);
-                    widget.board.restartGame(context, false);
-                    context.go('/home');
-                  },
-                  isPressedRestart,
-                  (v) => setState(() => isPressedRestart = v),
-                ),
-                const SizedBox(height: 24),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
+  void dispose() {
+    _controller.dispose();
+    _pulseController.dispose();
+    super.dispose();
   }
 
   Widget _button(
@@ -110,6 +120,64 @@ class _GameOverPageState extends State<GameOverPage> {
               fontWeight: FontWeight.bold,
             ),
             textAlign: TextAlign.center,
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: Background(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 80.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                SlideTransition(
+                  position: _textOffset,
+                  child: FadeTransition(
+                    opacity: _textOpacity,
+                    child: OutlinedText(
+                      text: "Game Over",
+                      fontSize: 60,
+                      color: const Color.fromARGB(255, 174, 174, 174),
+                      textAlign: TextAlign.center,
+                      shadows: const [
+                        Shadow(
+                          color: Colors.black45,
+                          offset: Offset(3, 3),
+                          blurRadius: 10,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 100),
+                SlideTransition(
+                  position: _buttonOffset,
+                  child: FadeTransition(
+                    opacity: _buttonOpacity,
+                    child: ScaleTransition(
+                      scale: _pulse,
+                      child: _button(
+                        "Restart",
+                        () {
+                          context.read<SettingsProvider>().doVibration(1);
+                          widget.board.restartGame(context, false);
+                          context.go('/home');
+                        },
+                        isPressedRestart,
+                        (v) => setState(() => isPressedRestart = v),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

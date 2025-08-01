@@ -35,6 +35,7 @@ Future<void> showReviveDialog(BuildContext context, Board board) async {
   board.isReviveShowing = false;
 
   if (result == true) {
+    board.resetScore();
     await board.animatedClearBoard();
     if (context.mounted) {
       context.go('/gameover', extra: board);
