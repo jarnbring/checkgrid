@@ -73,6 +73,8 @@ class _PieceSelectorState extends State<PieceSelector> {
 
     if (!mounted) return;
     if (board.isGameOver && (board.watchedAds >= 3)) {
+      await board.animatedClearBoard();
+      if (!mounted) return;
       context.go('/gameover', extra: board);
     } else if (board.isGameOver) {
       showReviveDialog(context, board);
