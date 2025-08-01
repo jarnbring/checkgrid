@@ -11,8 +11,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
-// Handle board logic, ex clearBoard etc.
-
 class Board extends ChangeNotifier {
   // Board vars
   final List<List<Cell>> board;
@@ -37,11 +35,16 @@ class Board extends ChangeNotifier {
   int currentCombo = 0;
   final int comboRequirement = 6;
 
+  // Animation vars - DESSA SAKNADES!
+  bool _isClearingBoard = false;
+  final Set<String> _fadingCells = <String>{};
+
   // Helpers
   final Random rng = Random();
 
   // Getters
   Difficulty get difficulty => _difficulty;
+  bool get isClearingBoard => _isClearingBoard; // SAKNADES!
 
   // Setters
   set difficulty(Difficulty value) {
@@ -61,6 +64,16 @@ class Board extends ChangeNotifier {
           (col) => Cell(position: Point(row, col)),
         ),
       );
+
+  // SAKNAD METOD: getCellId
+  String getCellId(int row, int col) {
+    return '$row-$col';
+  }
+
+  // SAKNAD METOD: isCellFading
+  bool isCellFading(int row, int col) {
+    return _fadingCells.contains(getCellId(row, col));
+  }
 
   // Uppdaterad addScore funktion
   void addScore() async {
@@ -225,8 +238,12 @@ class Board extends ChangeNotifier {
   // Clears all placed pieces, selected pieces, targeted cells, and resets flags.
   // Spawns new initial active cells and selects new pieces for the player.
   // Notifies listeners so the UI can update.
-  void restartGame(BuildContext context) {
-    clearBoard();
+  void restartGame(BuildContext context, bool shouldAnimate) async {
+    if (shouldAnimate) {
+      await animatedClearBoard();
+    } else {
+      clearBoard();
+    }
     placedPieces.clear();
     selectedPieces.clear();
     targetedCellsMap.clear();
@@ -238,6 +255,7 @@ class Board extends ChangeNotifier {
     clearPiecesOnBoard();
     spawnInitialActiveCells();
     setNewSelectedPieces();
+    if (!context.mounted) return;
     saveBoard(context);
 
     notifyListeners();
@@ -250,21 +268,76 @@ class Board extends ChangeNotifier {
 
   /// Clears all cells on the board (removes pieces, active and targeted states).
   /// Does not notify listeners directly; used as a helper in other methods.
-  void clearBoard() {
-    for (var row = 0; row < GeneralProvider.boardHeight; row++) {
+  Future<void> animatedClearBoard() async {
+    _isClearingBoard = true;
+    _fadingCells.clear();
+    notifyListeners();
+
+    // Gå igenom raderna nedifrån och uppåt
+    for (var row = GeneralProvider.boardHeight - 1; row >= 0; row--) {
+      // Samla alla celler i denna rad som behöver clearas
+      List<int> cellsToClear = [];
       for (var col = 0; col < GeneralProvider.boardWidth; col++) {
         final block = board[row][col];
         if (block.piece != null ||
             block.hasPiece ||
             block.isActive ||
             block.isTargeted) {
+          cellsToClear.add(col);
+        }
+      }
+
+      // Om det finns celler att cleara i denna rad
+      if (cellsToClear.isNotEmpty) {
+        // Starta fade-animation för alla celler i raden samtidigt
+        for (var col in cellsToClear) {
+          _fadingCells.add(getCellId(row, col));
+        }
+        notifyListeners();
+
+        // Vänta på fade-animationen
+        await Future.delayed(const Duration(milliseconds: 300));
+
+        // Cleara cellerna efter fade
+        for (var col in cellsToClear) {
+          final block = board[row][col];
           block.piece = null;
           block.hasPiece = false;
           block.isActive = false;
           block.isTargeted = false;
+          _fadingCells.remove(getCellId(row, col));
         }
+
+        // VIKTIGT: Uppdatera färger efter varje rad
+        updateColors();
+        notifyListeners();
+
+        // Kort paus innan nästa rad
+        await Future.delayed(const Duration(milliseconds: 100));
       }
     }
+
+    _isClearingBoard = false;
+    _fadingCells.clear();
+
+    // Slutlig färguppdatering
+    updateColors();
+    notifyListeners();
+  }
+
+  void clearBoard() {
+    for (var row = 0; row < GeneralProvider.boardHeight; row++) {
+      for (var col = 0; col < GeneralProvider.boardWidth; col++) {
+        final block = board[row][col];
+        block.piece = null;
+        block.hasPiece = false;
+        block.isActive = false;
+        block.isTargeted = false;
+      }
+    }
+
+    updateColors();
+    notifyListeners();
   }
 
   void clearPiecesOnBoard() {
@@ -395,7 +468,6 @@ class Board extends ChangeNotifier {
 
   /// Markerar targeted och preview cells för UI-preview när man drar en pjäs
   void previewTargetedCells(PieceType piece, int row, int col) {
-    // Behövs denna????
     // Nollställ endast isPreview
     for (var row = 0; row < GeneralProvider.boardHeight; row++) {
       for (var col = 0; col < GeneralProvider.boardWidth; col++) {
@@ -403,7 +475,6 @@ class Board extends ChangeNotifier {
       }
     }
 
-    // WHAT?
     // Kontrollera om cellen är giltig för placering
     final block = getCell(row, col);
     if (block == null || block.hasPiece || block.isActive) {

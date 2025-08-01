@@ -83,15 +83,10 @@ class _CountdownLoadingState extends State<CountdownLoading> {
 
   /// Handles what happens when the countdown reaches zero.
   void _onCountdownFinished() {
-    // The user did not watch the ad, maybe extract if-statements to a void function?
-    if (isRevived) return;
-    if (isAdBeingShown) return;
-    if (!mounted) return;
-
+    if (isRevived || isAdBeingShown) return;
     if (Navigator.canPop(context)) {
-      Navigator.pop(context);
+      Navigator.pop(context, true); // signal game over
     }
-    context.go('/gameover', extra: widget.board);
   }
 
   // Handles the revive action via rewarded ad.

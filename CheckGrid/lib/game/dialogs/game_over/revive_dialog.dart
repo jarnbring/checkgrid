@@ -1,34 +1,27 @@
 import 'package:checkgrid/game/board.dart';
 import 'package:flutter/material.dart';
 import 'package:checkgrid/components/countdown_loading.dart';
+import 'package:go_router/go_router.dart';
 
-void showReviveDialog(BuildContext context, Board board) async {
+Future<void> showReviveDialog(BuildContext context, Board board) async {
   if (board.isReviveShowing) return;
 
   board.isReviveShowing = true;
 
-  showGeneralDialog(
+  final result = await showGeneralDialog<bool>(
     context: context,
-    transitionDuration: const Duration(milliseconds: 1000),
-    pageBuilder: (_, _, _) {
+    barrierDismissible: false,
+    transitionDuration: const Duration(milliseconds: 300),
+    pageBuilder: (_, __, ___) {
       return CountdownLoading(
         board: board,
-        afterAd: () {
-          // This is if the user watched the whole ad (award)
+        afterAd: () async {
+          // Om användaren såg klart hela annonsen (revive)
+          await board.animatedClearBoard();
 
-          // Reset board
-          board.clearBoard();
-
-          // SpawnNewInitCells
           board.spawnInitialActiveCells();
-
-          // selectedPiecesPositions.clear();
           board.selectedPiecesPositions.clear();
-
-          // targetedCellsMap.clear();
           board.targetedCellsMap.clear();
-
-          // SetNewPieces
           board.setNewSelectedPieces();
 
           board.isGameOver = false;
@@ -37,7 +30,14 @@ void showReviveDialog(BuildContext context, Board board) async {
         },
       );
     },
-  ).then((_) {
-    board.isReviveShowing = false;
-  });
+  );
+
+  board.isReviveShowing = false;
+
+  if (result == true) {
+    await board.animatedClearBoard();
+    if (context.mounted) {
+      context.go('/gameover', extra: board);
+    }
+  }
 }

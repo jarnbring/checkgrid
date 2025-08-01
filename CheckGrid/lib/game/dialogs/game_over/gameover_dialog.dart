@@ -65,7 +65,7 @@ class _GameOverPageState extends State<GameOverPage> {
                   "Restart",
                   () {
                     context.read<SettingsProvider>().doVibration(1);
-                    widget.board.restartGame(context);
+                    widget.board.restartGame(context, false);
                     context.go('/home');
                   },
                   isPressedRestart,

@@ -35,7 +35,7 @@ class _TutorialPageState extends State<TutorialPage> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       // Set a clear board for the tutorial
-      board.restartGame(context);
+      board.restartGame(context, true);
       showTutorial();
     });
   }
@@ -161,7 +161,7 @@ class _TutorialPageState extends State<TutorialPage> {
                 await Future.delayed(const Duration(milliseconds: 1000));
                 if (!mounted) return;
                 rootContext.pushNamed('/home');
-                board.restartGame(rootContext);
+                board.restartGame(rootContext, true);
                 tutorial.isActive = false;
               },
             );

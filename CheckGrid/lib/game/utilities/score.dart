@@ -175,10 +175,10 @@ class _ScoreState extends State<Score> with TickerProviderStateMixin {
                     shaderCallback:
                         (bounds) => LinearGradient(
                           colors: [
+                            Colors.amber,
+                            Colors.yellow,
                             Colors.yellow,
                             Colors.amber,
-                            Colors.orange,
-                            Colors.yellow,
                           ],
                           stops: [
                             0.0,

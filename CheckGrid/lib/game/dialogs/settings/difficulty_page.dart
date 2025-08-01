@@ -128,7 +128,7 @@ class _DifficultyPageState extends State<DifficultyPage> {
                     text: "Restart",
                     onPressed: () {
                       widget.board.difficulty = selectedDifficulty;
-                      widget.board.restartGame(context);
+                      widget.board.restartGame(context, true);
                       Navigator.pop(context);
                     },
                   ),

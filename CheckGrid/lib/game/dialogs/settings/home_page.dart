@@ -58,7 +58,7 @@ class HomePage extends StatelessWidget {
                     icon: Icons.restart_alt_rounded,
                     onTap:
                         () => {
-                          board.restartGame(context),
+                          board.restartGame(context, true),
                           context.read<AudioProvider>().playCloseMenu(),
                           Navigator.pop(context),
                         },

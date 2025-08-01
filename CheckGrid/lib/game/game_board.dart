@@ -129,6 +129,9 @@ class _BoardCellState extends State<BoardCell> with TickerProviderStateMixin {
 
     return Consumer<Cell>(
       builder: (context, cell, _) {
+        // Kontrollera om denna cell håller på att fade:a bort
+        final isFading = board.isCellFading(widget.row, widget.col);
+
         return MouseRegion(
           onEnter: (_) {
             setState(() => _isHovered = true);
@@ -188,36 +191,48 @@ class _BoardCellState extends State<BoardCell> with TickerProviderStateMixin {
                   double placementScale =
                       cell.piece != null ? _scaleAnimation.value : 1.0;
 
-                  return Transform.scale(
-                    scale: placementScale * hoverScale,
-                    child: Container(
-                      decoration: (cell.getDecoration() as BoxDecoration)
-                          .copyWith(
-                            borderRadius: BorderRadius.circular(5),
-                            boxShadow: _buildBoxShadows(cell),
-                          ),
-                      child: Stack(
-                        children: [
-                          if (cell.piece != null)
-                            Transform.scale(
-                              scale: _bounceAnimation.value,
-                              child: Image.asset(
-                                'assets/images/pieces/${skinProvider.selectedSkin.name}/${skinProvider.selectedSkin.name}_${cell.piece!.name}.png',
-                                width: generalProvider.iconSize,
-                                height: generalProvider.iconSize,
+                  return AnimatedOpacity(
+                    // Lägg till fade-animation här
+                    opacity: isFading ? 0.0 : 1.0,
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeOut,
+                    child: AnimatedScale(
+                      // Optional: lägg till scale-effekt när den fade:ar
+                      scale: isFading ? 0.8 : 1.0,
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeOut,
+                      child: Transform.scale(
+                        scale: placementScale * hoverScale,
+                        child: Container(
+                          decoration: (cell.getDecoration() as BoxDecoration)
+                              .copyWith(
+                                borderRadius: BorderRadius.circular(5),
+                                boxShadow: _buildBoxShadows(cell),
                               ),
-                            ),
+                          child: Stack(
+                            children: [
+                              if (cell.piece != null)
+                                Transform.scale(
+                                  scale: _bounceAnimation.value,
+                                  child: Image.asset(
+                                    'assets/images/pieces/${skinProvider.selectedSkin.name}/${skinProvider.selectedSkin.name}_${cell.piece!.name}.png',
+                                    width: generalProvider.iconSize,
+                                    height: generalProvider.iconSize,
+                                  ),
+                                ),
 
-                          if (cell.isPreview || cell.isTargeted)
-                            Opacity(
-                              opacity: cell.isTargeted ? 1.0 : 0.5,
-                              child: Image.asset(
-                                'assets/images/cross.png',
-                                width: generalProvider.iconSize,
-                                height: generalProvider.iconSize,
-                              ),
-                            ),
-                        ],
+                              if (cell.isPreview || cell.isTargeted)
+                                Opacity(
+                                  opacity: cell.isTargeted ? 1.0 : 0.5,
+                                  child: Image.asset(
+                                    'assets/images/cross.png',
+                                    width: generalProvider.iconSize,
+                                    height: generalProvider.iconSize,
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
                       ),
                     ),
                   );

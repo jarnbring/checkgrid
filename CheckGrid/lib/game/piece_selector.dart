@@ -67,7 +67,6 @@ class _PieceSelectorState extends State<PieceSelector> {
     board.addScore();
     board.removeTargetedCells();
     board.removePlacedPieces();
-    board.clearPiecesOnBoard();
     board.setNewSelectedPieces();
     await board.spawnActiveCells();
     board.updateColors();
