@@ -13,19 +13,21 @@ To do:
     DONE: Tutorial text and UI
     DONE: Tutorial fix for first time use (Needs testing!)
     DONE: Too large scores (Needs testing!)
-    DONE: Update colors
+    DONE: Update colors 
     DONE: Sound (Needs testing!)
     DONE: Buy domain
 
     Remake Widget methods to classes for performance increase
     Change game over sound
-
+    
     Animations:
-    New highscore
-    CURRENT: Place piece
-    Clear cells with animation
+    DONE: Counting score down to zero animation?
+    DONE: Score animates to fast, then show correct counting
+    DONE: New highscore
+    DONE: Place piece
+    DONE: Clear cells with animation
     Game over
-    Revive
+    HALF DONE: Revive
 
     ----
 

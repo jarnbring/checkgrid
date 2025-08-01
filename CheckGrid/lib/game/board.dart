@@ -1,9 +1,9 @@
 import 'dart:math';
-import 'package:checkgrid/animations/game_animations.dart';
 import 'package:checkgrid/game/dialogs/game_over/revive_dialog.dart';
 import 'package:checkgrid/game/utilities/cell.dart';
 import 'package:checkgrid/game/utilities/piecetype.dart';
 import 'package:checkgrid/game/utilities/difficulty.dart';
+import 'package:checkgrid/game/utilities/score.dart';
 import 'package:checkgrid/providers/board_provider.dart';
 import 'package:checkgrid/providers/error_service.dart';
 import 'package:checkgrid/providers/general_provider.dart';
@@ -75,7 +75,7 @@ class Board extends ChangeNotifier {
     return _fadingCells.contains(getCellId(row, col));
   }
 
-  // Uppdaterad addScore funktion
+  // Uppdaterad addScore funktion med kombinerad animation
   void addScore() async {
     final BigInt oldScore = currentScore;
     final allTargetedCells =
@@ -103,28 +103,31 @@ class Board extends ChangeNotifier {
       highScore = finalScore;
     }
 
-    // Sätt slutgiltiga score
-    currentScore = finalScore;
-
     // Om vi redan hade highscore eller får nytt highscore, använd highscore-animering
     if ((wasAlreadyHighScore || willBeNewHighScore) &&
-        currentScore > BigInt.zero) {
+        finalScore > BigInt.zero) {
       // Markera att vi animerar highscore
       isAnimatingHighScore = true;
       notifyListeners();
 
-      // Använd highscore-animering som behåller guldigt utseende
-      await GameAnimations.increaseScore(oldScore, currentScore, (v) {
+      // Använd kombinerad animering med highscore-parameter
+      await GameAnimations.animateScore(oldScore, finalScore, (
+        v, [
+        isHighScore,
+      ]) {
         currentScore = v;
         notifyListeners();
-      });
+      }, isHighScore: true);
 
       // Animering klar
       isAnimatingHighScore = false;
       notifyListeners();
     } else {
-      // För vanlig score: normal animering
-      await GameAnimations.increaseScore(oldScore, currentScore, (v) {
+      // För vanlig score: normal animering utan highscore-parameter
+      await GameAnimations.animateScore(oldScore, finalScore, (
+        v, [
+        isHighScore,
+      ]) {
         currentScore = v;
         notifyListeners();
       });
@@ -239,6 +242,7 @@ class Board extends ChangeNotifier {
   // Spawns new initial active cells and selects new pieces for the player.
   // Notifies listeners so the UI can update.
   void restartGame(BuildContext context, bool shouldAnimate) async {
+    resetScore();
     if (shouldAnimate) {
       await animatedClearBoard();
     } else {
@@ -251,7 +255,6 @@ class Board extends ChangeNotifier {
     isGameOver = false;
     isReviveShowing = false;
     watchedAds = 0;
-    resetScore();
     clearPiecesOnBoard();
     spawnInitialActiveCells();
     setNewSelectedPieces();
@@ -261,7 +264,32 @@ class Board extends ChangeNotifier {
     notifyListeners();
   }
 
-  void resetScore() {
+  void resetScore() async {
+    // Kolla om nuvarande score är ett highscore
+    final bool isCurrentlyHighScore =
+        currentScore == highScore && currentScore > BigInt.zero;
+
+    if (isCurrentlyHighScore) {
+      // Sätt flaggan för att behålla guldiga effekter under animationen
+      isAnimatingHighScore = true;
+      notifyListeners();
+    }
+
+    await GameAnimations.decreaseScoreToZero(
+      currentScore,
+      (v, [isHighScore]) {
+        currentScore = v;
+        notifyListeners();
+      },
+      isHighScore: isCurrentlyHighScore, // Bara om det faktiskt är highscore
+    );
+
+    // Stäng av animationsflaggan efter animationen är klar
+    if (isCurrentlyHighScore) {
+      isAnimatingHighScore = false;
+      notifyListeners();
+    }
+
     currentCombo = 0;
     currentScore = BigInt.zero;
   }

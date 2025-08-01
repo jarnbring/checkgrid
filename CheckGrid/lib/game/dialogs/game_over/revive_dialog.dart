@@ -12,7 +12,7 @@ Future<void> showReviveDialog(BuildContext context, Board board) async {
     context: context,
     barrierDismissible: false,
     transitionDuration: const Duration(milliseconds: 300),
-    pageBuilder: (_, __, ___) {
+    pageBuilder: (_, _, _) {
       return CountdownLoading(
         board: board,
         afterAd: () async {

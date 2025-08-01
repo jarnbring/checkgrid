@@ -212,33 +212,71 @@ class _ScoreState extends State<Score> with TickerProviderStateMixin {
 }
 
 class GameAnimations {
-  static Future<void> increaseScore(
+  static Future<void> animateScore(
     BigInt oldScore,
     BigInt newScore,
-    void Function(BigInt) onUpdate, {
+    void Function(BigInt, [bool?]) onUpdate, {
     int durationMs = 500,
     int steps = 10,
+    bool? isHighScore,
   }) async {
     final diff = newScore - oldScore;
-    for (var i = 1; i <= steps; i++) {
+
+    // Börja från 0 istället för 1
+    for (var i = 0; i < steps; i++) {
+      final current = oldScore + (diff * BigInt.from(i) ~/ BigInt.from(steps));
+
+      // Anropa callback med eller utan isHighScore parameter
+      if (isHighScore != null) {
+        onUpdate(current, isHighScore);
+      } else {
+        onUpdate(current);
+      }
+
       await Future.delayed(Duration(milliseconds: durationMs ~/ steps));
-      onUpdate(oldScore + (diff * BigInt.from(i) ~/ BigInt.from(steps)));
+    }
+
+    // Säkerställ att vi hamnar på exakt rätt värde till slut
+    if (isHighScore != null) {
+      onUpdate(newScore, isHighScore);
+    } else {
+      onUpdate(newScore);
     }
   }
 
-  // Ny funktion för highscore-animering som behåller guldigt utseende
-  static Future<void> increaseHighScore(
-    BigInt oldScore,
-    BigInt newScore,
-    void Function(BigInt, bool) onUpdate, {
-    int durationMs = 500,
-    int steps = 10,
+  static Future<void> decreaseScoreToZero(
+    BigInt currentScore,
+    void Function(BigInt, [bool?]) onUpdate, {
+    bool? isHighScore,
   }) async {
-    final diff = newScore - oldScore;
-    for (var i = 1; i <= steps; i++) {
+    const int durationMs = 1000; // Exakt 1 sekund
+    const int steps = 20; // Fler steg för smidigare animation
+
+    // Animera från currentScore ner till 0
+    for (var i = 0; i < steps; i++) {
+      // Beräkna hur mycket som ska dras av i varje steg
+      final progress = (i + 1) / steps; // 0.05, 0.10, 0.15... 1.0
+      final current =
+          currentScore -
+          (currentScore *
+              BigInt.from((progress * 1000).round()) ~/
+              BigInt.from(1000));
+
+      // Anropa callback med eller utan isHighScore parameter
+      if (isHighScore != null) {
+        onUpdate(current, isHighScore);
+      } else {
+        onUpdate(current);
+      }
+
       await Future.delayed(Duration(milliseconds: durationMs ~/ steps));
-      // Andra parametern (true) indikerar att det är highscore-animering
-      onUpdate(oldScore + (diff * BigInt.from(i) ~/ BigInt.from(steps)), true);
+    }
+
+    // Säkerställ att vi hamnar på exakt 0 till slut
+    if (isHighScore != null) {
+      onUpdate(BigInt.zero, isHighScore);
+    } else {
+      onUpdate(BigInt.zero);
     }
   }
 }
