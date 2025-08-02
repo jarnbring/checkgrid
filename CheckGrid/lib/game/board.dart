@@ -432,9 +432,28 @@ class Board extends ChangeNotifier {
     notifyListeners();
   }
 
-  void setNewSelectedPieces() {
+  // Lägg till dessa variabler i Board-klassen (längst upp med andra animation vars)
+
+  bool _isAnimatingNewPieces = false; // NY VARIABEL FÖR PJÄS-ANIMATION
+
+  // Lägg till denna getter med andra getters
+  bool get isAnimatingNewPieces => _isAnimatingNewPieces;
+
+  // Uppdatera setNewSelectedPieces-metoden
+  void setNewSelectedPieces() async {
+    // Sätt animationsflaggan
+    _isAnimatingNewPieces = true;
+    notifyListeners();
+
     final shuffled = List.of(PieceType.values)..shuffle(rng);
     selectedPieces = shuffled.take(3).toList();
+    notifyListeners();
+
+    // Vänta 500ms för animationen
+    await Future.delayed(const Duration(milliseconds: 500));
+
+    // Stäng av animationsflaggan
+    _isAnimatingNewPieces = false;
     notifyListeners();
   }
 

@@ -17,14 +17,46 @@ class PieceSelector extends StatefulWidget {
   State<PieceSelector> createState() => _PieceSelectorState();
 }
 
-class _PieceSelectorState extends State<PieceSelector> {
+class _PieceSelectorState extends State<PieceSelector>
+    with SingleTickerProviderStateMixin {
   final double boxWidth = 250;
   final double boxHeight = 100;
+
+  // Animation controller för fadein
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Skapa animation controller
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 500),
+      vsync: this,
+    );
+
+    // Skapa fade animation med mjuk kurva
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final board = context.watch<Board>();
     final selectedPieces = board.selectedPieces;
+
+    // Starta animation när nya pjäser animeras
+    if (board.isAnimatingNewPieces && !_animationController.isAnimating) {
+      _animationController.forward(from: 0.0);
+    }
 
     return Container(
       width: boxWidth,
@@ -72,7 +104,9 @@ class _PieceSelectorState extends State<PieceSelector> {
     board.updateColors();
 
     if (!mounted) return;
+    board.updateHighscore(context);
     if (board.isGameOver && (board.watchedAds >= 3)) {
+      board.resetScore();
       await board.animatedClearBoard();
       if (!mounted) return;
       context.go('/gameover', extra: board);
@@ -80,7 +114,6 @@ class _PieceSelectorState extends State<PieceSelector> {
       showReviveDialog(context, board);
     }
 
-    board.updateHighscore(context);
     board.saveBoard(context);
   }
 
@@ -148,11 +181,31 @@ class _PieceSelectorState extends State<PieceSelector> {
                         });
                         if (selectedPieces.isEmpty) _handleLastPiece(board);
                       },
-                      child: _buildShadowedPiece(
-                        generalProvider,
-                        largePieceIconSize,
-                        pieceType,
-                        context,
+                      child: AnimatedBuilder(
+                        animation: _fadeAnimation,
+                        builder: (context, child) {
+                          // Använd bara animation om vi animerar nya pjäser
+                          final opacity =
+                              board.isAnimatingNewPieces
+                                  ? _fadeAnimation.value
+                                  : 1.0;
+
+                          return Opacity(
+                            opacity: opacity,
+                            child: Transform.scale(
+                              scale:
+                                  board.isAnimatingNewPieces
+                                      ? 0.8 + (0.2 * _fadeAnimation.value)
+                                      : 1.0,
+                              child: _buildShadowedPiece(
+                                generalProvider,
+                                largePieceIconSize,
+                                pieceType,
+                                context,
+                              ),
+                            ),
+                          );
+                        },
                       ),
                     ),
                   );

@@ -27,6 +27,7 @@ To do:
     DONE: Place piece
     DONE: Clear cells with animation
     DONE: Game over
+    DONE: New pieces to place
     HALF DONE: Revive
 
     ----
