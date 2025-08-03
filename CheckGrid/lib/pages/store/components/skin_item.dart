@@ -34,12 +34,12 @@ class _SkinItemState extends State<SkinItem> {
         clipBehavior: Clip.none,
         children: [
           BorderBeam(
-            duration: 4,
-            colorFrom: const Color.fromARGB(255, 255, 251, 2),
-            colorTo: const Color.fromARGB(255, 0, 51, 255),
-            staticBorderColor: const Color.fromARGB(255, 0, 0, 251),
+            duration: 3,
+            colorFrom: const Color.fromARGB(255, 2, 255, 103),
+            colorTo: const Color.fromARGB(255, 0, 213, 255),
+            staticBorderColor: const Color.fromARGB(185, 255, 255, 255),
             borderRadius: BorderRadius.circular(16),
-            borderWidth: 2,
+            borderWidth: 4,
             child: Container(
               alignment: Alignment.center,
               width: generalProvider.screenWidth(context) / 3,

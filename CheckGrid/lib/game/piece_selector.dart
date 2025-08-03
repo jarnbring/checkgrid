@@ -1,6 +1,6 @@
 import 'dart:ui';
 
-import 'package:checkgrid/game/dialogs/game_over/revive_dialog.dart';
+import 'package:checkgrid/game/dialogs/revive_dialog.dart';
 import 'package:checkgrid/pages/tutorial_page.dart';
 import 'package:checkgrid/providers/audio_provider.dart';
 import 'package:checkgrid/providers/general_provider.dart';

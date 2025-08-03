@@ -1,5 +1,5 @@
 import 'dart:math';
-import 'package:checkgrid/game/dialogs/game_over/revive_dialog.dart';
+import 'package:checkgrid/game/dialogs/revive_dialog.dart';
 import 'package:checkgrid/game/utilities/cell.dart';
 import 'package:checkgrid/game/utilities/piecetype.dart';
 import 'package:checkgrid/game/utilities/difficulty.dart';
@@ -32,6 +32,7 @@ class Board extends ChangeNotifier {
   BigInt currentScore = BigInt.zero;
   BigInt highScore = BigInt.zero;
   bool isAnimatingHighScore = false;
+  BigInt lastScore = BigInt.zero;
 
   int currentCombo = 0;
   final int comboRequirement = 6;
@@ -271,6 +272,7 @@ class Board extends ChangeNotifier {
   }
 
   void resetScore() async {
+    lastScore = currentScore;
     // Kolla om nuvarande score är ett highscore
     final bool isCurrentlyHighScore =
         currentScore == highScore && currentScore > BigInt.zero;

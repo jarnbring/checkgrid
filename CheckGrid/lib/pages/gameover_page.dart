@@ -26,11 +26,14 @@ class _GameOverPageState extends State<GameOverPage>
   late Animation<double> _buttonOpacity;
   late Animation<double> _pulse;
 
+  late final String lastScore;
+
   @override
   void initState() {
     super.initState();
     context.read<AudioProvider>().playGameOver();
     widget.board.updateAmountOfRounds(context);
+    lastScore = widget.board.lastScore.toString();
 
     _controller = AnimationController(
       vsync: this,
@@ -133,9 +136,11 @@ class _GameOverPageState extends State<GameOverPage>
       body: Background(
         child: Center(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 80.0),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 80.0,
+              vertical: 200,
+            ),
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 SlideTransition(
                   position: _textOffset,
@@ -143,7 +148,7 @@ class _GameOverPageState extends State<GameOverPage>
                     opacity: _textOpacity,
                     child: OutlinedText(
                       text: "Game Over",
-                      fontSize: 60,
+                      fontSize: 45,
                       color: const Color.fromARGB(255, 174, 174, 174),
                       textAlign: TextAlign.center,
                       shadows: const [
@@ -154,6 +159,14 @@ class _GameOverPageState extends State<GameOverPage>
                         ),
                       ],
                     ),
+                  ),
+                ),
+                const SizedBox(height: 100),
+                SlideTransition(
+                  position: _textOffset,
+                  child: FadeTransition(
+                    opacity: _textOpacity,
+                    child: OutlinedText(text: lastScore, fontSize: 45),
                   ),
                 ),
                 const SizedBox(height: 100),
