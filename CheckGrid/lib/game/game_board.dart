@@ -143,7 +143,12 @@ class _BoardCellState extends State<BoardCell> with TickerProviderStateMixin {
           },
           child: DragTarget<PieceType>(
             onWillAcceptWithDetails: (details) {
-              bool canPlace = !cell.hasPiece && !cell.isActive;
+              // What requirements is needed to place a piece
+              bool canPlace =
+                  !cell.hasPiece &&
+                  !cell.isActive &&
+                  board.isClearingBoard ==
+                      false; // Needed to avoid placing pieces during the clearBoard animation, ex when you revive and the board is clearing. You are not supposed to be able to place pieces during the animation.
               board.previewTargetedCells(details.data, widget.row, widget.col);
               return canPlace;
             },

@@ -17,9 +17,6 @@ To do:
     DONE: Sound (Needs testing!)
     DONE: Buy domain
 
-    Remake Widget methods to classes for performance increase
-    Change game over sound
-    
     Animations:
     DONE: Counting score down to zero animation?
     DONE: Score animates to fast, then show correct counting
@@ -28,9 +25,12 @@ To do:
     DONE: Clear cells with animation
     DONE: Game over
     DONE: New pieces to place
-    HALF DONE: Revive
 
-    ----
+    Remake Widget methods to classes for performance increase
+    Change game over sound
+    Final score on Game Over screen?
+
+    ------------------------------------------------------------
 
     Add logging for errors and crashes
     Weekly notifications
@@ -48,7 +48,11 @@ To do:
     Code review
     Implement real ads
 
+    ------------------------------------------------------------
+
     *Future ideas:*
+    Revive Animation
+
     // Requires backend
 
     *Store*

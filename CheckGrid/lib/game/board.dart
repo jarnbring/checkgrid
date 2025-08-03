@@ -26,6 +26,7 @@ class Board extends ChangeNotifier {
   bool isGameOver = false;
   bool isReviveShowing = false;
   int watchedAds = 0;
+  bool isInputBlocked = false;
 
   // Score vars
   BigInt currentScore = BigInt.zero;
@@ -211,6 +212,11 @@ class Board extends ChangeNotifier {
   }
 
   void placePiece(PieceType piece, int row, int col) {
+    // Kontrollera om vi redan har 3 placerade pjäser
+    if (selectedPiecesPositions.length >= 3) {
+      return; // Tillåt inte fler än 3 pjäser
+    }
+
     final block = getCell(row, col);
     if (block != null && !block.hasPiece && !block.isActive) {
       block.piece = piece;
@@ -297,6 +303,7 @@ class Board extends ChangeNotifier {
   /// Clears all cells on the board (removes pieces, active and targeted states).
   /// Does not notify listeners directly; used as a helper in other methods.
   Future<void> animatedClearBoard() async {
+    isInputBlocked = true;
     _isClearingBoard = true;
     _fadingCells.clear();
     notifyListeners();
@@ -335,6 +342,8 @@ class Board extends ChangeNotifier {
           block.isTargeted = false;
           _fadingCells.remove(getCellId(row, col));
         }
+
+        isInputBlocked = false;
 
         // VIKTIGT: Uppdatera färger efter varje rad
         updateColors();

@@ -166,6 +166,7 @@ class _GameOverPageState extends State<GameOverPage>
                       child: _button(
                         "Restart",
                         () {
+                          context.read<AudioProvider>().playOpenMenu();
                           context.read<SettingsProvider>().doVibration(1);
                           widget.board.restartGame(context, false);
                           context.go('/home');
