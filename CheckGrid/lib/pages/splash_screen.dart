@@ -146,24 +146,19 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: Column(
-          children: [
-            const SizedBox(height: 200),
-            FadeTransition(
-              opacity: ReverseAnimation(_fadeAnimation),
-              child: Lottie.asset(
-                'assets/images/animations/loading.json',
-                controller: _lottieController,
-                frameRate: FrameRate.max,
-                onLoaded: (composition) {
-                  _lottieController.duration = composition.duration;
-                  _lottieController.forward();
-                },
-              ),
-            ),
-            const Spacer(),
-          ],
+      body: SizedBox.expand(
+        child: FadeTransition(
+          opacity: ReverseAnimation(_fadeAnimation),
+          child: Lottie.asset(
+            'assets/images/animations/loading.json',
+            controller: _lottieController,
+            frameRate: FrameRate.max,
+            fit: BoxFit.cover,
+            onLoaded: (composition) {
+              _lottieController.duration = composition.duration;
+              _lottieController.forward();
+            },
+          ),
         ),
       ),
     );

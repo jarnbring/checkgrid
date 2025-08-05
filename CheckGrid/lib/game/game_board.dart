@@ -219,10 +219,13 @@ class _BoardCellState extends State<BoardCell> with TickerProviderStateMixin {
                               if (cell.piece != null)
                                 Transform.scale(
                                   scale: _bounceAnimation.value,
-                                  child: Image.asset(
-                                    'assets/images/pieces/${skinProvider.selectedSkin.name}/${skinProvider.selectedSkin.name}_${cell.piece!.name}.png',
-                                    width: generalProvider.iconSize,
-                                    height: generalProvider.iconSize,
+                                  child: Padding(
+                                    padding: EdgeInsetsGeometry.all(4),
+                                    child: Image.asset(
+                                      'assets/images/pieces/${skinProvider.selectedSkin.name}/${skinProvider.selectedSkin.name}_${cell.piece!.name}.png',
+                                      width: generalProvider.iconSize,
+                                      height: generalProvider.iconSize,
+                                    ),
                                   ),
                                 ),
 

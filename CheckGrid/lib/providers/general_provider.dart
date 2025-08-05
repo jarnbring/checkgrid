@@ -34,11 +34,14 @@ class GeneralProvider with ChangeNotifier {
     BuildContext context,
   ) {
     final skinName = context.watch<SkinProvider>().selectedSkin.name;
-    return Image.asset(
-      'assets/images/pieces/$skinName/${skinName}_${pieceType.name}.png',
-      width: size,
-      height: size,
-      fit: boxFit,
+    return Padding(
+      padding: EdgeInsetsGeometry.all(8),
+      child: Image.asset(
+        'assets/images/pieces/$skinName/${skinName}_${pieceType.name}.png',
+        width: size,
+        height: size,
+        fit: boxFit,
+      ),
     );
   }
 

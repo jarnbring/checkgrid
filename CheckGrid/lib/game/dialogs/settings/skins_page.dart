@@ -75,11 +75,10 @@ class _SkinsPageState extends State<SkinsPage> {
                         final skin = unlockedSkins[index];
                         final isSelected = skin == selectedSkin;
                         return GestureDetector(
-                          onTap:
-                              () => {
-                                context.read<SettingsProvider>().doVibration(1),
-                                skinProvider.selectSkin(skin),
-                              },
+                          onTap: () async {
+                            context.read<SettingsProvider>().doVibration(1);
+                            await skinProvider.selectSkin(skin);
+                          },
                           child: Container(
                             decoration: BoxDecoration(
                               color: const Color.fromARGB(255, 16, 79, 131),

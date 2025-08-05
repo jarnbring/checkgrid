@@ -1,8 +1,6 @@
-import 'package:checkgrid/animations/border_beam.dart';
 import 'package:checkgrid/components/glass_box.dart';
 import 'package:checkgrid/providers/board_provider.dart';
 import 'package:checkgrid/providers/error_service.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -118,12 +116,11 @@ class StatisticsPage extends StatelessWidget {
     bool? isWide,
     bool? isTime,
   }) {
-    return BorderBeam(
-      staticBorderColor: Colors.white,
-      colorFrom: CupertinoColors.systemBlue,
-      colorTo: CupertinoColors.activeBlue,
-      duration: 8,
-      borderRadius: BorderRadius.circular(30),
+    return Container(
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.white.withAlpha(70), width: 1.0),
+        borderRadius: BorderRadius.circular(30),
+      ),
       child: GlassBox(
         height: 135,
         width: isWide == true ? 330 : 150,
@@ -134,7 +131,7 @@ class StatisticsPage extends StatelessWidget {
             children: [
               Text(
                 title,
-                style: const TextStyle(fontSize: 20),
+                style: const TextStyle(fontSize: 16),
                 textAlign: TextAlign.center,
               ),
               const Spacer(),

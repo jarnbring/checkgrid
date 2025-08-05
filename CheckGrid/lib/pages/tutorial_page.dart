@@ -71,7 +71,7 @@ class _TutorialPageState extends State<TutorialPage> {
                 const SizedBox(height: 16),
                 Text(
                   description,
-                  textAlign: TextAlign.center,
+                  textAlign: TextAlign.start,
                   style: const TextStyle(fontSize: 16),
                 ),
                 const SizedBox(height: 24),
@@ -114,7 +114,7 @@ class _TutorialPageState extends State<TutorialPage> {
           barrierLabel: "Tutorial",
           pageBuilder: (context, animation, secondaryAnimation) {
             return _buildStepDialog(
-              title: "Welcome to CheckGrid!",
+              title: "Welcome to \nCheckGrid!",
               description:
                   "Drag a piece from the selection area below and place it on the gray squares adjacent to the green cells.",
               step: tutorial.tutorialStep,

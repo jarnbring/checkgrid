@@ -25,13 +25,15 @@ To do:
     DONE: Clear cells with animation
     DONE: Game over
     DONE: New pieces to place
+    DONE: Final score on Game Over screen?
+    DONE: Change game over sound
+    DONE: Splashscreen
 
     Remake Widget methods to classes for performance increase
-    Change game over sound
-    Final score on Game Over screen?
 
     ------------------------------------------------------------
 
+    Frame cap to lower power consumption?
     Add logging for errors and crashes
     Weekly notifications
     App Icons
@@ -40,11 +42,11 @@ To do:
     Responsive UI
     App Size
     Test on android
+    Credits for sounds and images?
     Code cleanup
     Everything around git, README etc.
     Privacy policy, terms of service
     Set everything up for iOS and Android, App store, Google play store
-
     Code review
     Implement real ads
 
@@ -52,6 +54,7 @@ To do:
 
     *Future ideas:*
     Revive Animation
+    Unlock skin animation
 
     // Requires backend
 

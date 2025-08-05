@@ -1,3 +1,4 @@
+import 'package:checkgrid/ads/banner_ad.dart';
 import 'package:checkgrid/components/background.dart';
 import 'package:checkgrid/components/custom_navigation_bar.dart';
 import 'package:checkgrid/game/game_ui.dart';
@@ -226,6 +227,13 @@ class _HomeWrapperState extends State<HomeWrapper>
                 onItemTap: _onItemTapped,
               ),
             ),
+          ),
+          const Spacer(),
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: const BannerAdWidget(),
           ),
         ],
       ),

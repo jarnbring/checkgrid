@@ -47,6 +47,20 @@ class SkinProvider with ChangeNotifier {
       unlockedSkins.add(Skin.white);
     }
 
+    // Ladda valt skin
+    final selectedSkinName = prefs.getString('selected_skin') ?? 'white';
+    final loadedSkin = allSkins.firstWhere(
+      (skin) => skin.name == selectedSkinName,
+      orElse: () => Skin.white,
+    );
+
+    // Säkerställ att det valda skinet är upplåst
+    if (unlockedSkins.contains(loadedSkin)) {
+      selectedSkin = loadedSkin;
+    } else {
+      selectedSkin = Skin.white;
+    }
+
     // Ladda alla watched ads till cache
     _watchedAdsCache.clear();
     for (final skin in allSkins) {
@@ -135,10 +149,22 @@ class SkinProvider with ChangeNotifier {
     }
   }
 
-  void selectSkin(Skin skin) {
+  // Uppdaterad selectSkin som sparar valet
+  Future<void> selectSkin(Skin skin) async {
     if (unlockedSkins.contains(skin)) {
       selectedSkin = skin;
+      await _saveSelectedSkin(skin);
       notifyListeners();
+    }
+  }
+
+  // Ny privat metod för att spara valt skin
+  Future<void> _saveSelectedSkin(Skin skin) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('selected_skin', skin.name);
+    } catch (e) {
+      debugPrint('Error saving selected skin: $e');
     }
   }
 
