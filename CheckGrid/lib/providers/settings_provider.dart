@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:checkgrid/providers/noti_service.dart';
 
-class SettingsProvider with ChangeNotifier {
+class SettingsProvider extends ChangeNotifier {
   // Default settings
   bool _isBoldText = false;
   bool _isDarkMode = true;
@@ -104,6 +105,19 @@ class SettingsProvider with ChangeNotifier {
   Future<void> setNotificationReminder(bool value) async {
     _notificationReminder = value;
     await _saveSettings();
+    
+    // Handle notification scheduling
+    final notiService = NotiService();
+    await notiService.initNotification();
+    
+    if (value) {
+      // Enable notifications - setup app notifications
+      await notiService.setupAppNotifications(this);
+    } else {
+      // Disable notifications - cancel all scheduled notifications
+      await notiService.cancelAllNotifications();
+    }
+    
     notifyListeners();
   }
 }

@@ -90,8 +90,11 @@ class _SkinsPageState extends State<SkinsPage> {
                               ),
                             ),
                             child: Center(
-                              child: Image.asset(
-                                "assets/images/pieces/${skin.name}/${skin.name}_knight.png",
+                              child: Padding(
+                                padding: EdgeInsetsGeometry.all(10),
+                                child: Image.asset(
+                                  "assets/images/pieces/${skin.name}/${skin.name}_knight.png",
+                                ),
                               ),
                             ),
                           ),

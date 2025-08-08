@@ -13,7 +13,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:checkgrid/providers/general_provider.dart';
 import 'package:checkgrid/providers/settings_provider.dart';
 import 'package:checkgrid/providers/router.dart';
-import 'package:checkgrid/pages/settings/noti_service.dart';
+import 'package:checkgrid/providers/noti_service.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
@@ -49,8 +49,8 @@ void main() async {
 
   await notiService.initNotification();
 
-  // Schedule daily notifications
-  await notiService.scheduleWeeklyRotatingNotifications(settingsProvider);
+  // Setup app notifications
+  await notiService.setupAppNotifications(settingsProvider);
 
   runApp(
     MultiProvider(

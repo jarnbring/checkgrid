@@ -1,7 +1,8 @@
 import 'package:checkgrid/components/group_settings.dart';
 import 'package:checkgrid/components/icon_widget.dart';
-import 'package:checkgrid/pages/settings/noti_service.dart';
+import 'package:checkgrid/providers/noti_service.dart';
 import 'package:checkgrid/providers/settings_provider.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
@@ -92,32 +93,20 @@ class SettingsPageState extends State<SettingsPage> {
                       ),
                     ),
                   ),
+                  const SizedBox(height: 50),
                   // Send notification now
-                  ElevatedButton(
+                  !kDebugMode ? ElevatedButton(
                     onPressed: () async {
                       NotiService().showNotification(
                         title: "CheckGrid",
-                        body: "Come back baby, I miss you <3",
+                        body:
+                            "Delivery! New items are now availabe in the Store, check it out!",
                         settingsProvider: SettingsProvider(),
                       );
                     },
                     child: const Text("Send notification"),
-                  ),
-                  // Send scheduled notification
-                  ElevatedButton(
-                    onPressed: () async {
-                      NotiService().scheduleNotification(
-                        title: "We miss you",
-                        body:
-                            "Come back on and keep highering your personal best!",
-                        hour: 23,
-                        minute: 55,
-                        settingsProvider: SettingsProvider(),
-                      );
-                    },
-                    child: const Text("Send delayed notification"),
-                  ),
-                ],
+                  ) : const SizedBox.shrink(),
+                  ],
               ),
             ),
           ],

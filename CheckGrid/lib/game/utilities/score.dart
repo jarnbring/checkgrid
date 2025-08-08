@@ -173,19 +173,19 @@ class _ScoreState extends State<Score> with TickerProviderStateMixin {
                   ),
                   child: ShaderMask(
                     shaderCallback:
-                        (bounds) => LinearGradient(
+                        (bounds) => RadialGradient(
+                          center: Alignment.center,
+                          radius: 2.0, // Större radie för mjukare övergång
                           colors: [
                             Colors.amber,
-                            Colors.yellow,
-                            Colors.yellow,
-                            Colors.amber,
+                            Colors.yellow.withOpacity(0.9),
+                            Colors.yellow.withOpacity(0.7),
+                            Colors.amber.withOpacity(0.4),
+                            Colors.amber.withOpacity(0.2),
+                            Colors.amber.withOpacity(0.1),
+                            Colors.transparent,
                           ],
-                          stops: [
-                            0.0,
-                            _glowAnimation.value * 0.3,
-                            _glowAnimation.value * 0.7,
-                            1.0,
-                          ],
+                          stops: [0.0, 0.2, 0.35, 0.5, 0.65, 0.8, 1.0],
                         ).createShader(bounds),
                     child: scoreWidget,
                   ),

@@ -44,14 +44,6 @@ class HomePage extends StatelessWidget {
               padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 20),
               child: Column(
                 children: [
-                  const DefaultTextStyle(
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    child: Text("Settings"),
-                  ),
                   const SizedBox(height: 20),
                   OptionTile(
                     title: "Restart game",
@@ -74,7 +66,7 @@ class HomePage extends StatelessWidget {
                   // ),
                   OptionTile(
                     title: "Skins",
-                    icon: FontAwesomeIcons.chessQueen,
+                    icon: FontAwesomeIcons.solidChessQueen,
                     onTap:
                         () => {
                           context.read<AudioProvider>().playOpenMenu(),

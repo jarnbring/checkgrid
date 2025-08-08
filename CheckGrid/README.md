@@ -16,8 +16,6 @@ To do:
     DONE: Update colors 
     DONE: Sound (Needs testing!)
     DONE: Buy domain
-
-    Animations:
     DONE: Counting score down to zero animation?
     DONE: Score animates to fast, then show correct counting
     DONE: New highscore
@@ -28,17 +26,17 @@ To do:
     DONE: Final score on Game Over screen?
     DONE: Change game over sound
     DONE: Splashscreen
+    DONE: Fix black skins to match the white skins
+    DONE: Delay on menu close sound
+    DONE: Launch screen (and new animation?)
+    DONE: DOMAIN: Feedback system, mail atm
 
-    Remake Widget methods to classes for performance increase
+    ALMOST DONE: App Icons (Need to add for android)
+    ALMOST DONE: Weekly notifications, you can add more
 
     ------------------------------------------------------------
 
-    Frame cap to lower power consumption?
     Add logging for errors and crashes
-    Weekly notifications
-    App Icons
-    Launch screen (and new animation?)
-    DOMAIN: Feedback system
     Responsive UI
     App Size
     Test on android
@@ -48,6 +46,7 @@ To do:
     Privacy policy, terms of service
     Set everything up for iOS and Android, App store, Google play store
     Code review
+    XCode errors
     Implement real ads
 
     ------------------------------------------------------------
@@ -55,6 +54,9 @@ To do:
     *Future ideas:*
     Revive Animation
     Unlock skin animation
+    Remake Widget methods to classes for performance increase
+    Highscore animation circle remove? Fade out in the corners to remove the circle
+    Frame cap to lower power consumption?
 
     // Requires backend
 
