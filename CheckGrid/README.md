@@ -32,9 +32,9 @@ To do:
     DONE: DOMAIN: Feedback system, mail atm
     DONE: Privacy policy, terms of service not needed
     DONE: Credits for sounds and images?
-    ALMOST DONE: Weekly notifications, you can add more
-    ALMOST DONE: Responsive UI, looks bad but can be improved if people actually play the game
-    ALMOST DONE: App Size
+    DONE: Weekly notifications, you can add more
+    
+    ALMOST DONE: App Size, NEEDS TESTING
 
     ------------------------------------------------------------
 
@@ -56,6 +56,7 @@ To do:
     Remake Widget methods to classes for performance increase
     Highscore animation circle remove? Fade out in the corners to remove the circle
     Frame cap to lower power consumption?
+    Responsive UI, looks bad but can be improved if people actually play the game
 
     // Requires backend
 

@@ -38,16 +38,18 @@ class Board extends ChangeNotifier {
   int currentCombo = 0;
   final int comboRequirement = 6;
 
-  // Animation vars - DESSA SAKNADES!
+  // Animation vars
   bool _isClearingBoard = false;
   final Set<String> _fadingCells = <String>{};
+  bool _isAnimatingNewPieces = false;
 
   // Helpers
   final Random rng = Random();
 
   // Getters
   Difficulty get difficulty => _difficulty;
-  bool get isClearingBoard => _isClearingBoard; // SAKNADES!
+  bool get isClearingBoard => _isClearingBoard;
+  bool get isAnimatingNewPieces => _isAnimatingNewPieces;
 
   // Setters
   set difficulty(Difficulty value) {
@@ -68,77 +70,151 @@ class Board extends ChangeNotifier {
         ),
       );
 
-  // SAKNAD METOD: getCellId
+  // OPTIMERING 1: Spara endast celler som har data (inte tomma celler)
+  Map<String, dynamic> _getBoardDataOptimized() {
+    final Map<String, dynamic> activeCells = {};
+    
+    for (var row = 0; row < GeneralProvider.boardHeight; row++) {
+      for (var col = 0; col < GeneralProvider.boardWidth; col++) {
+        final cell = board[row][col];
+        
+        // Spara endast celler som har någon data
+        if (cell.hasPiece || cell.isActive || cell.isTargeted || cell.piece != null) {
+          activeCells['$row,$col'] = {
+            'hasPiece': cell.hasPiece,
+            'isActive': cell.isActive,
+            'isTargeted': cell.isTargeted,
+            'piece': cell.piece?.name,
+          };
+        }
+      }
+    }
+    
+    return activeCells;
+  }
+
+  // OPTIMERING 2: Ladda optimerad board-data
+  void _loadBoardDataOptimized(Map<String, dynamic> activeCells) {
+    // Nollställ hela brädet först
+    for (var row = 0; row < GeneralProvider.boardHeight; row++) {
+      for (var col = 0; col < GeneralProvider.boardWidth; col++) {
+        final cell = board[row][col];
+        cell.hasPiece = false;
+        cell.isActive = false;
+        cell.isTargeted = false;
+        cell.piece = null;
+      }
+    }
+    
+    // Ladda endast aktiva celler
+    activeCells.forEach((key, data) {
+      final coords = key.split(',');
+      final row = int.parse(coords[0]);
+      final col = int.parse(coords[1]);
+      
+      final cell = getCell(row, col);
+      if (cell != null) {
+        cell.hasPiece = data['hasPiece'] ?? false;
+        cell.isActive = data['isActive'] ?? false;
+        cell.isTargeted = data['isTargeted'] ?? false;
+        final pieceName = data['piece'];
+        cell.piece = pieceName != null
+            ? PieceType.values.firstWhere((e) => e.name == pieceName)
+            : null;
+      }
+    });
+  }
+
+  // OPTIMERING 3: Förbättrad targeted cells map sparning
+  Map<String, dynamic> _getTargetedCellsMapOptimized() {
+    if (targetedCellsMap.isEmpty) return {};
+    
+    final Map<String, List<String>> optimizedMap = {};
+    targetedCellsMap.forEach((point, cells) {
+      final key = '${point.x},${point.y}';
+      optimizedMap[key] = cells.map((cell) => '${cell.x},${cell.y}').toList();
+    });
+    
+    return optimizedMap;
+  }
+
+  void _loadTargetedCellsMapOptimized(Map<String, dynamic> data) {
+    targetedCellsMap.clear();
+    
+    data.forEach((key, cellKeys) {
+      final coords = key.split(',');
+      final point = Point<int>(int.parse(coords[0]), int.parse(coords[1]));
+      
+      final cells = <Cell>[];
+      for (final cellKey in cellKeys) {
+        final cellCoords = cellKey.split(',');
+        final cell = getCell(int.parse(cellCoords[0]), int.parse(cellCoords[1]));
+        if (cell != null) cells.add(cell);
+      }
+      targetedCellsMap[point] = cells;
+    });
+  }
+
   String getCellId(int row, int col) {
     return '$row-$col';
   }
 
-  // SAKNAD METOD: isCellFading
   bool isCellFading(int row, int col) {
     return _fadingCells.contains(getCellId(row, col));
   }
 
-  // Uppdaterad addScore funktion med kombinerad animation
-  void addScore() async {
-    final BigInt oldScore = currentScore;
-    final allTargetedCells =
-        targetedCellsMap.values.expand((cells) => cells).toSet().toList();
+void addScore() async {
+ final BigInt oldScore = currentScore;
+final allTargetedCells =
+targetedCellsMap.values.expand((cells) => cells).toSet().toList();
+// Handle combo
+final removedCells = allTargetedCells.length;
+currentCombo = removedCells >= comboRequirement ? currentCombo + 1 : 1;
 
-    // Handle combo
-    final removedCells = allTargetedCells.length;
-    currentCombo = removedCells >= comboRequirement ? currentCombo + 1 : 1;
+// Långsammare poängformel
+final baseScore = 1; // Minskat från 2 till 1
+final comboMultiplier = pow(1.08, currentCombo); // Minskat från 1.15 till 1.08
+final cellBonus = removedCells * log(removedCells + 1) * 0.5; // Halverad bonus
+final scoreToAdd =
+ (baseScore * removedCells * comboMultiplier + cellBonus).floor();
 
-    // Ny poängformel
-    final baseScore = 2;
-    final comboMultiplier = pow(1.15, currentCombo);
-    final cellBonus = removedCells * log(removedCells + 1);
-    final scoreToAdd =
-        (baseScore * removedCells * comboMultiplier + cellBonus).floor();
-
-    final BigInt finalScore = currentScore + BigInt.from(scoreToAdd);
-
-    // Kontrollera om det blir ett nytt highscore ELLER om vi redan har highscore
-    final bool willBeNewHighScore = finalScore > highScore;
-    final bool wasAlreadyHighScore =
-        currentScore == highScore && currentScore > BigInt.zero;
-
-    if (willBeNewHighScore) {
-      highScore = finalScore;
-    }
-
-    // Om vi redan hade highscore eller får nytt highscore, använd highscore-animering
-    if ((wasAlreadyHighScore || willBeNewHighScore) &&
-        finalScore > BigInt.zero) {
-      // Markera att vi animerar highscore
-      isAnimatingHighScore = true;
-      notifyListeners();
-
-      // Använd kombinerad animering med highscore-parameter
-      await GameAnimations.animateScore(oldScore, finalScore, (
-        v, [
-        isHighScore,
-      ]) {
-        currentScore = v;
-        notifyListeners();
-      }, isHighScore: true);
-
-      // Animering klar
-      isAnimatingHighScore = false;
-      notifyListeners();
-    } else {
-      // För vanlig score: normal animering utan highscore-parameter
-      await GameAnimations.animateScore(oldScore, finalScore, (
-        v, [
-        isHighScore,
-      ]) {
-        currentScore = v;
-        notifyListeners();
-      });
-    }
-
-    notifyListeners();
-  }
-
+final BigInt finalScore = currentScore + BigInt.from(scoreToAdd);
+// Kontrollera om det blir ett nytt highscore ELLER om vi redan har highscore
+final bool willBeNewHighScore = finalScore > highScore;
+final bool wasAlreadyHighScore =
+currentScore == highScore && currentScore > BigInt.zero;
+if (willBeNewHighScore) {
+highScore = finalScore;
+ }
+// Om vi redan hade highscore eller får nytt highscore, använd highscore-animering
+if ((wasAlreadyHighScore || willBeNewHighScore) &&
+finalScore > BigInt.zero) {
+// Markera att vi animerar highscore
+isAnimatingHighScore = true;
+notifyListeners();
+// Använd kombinerad animering med highscore-parameter
+await GameAnimations.animateScore(oldScore, finalScore, (
+v, [
+isHighScore,
+ ]) {
+currentScore = v;
+notifyListeners();
+ }, isHighScore: true);
+// Animering klar
+isAnimatingHighScore = false;
+notifyListeners();
+ } else {
+// För vanlig score: normal animering utan highscore-parameter
+await GameAnimations.animateScore(oldScore, finalScore, (
+v, [
+isHighScore,
+ ]) {
+currentScore = v;
+notifyListeners();
+ });
+ }
+notifyListeners();
+ }
   // Update every cells color
   void updateColors() {
     final height = GeneralProvider.boardHeight;
@@ -444,13 +520,6 @@ class Board extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Lägg till dessa variabler i Board-klassen (längst upp med andra animation vars)
-
-  bool _isAnimatingNewPieces = false; // NY VARIABEL FÖR PJÄS-ANIMATION
-
-  // Lägg till denna getter med andra getters
-  bool get isAnimatingNewPieces => _isAnimatingNewPieces;
-
   // Uppdatera setNewSelectedPieces-metoden
   void setNewSelectedPieces() async {
     // Sätt animationsflaggan
@@ -637,99 +706,105 @@ class Board extends ChangeNotifier {
     await boardProvider.registerWrite();
   }
 
-  // Debounced saving to reduce Hive growth
+  // OPTIMERING 4: Förbättrat saving system
   Timer? _saveDebounceTimer;
   DateTime? _lastCompactAt;
   int _savesSinceCompact = 0;
+  bool _isSaving = false;
 
-  // Request a debounced save; multiple calls within [debounce] merge into one save
-  void saveBoardThrottled(BuildContext context, {Duration debounce = const Duration(seconds: 1)}) {
+  // OPTIMERING 5: Mer aggressiv throttling och cleanup
+  void saveBoardThrottled(BuildContext context, {Duration debounce = const Duration(milliseconds: 2000)}) {
+    // Avbryt tidigare timer
     _saveDebounceTimer?.cancel();
-    _saveDebounceTimer = Timer(debounce, () {
-      saveBoard(context);
+    
+    // Sätt ny timer
+    _saveDebounceTimer = Timer(debounce, () async {
+      if (!_isSaving) {
+        await saveBoard(context);
+      }
     });
   }
 
-  void saveBoard(BuildContext context) async {
-    final boardBox = context.read<BoardProvider>().getBoardBox;
+  // OPTIMERING 6: Helt omskriven saveBoard med bättre datahanterin
+  Future<void> saveBoard(BuildContext context) async {
+    if (_isSaving) return; // Förhindra samtidiga sparningar
+    
+    try {
+      _isSaving = true;
+      final boardProvider = context.read<BoardProvider>();
+      final boardBox = boardProvider.getBoardBox;
 
-    List<Map<String, dynamic>> cellData =
-        board.expand((row) => row).map((cell) {
-          return {
-            'x': cell.x,
-            'y': cell.y,
-            'hasPiece': cell.hasPiece,
-            'isActive': cell.isActive,
-            'isTargeted': cell.isTargeted,
-            'piece': cell.piece?.name,
-          };
-        }).toList();
+      // VIKTIGT: Rensa hela boxen först för att undvika old data
+      await boardBox.clear();
 
-    List<Map<String, dynamic>> targetedCellsMapData =
-        targetedCellsMap.entries.map((entry) {
-          return {
-            'point': {'x': entry.key.x, 'y': entry.key.y},
-            'cells':
-                entry.value.map((cell) => {'x': cell.x, 'y': cell.y}).toList(),
-          };
-        }).toList();
+      // Skapa en enda stor save-operation
+      final saveData = <String, dynamic>{
+        'board': _getBoardDataOptimized(),
+        'targetedCellsMap': _getTargetedCellsMapOptimized(),
+        'difficulty': _difficulty.name,
+        'selectedPieces': selectedPieces.map((e) => e.name).toList(),
+        'watchedAds': watchedAds,
+        'isGameOver': isGameOver,
+        'isReviveShowing': isReviveShowing,
+        'currentScore': currentScore.toString(),
+        'currentCombo': currentCombo,
+        'selectedPiecesPositions': selectedPiecesPositions
+            .map((p) => {'x': p.x, 'y': p.y})
+            .toList(),
+      };
 
-    await boardBox.put('board', cellData);
-    await boardBox.put('targetedCellsMap', targetedCellsMapData);
-    await boardBox.put('_difficulty', _difficulty.name);
-    await boardBox.put(
-      'selectedPieces',
-      selectedPieces.map((e) => e.name).toList(),
-    );
-    await boardBox.put('watchedAds', watchedAds);
-    await boardBox.put('isGameOver', isGameOver);
-    await boardBox.put('isReviveShowing', isReviveShowing);
-    await boardBox.put('currentScore', currentScore.toString());
+      // Spara allt i en batch-operation
+      await boardBox.putAll(saveData);
+      await boardProvider.registerWrite();
 
-    final provider = context.read<BoardProvider>();
-    await provider.registerWrite();
-
-    // Opportunistic compaction: compact after N saves or after some time window
-    _savesSinceCompact += 1;
-    final now = DateTime.now();
-    final bool timeToCompact =
-        _lastCompactAt == null || now.difference(_lastCompactAt!) > const Duration(seconds: 30);
-    if (_savesSinceCompact >= 20 || timeToCompact) {
-      await provider.compactAll();
-      _savesSinceCompact = 0;
-      _lastCompactAt = now;
+      // Mer aggressiv compaction
+      _savesSinceCompact += 1;
+      final now = DateTime.now();
+      final bool timeToCompact = _lastCompactAt == null || 
+          now.difference(_lastCompactAt!) > const Duration(seconds: 15);
+      
+      if (_savesSinceCompact >= 5 || timeToCompact) {
+        await boardProvider.compactAll();
+        _savesSinceCompact = 0;
+        _lastCompactAt = now;
+      }
+      
+    } catch (e) {
+      debugPrint('Save error: $e');
+    } finally {
+      _isSaving = false;
     }
   }
 
+  // OPTIMERING 7: Omskriven loadBoard med förbättrad datahanterin
   Future<void> loadBoard(BuildContext context) async {
     try {
       final boardBox = context.read<BoardProvider>().getBoardBox;
-      final statisticsBox =
-          context.read<BoardProvider>().getStatisticsBox; // Lägg till detta
+      final statisticsBox = context.read<BoardProvider>().getStatisticsBox;
 
-      // Start by looking if the game is over, if so, the user should be redirected to the gameover page
-      isGameOver = await boardBox.get('isGameOver') ?? false;
+      // Start by looking if the game is over
+      isGameOver = boardBox.get('isGameOver') ?? false;
       if (isGameOver) {
-        // ignore: use_build_context_synchronously
-        context.go('/gameover', extra: this);
+        if (context.mounted) {
+          context.go('/gameover', extra: this);
+        }
         return;
       }
 
       // Load selected pieces
-      final savedSelectedPieces = boardBox.get(
-        'selectedPieces',
-        defaultValue: <String>[],
-      );
-      selectedPieces =
-          (savedSelectedPieces as List)
-              .map((e) => PieceType.values.firstWhere((pt) => pt.name == e))
-              .toList();
+      final savedSelectedPieces = boardBox.get('selectedPieces', defaultValue: <String>[]);
+      selectedPieces = (savedSelectedPieces as List)
+          .map((e) => PieceType.values.firstWhere((pt) => pt.name == e))
+          .toList();
 
       // Load score
-      final savedScore = await boardBox.get('currentScore');
+      final savedScore = boardBox.get('currentScore');
       if (savedScore != null) {
         currentScore = BigInt.parse(savedScore);
       }
+
+      // Load combo
+      currentCombo = boardBox.get('currentCombo') ?? 0;
 
       // Load highscore från statistics box
       final savedHighScore = statisticsBox.get('highScore');
@@ -743,51 +818,37 @@ class Board extends ChangeNotifier {
         highScore = BigInt.zero;
       }
 
-      // Load board cells
-      final cellData = await boardBox.get('board');
-      if (cellData != null) {
-        for (final data in cellData) {
-          final cell = getCell(data['x'], data['y']);
-          if (cell != null) {
-            cell.hasPiece = data['hasPiece'] ?? false;
-            cell.isActive = data['isActive'] ?? false;
-            cell.isTargeted = data['isTargeted'] ?? false;
-            final pieceName = data['piece'];
-            cell.piece =
-                pieceName != null
-                    ? PieceType.values.firstWhere((e) => e.name == pieceName)
-                    : null;
-          }
+      // Load board cells med optimerad metod
+      final boardData = boardBox.get('board');
+      if (boardData != null) {
+        _loadBoardDataOptimized(Map<String, dynamic>.from(boardData));
+      }
+
+      // Load selected pieces positions
+      final savedPositions = boardBox.get('selectedPiecesPositions');
+      selectedPiecesPositions.clear();
+      if (savedPositions != null) {
+        for (final pos in savedPositions) {
+          selectedPiecesPositions.add(Point<int>(pos['x'], pos['y']));
         }
       }
 
-      // Load targeted cells map
-      final targetedCellsMapData = await boardBox.get('targetedCellsMap');
-      targetedCellsMap.clear();
+      // Load targeted cells map med optimerad metod
+      final targetedCellsMapData = boardBox.get('targetedCellsMap');
       if (targetedCellsMapData != null) {
-        for (final entry in targetedCellsMapData) {
-          final pointData = entry['point'];
-          final point = Point<int>(pointData['x'], pointData['y']);
-
-          final cells = <Cell>[];
-          for (final cellPos in entry['cells']) {
-            final cell = getCell(cellPos['x'], cellPos['y']);
-            if (cell != null) cells.add(cell);
-          }
-          targetedCellsMap[point] = cells;
-        }
+        _loadTargetedCellsMapOptimized(Map<String, dynamic>.from(targetedCellsMapData));
       }
 
       // Load difficulty
-      final savedDifficulty = await boardBox.get('_difficulty');
+      final savedDifficulty = boardBox.get('difficulty');
       _difficulty = Difficulty.values.firstWhere(
         (d) => d.name == savedDifficulty,
         orElse: () => Difficulty.medium,
       );
 
       // Load other variables
-      watchedAds = await boardBox.get('watchedAds');
-      isReviveShowing = await boardBox.get('isReviveShowing');
+      watchedAds = boardBox.get('watchedAds') ?? 0;
+      isReviveShowing = boardBox.get('isReviveShowing') ?? false;
 
       updateColors();
       notifyListeners();
@@ -815,5 +876,30 @@ class Board extends ChangeNotifier {
   void debugSetGameOver() {
     watchedAds = 4;
     isGameOver = true;
+  }
+
+  // OPTIMERING 8: Cleanup metod för att rensa onödig data
+  Future<void> cleanupOldData(BuildContext context) async {
+    try {
+      final boardProvider = context.read<BoardProvider>();
+      
+      // Komprimera alla boxar
+      await boardProvider.compactAll();
+      
+      // Nollställ räknare
+      _savesSinceCompact = 0;
+      _lastCompactAt = DateTime.now();
+      
+      debugPrint('Cleanup completed successfully');
+    } catch (e) {
+      debugPrint('Cleanup error: $e');
+    }
+  }
+
+  // OPTIMERING 9: Destroy metod för att rensa allt när objektet förstörs
+  @override
+  void dispose() {
+    _saveDebounceTimer?.cancel();
+    super.dispose();
   }
 }
