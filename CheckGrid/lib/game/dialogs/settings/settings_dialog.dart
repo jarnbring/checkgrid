@@ -30,9 +30,9 @@ void showSettingsDialog({required Board board, required BuildContext context}) {
       );
     },
   ).then((result) {
-    if (result == null) {
-      audioProvider.playCloseMenu();
-    }
+    // if (result == null) {
+    //   audioProvider.playCloseMenu();
+    // }
   });
 }
 

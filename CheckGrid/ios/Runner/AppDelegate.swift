@@ -15,9 +15,9 @@ import AVFoundation
 
     GeneratedPluginRegistrant.register(with: self)
 
-    if #available(iOS 10.0, *) {
-      UNUserNotificationCenter.current().delegate = self as? UNUserNotificationCenterDelegate
-    }
+      if #available(iOS 10.0, *) {
+        UNUserNotificationCenter.current().delegate = self
+      }
 
     try? AVAudioSession.sharedInstance().setCategory(.playback, options: [.mixWithOthers])
 

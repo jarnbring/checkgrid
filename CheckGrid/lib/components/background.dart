@@ -3,19 +3,23 @@ import 'dart:math' as math;
 
 class Background extends StatelessWidget {
   final Widget child;
+  final double cellSize;
 
-  const Background({super.key, required this.child});
+  const Background({super.key, required this.child, this.cellSize = 80.0});
 
   @override
   Widget build(BuildContext context) {
     return Container(
       constraints: const BoxConstraints.expand(),
-      child: CustomPaint(painter: _GridPainter(), child: child),
+      child: CustomPaint(painter: _GridPainter(cellSize: cellSize), child: child),
     );
   }
 }
 
 class _GridPainter extends CustomPainter {
+  final double cellSize;
+  const _GridPainter({required this.cellSize});
+
   @override
   void paint(Canvas canvas, Size size) {
     // Colors
@@ -27,7 +31,6 @@ class _GridPainter extends CustomPainter {
       Paint()..color = secondColor,
     );
 
-    const double cellSize = 80.0;
     final double yStep = cellSize / 2;
 
     int row = 0;
@@ -102,5 +105,6 @@ class _GridPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant _GridPainter oldDelegate) =>
+      oldDelegate.cellSize != cellSize;
 }

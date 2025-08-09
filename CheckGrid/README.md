@@ -30,28 +30,27 @@ To do:
     DONE: Delay on menu close sound
     DONE: Launch screen (and new animation?)
     DONE: DOMAIN: Feedback system, mail atm
-
-    ALMOST DONE: App Icons (Need to add for android)
+    DONE: Privacy policy, terms of service not needed
+    DONE: Credits for sounds and images?
     ALMOST DONE: Weekly notifications, you can add more
+    ALMOST DONE: Responsive UI, looks bad but can be improved if people actually play the game
+    ALMOST DONE: App Size
 
     ------------------------------------------------------------
 
-    Add logging for errors and crashes
-    Responsive UI
-    App Size
-    Test on android
-    Credits for sounds and images?
     Code cleanup
     Everything around git, README etc.
-    Privacy policy, terms of service
-    Set everything up for iOS and Android, App store, Google play store
+    Set everything up for Appstore
     Code review
-    XCode errors
     Implement real ads
 
     ------------------------------------------------------------
 
     *Future ideas:*
+    XCode errors, Google Ads SDK needs to get an update
+    Google play store
+    App Icons (Need to add for android)
+    Test on android
     Revive Animation
     Unlock skin animation
     Remake Widget methods to classes for performance increase
@@ -61,6 +60,7 @@ To do:
     // Requires backend
 
     *Store*
+    Add logging for errors and crashes
     Get big highscore to unlock skins
     Unlock different backgrounds
     Notifications for new stuff in store

@@ -51,7 +51,7 @@ class HomePage extends StatelessWidget {
                     onTap:
                         () => {
                           board.restartGame(context, true),
-                          context.read<AudioProvider>().playCloseMenu(),
+                          //context.read<AudioProvider>().playCloseMenu(),
                           Navigator.pop(context),
                         },
                   ),
@@ -86,7 +86,7 @@ class HomePage extends StatelessWidget {
                     text: "Back",
                     onPressed:
                         () => {
-                          context.read<AudioProvider>().playCloseMenu(),
+                          //context.read<AudioProvider>().playCloseMenu(),
                           Navigator.pop(context),
                         },
                   ),

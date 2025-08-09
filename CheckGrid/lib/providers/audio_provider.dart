@@ -60,9 +60,9 @@ class AudioProvider with ChangeNotifier {
     await playSound('audio/menu/open_menu.mp3');
   }
 
-  Future<void> playCloseMenu() async {
-    await playSound('audio/menu/close_menu.mp3');
-  }
+  // Future<void> playCloseMenu() async {
+  //   await playSound('audio/menu/close_menu.mp3');
+  // }
 
   @override
   void dispose() {

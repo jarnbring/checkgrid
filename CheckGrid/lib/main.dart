@@ -18,6 +18,7 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:checkgrid/components/app_scaler.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -36,6 +37,8 @@ void main() async {
   // Load Hive
   final boardProvider = BoardProvider();
   await boardProvider.initFuture;
+  // Compact local boxes at startup to reclaim space
+  await boardProvider.compactAll();
 
   // Load settings
   final settingsProvider = SettingsProvider();
@@ -48,6 +51,8 @@ void main() async {
   final notiService = NotiService();
 
   await notiService.initNotification();
+  // Ask for notification permission once on first launch
+  await notiService.promptForPermissionOnce();
 
   // Setup app notifications
   await notiService.setupAppNotifications(settingsProvider);
@@ -106,6 +111,12 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     if (state == AppLifecycleState.inactive) {
       // Background process
     }
+    if (state == AppLifecycleState.paused || state == AppLifecycleState.detached) {
+      // Compact local data when app is backgrounded/closing to reduce Documents & Data size
+      try {
+        context.read<BoardProvider>().compactAll();
+      } catch (_) {}
+    }
   }
 
   void _setOrientations() {
@@ -121,6 +132,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     return MaterialApp.router(
       title: 'CheckGrid',
       routerConfig: router,
+      builder: (context, child) => AppScaler(child: child),
       theme: ThemeData(
         // Använd enhetens native plattform för automatisk adaptation
         platform: defaultTargetPlatform,

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 import 'package:checkgrid/game/dialogs/revive_dialog.dart';
 import 'package:checkgrid/game/utilities/cell.dart';
@@ -614,6 +615,7 @@ class Board extends ChangeNotifier {
       defaultValue: 0,
     );
     boardProvider.getStatisticsBox.put('amountOfRounds', amountOfRounds + 1);
+    await boardProvider.registerWrite();
   }
 
   void updatePlacedPiecesStatistic(BuildContext context) async {
@@ -625,12 +627,27 @@ class Board extends ChangeNotifier {
     );
     storedPlacedPieces = storedPlacedPieces + 1;
     boardProvider.getStatisticsBox.put('placedPieces', storedPlacedPieces);
+    await boardProvider.registerWrite();
   }
 
   void updateHighscore(BuildContext context) async {
     final boardProvider = context.read<BoardProvider>();
     // Highscore
     boardProvider.getStatisticsBox.put('highScore', highScore.toString());
+    await boardProvider.registerWrite();
+  }
+
+  // Debounced saving to reduce Hive growth
+  Timer? _saveDebounceTimer;
+  DateTime? _lastCompactAt;
+  int _savesSinceCompact = 0;
+
+  // Request a debounced save; multiple calls within [debounce] merge into one save
+  void saveBoardThrottled(BuildContext context, {Duration debounce = const Duration(seconds: 1)}) {
+    _saveDebounceTimer?.cancel();
+    _saveDebounceTimer = Timer(debounce, () {
+      saveBoard(context);
+    });
   }
 
   void saveBoard(BuildContext context) async {
@@ -668,6 +685,20 @@ class Board extends ChangeNotifier {
     await boardBox.put('isGameOver', isGameOver);
     await boardBox.put('isReviveShowing', isReviveShowing);
     await boardBox.put('currentScore', currentScore.toString());
+
+    final provider = context.read<BoardProvider>();
+    await provider.registerWrite();
+
+    // Opportunistic compaction: compact after N saves or after some time window
+    _savesSinceCompact += 1;
+    final now = DateTime.now();
+    final bool timeToCompact =
+        _lastCompactAt == null || now.difference(_lastCompactAt!) > const Duration(seconds: 30);
+    if (_savesSinceCompact >= 20 || timeToCompact) {
+      await provider.compactAll();
+      _savesSinceCompact = 0;
+      _lastCompactAt = now;
+    }
   }
 
   Future<void> loadBoard(BuildContext context) async {
@@ -769,6 +800,10 @@ class Board extends ChangeNotifier {
       );
       ErrorService().logError(e, stacktrace);
     }
+  }
+
+  Future<void> compactLocalData(BuildContext context) async {
+    await context.read<BoardProvider>().compactAll();
   }
 
   // Debug: Sätt game over och notifiera

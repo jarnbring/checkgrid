@@ -1,4 +1,4 @@
-import 'package:flame/image_composition.dart';
+import 'dart:ui' show Offset;
 import 'package:checkgrid/game/utilities/move_pattern.dart';
 import 'package:hive/hive.dart';
 

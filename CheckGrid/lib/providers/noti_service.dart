@@ -4,6 +4,9 @@ import 'package:timezone/data/latest_all.dart' as tz show initializeTimeZones;
 import 'package:timezone/timezone.dart' as tz;
 import 'package:flutter_timezone/flutter_timezone.dart';
 import 'dart:math';
+import 'dart:io' show Platform;
+import 'package:permission_handler/permission_handler.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class NotiService {
   final notificationsPlugin = FlutterLocalNotificationsPlugin();
@@ -28,9 +31,9 @@ class NotiService {
     );
 
     const initSettingsIOS = DarwinInitializationSettings(
-      requestAlertPermission: true,
-      requestBadgePermission: true,
-      requestSoundPermission: true,
+      requestAlertPermission: false,
+      requestBadgePermission: false,
+      requestSoundPermission: false,
     );
 
     // init settings
@@ -41,6 +44,53 @@ class NotiService {
 
     // init the plugin
     await notificationsPlugin.initialize(initSettings);
+    _isInitialized = true;
+  }
+
+  // Prompt once on first launch
+  Future<void> promptForPermissionOnce() async {
+    final prefs = await SharedPreferences.getInstance();
+    final asked = prefs.getBool('askedNotificationPermission') ?? false;
+    if (asked) return;
+
+    await requestPermissionCrossPlatform();
+    await prefs.setBool('askedNotificationPermission', true);
+  }
+
+  // Cross-platform permission request that ensures iOS registers notification capability in Settings
+  Future<bool> requestPermissionCrossPlatform() async {
+    if (Platform.isIOS) {
+      final ios = notificationsPlugin
+          .resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>();
+      final granted = await ios?.requestPermissions(alert: true, badge: true, sound: true) ?? false;
+      return granted;
+    }
+    // Android 13+
+    final status = await Permission.notification.request();
+    return status.isGranted;
+  }
+
+  // Permissions helper (kept for diagnostics)
+  Future<bool> hasPermission() async {
+    if (Platform.isIOS) {
+      final status = await Permission.notification.status;
+      if (status.isGranted) return true;
+      final ios = notificationsPlugin
+          .resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>();
+      final granted = await ios?.requestPermissions(alert: false, badge: false, sound: false) ?? false;
+      return granted;
+    }
+
+    final status = await Permission.notification.status;
+    return status.isGranted;
+  }
+
+  Future<bool> requestPermission() async {
+    return requestPermissionCrossPlatform();
+  }
+
+  Future<void> openSystemSettings() async {
+    await openAppSettings();
   }
 
   // NOTIFICATIONS DETAIL SETUP
@@ -59,7 +109,7 @@ class NotiService {
     );
   }
 
-  // SHOW NOTIFICATION
+  // SHOW NOTIFICATION, used for testing
   Future<void> showNotification({
     int id = 0,
     required String title,
@@ -70,54 +120,6 @@ class NotiService {
     if (!settingsProvider.notificationReminder) return;
 
     return notificationsPlugin.show(id, title, body, notificationDetails());
-  }
-
-  /*
-  
-  Schedule a notification at a specified time (e.g. 11pm)
-
-  - hour (0-23)
-  - minute (0-59)
-  */
-
-  Future<void> scheduleNotification({
-    int id = 1,
-    required String title,
-    required String body,
-    required int hour,
-    required int minute,
-    required SettingsProvider settingsProvider,
-  }) async {
-    await settingsProvider.loadSettings();
-    if (!settingsProvider.notificationReminder) return;
-
-    // Get the current date/time in device's local timezone
-    final now = tz.TZDateTime.now(tz.local);
-
-    // Create a date/time for today at the specified hour/min
-    var scheduleDate = tz.TZDateTime(
-      tz.local,
-      now.year,
-      now.month,
-      now.day,
-      hour,
-      minute,
-    );
-
-    // Schedule the notification
-    await notificationsPlugin.zonedSchedule(
-      id,
-      title,
-      body,
-      scheduleDate,
-      notificationDetails(),
-
-      // Android specific: Allow notification while device is in low-power mode
-      androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
-
-      // Make notification repeat DAILY at same time
-      matchDateTimeComponents: DateTimeComponents.time,
-    );
   }
 
   // Cancel all notifications
@@ -137,11 +139,11 @@ class NotiService {
     return notificationMessages[random.nextInt(notificationMessages.length)];
   }
 
-  // Schedule weekly rotating notifications
+  // Schedule ONE weekly notification (repeats same weekday/time)
   Future<void> scheduleWeeklyRotatingNotifications(
     SettingsProvider settingsProvider, {
-    int hour = 20, // Default time: 8 PM
-    int minute = 0,
+    int hour = 21,
+    int minute = 25,
   }) async {
     await settingsProvider.loadSettings();
     if (!settingsProvider.notificationReminder) return;
@@ -149,29 +151,18 @@ class NotiService {
     // Cancel existing notifications first
     await cancelAllNotifications();
 
-    // Get current date
+    // First run: today at given time (or +7 days if time already passed)
     final now = tz.TZDateTime.now(tz.local);
-    
-    // Calculate next Monday (or today if it's Monday)
-    final daysUntilMonday = (DateTime.monday - now.weekday) % 7;
-    final nextMonday = now.add(Duration(days: daysUntilMonday));
-    
-    // Schedule notification for next Monday at specified time
-    final scheduleDate = tz.TZDateTime(
-      tz.local,
-      nextMonday.year,
-      nextMonday.month,
-      nextMonday.day,
-      hour,
-      minute,
-    );
+    var scheduleDate = tz.TZDateTime(tz.local, now.year, now.month, now.day, hour, minute);
+    if (scheduleDate.isBefore(now)) {
+      scheduleDate = scheduleDate.add(const Duration(days: 7));
+    }
 
-    // Get a random notification message
+    // Random message
     final notification = _getRandomNotification();
 
-    // Schedule the weekly notification
     await notificationsPlugin.zonedSchedule(
-      100, // Unique ID for weekly notifications
+      100,
       notification["title"]!,
       notification["body"]!,
       scheduleDate,
@@ -181,50 +172,6 @@ class NotiService {
     );
   }
 
-  // Schedule multiple weekly notifications with different messages
-  Future<void> scheduleMultipleWeeklyNotifications(
-    SettingsProvider settingsProvider, {
-    int hour = 19,
-    int minute = 20,
-  }) async {
-    await settingsProvider.loadSettings();
-    if (!settingsProvider.notificationReminder) return;
-
-    // Cancel existing notifications first
-    await cancelAllNotifications();
-
-    // Get current date
-    final now = tz.TZDateTime.now(tz.local);
-    
-    // Calculate next Monday
-    final daysUntilMonday = (DateTime.monday - now.weekday) % 7;
-    final nextMonday = now.add(Duration(days: daysUntilMonday));
-
-    // Schedule notifications for the next 4 weeks with different messages
-    for (int week = 0; week < 4; week++) {
-      final scheduleDate = tz.TZDateTime(
-        tz.local,
-        nextMonday.year,
-        nextMonday.month,
-        nextMonday.day + (week * 7),
-        hour,
-        minute,
-      );
-
-      final notification = _getRandomNotification();
-
-      await notificationsPlugin.zonedSchedule(
-        100 + week, // Unique IDs: 100, 101, 102, 103
-        notification["title"]!,
-        notification["body"]!,
-        scheduleDate,
-        notificationDetails(),
-        androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
-        matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime,
-      );
-    }
-  }
-
   // Check and reschedule notifications if needed
   Future<void> checkAndRescheduleNotifications(
     SettingsProvider settingsProvider,
@@ -232,12 +179,8 @@ class NotiService {
     await settingsProvider.loadSettings();
     if (!settingsProvider.notificationReminder) return;
 
-    // Get pending notifications
-    final pendingNotifications = await notificationsPlugin.pendingNotificationRequests();
-    
-    // If no weekly notifications are scheduled, schedule them
-    if (pendingNotifications.isEmpty || 
-        !pendingNotifications.any((notification) => notification.id >= 100)) {
+    final pending = await notificationsPlugin.pendingNotificationRequests();
+    if (pending.isEmpty || !pending.any((n) => n.id == 100)) {
       await scheduleWeeklyRotatingNotifications(settingsProvider);
     }
   }
@@ -247,14 +190,11 @@ class NotiService {
     SettingsProvider settingsProvider,
   ) async {
     await settingsProvider.loadSettings();
-    
     if (settingsProvider.notificationReminder) {
-      // Schedule multiple weeks of notifications to ensure continuous coverage
-      await scheduleMultipleWeeklyNotifications(settingsProvider);
+      await scheduleWeeklyRotatingNotifications(settingsProvider);
     }
   }
 
-  // Get current notification status
   Future<bool> hasActiveNotifications() async {
     final pendingNotifications = await notificationsPlugin.pendingNotificationRequests();
     return pendingNotifications.isNotEmpty;

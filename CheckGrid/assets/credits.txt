@@ -1,0 +1,24 @@
+Credits and Attributions
+
+This app uses sounds from freesound.org under Creative Commons licenses.
+
+Sound: "Chess Pieces Move (Close)"
+Author: JJTaynos
+Link: https://freesound.org/s/733927/
+License: Creative Commons 0 (CC0) - Public Domain Dedication
+
+Sound: "bamboo_woosh_fast.wav"
+Author: EricsSoundschmiede
+Link: https://freesound.org/s/514086/
+License: Creative Commons 0 (CC0) - Public Domain Dedication
+
+Sound: "Videogame Menu BUTTON CLICK"
+Author: Christopherderp
+Link: https://freesound.org/s/342200/
+License: Creative Commons 0 (CC0) - Public Domain Dedication
+
+Sound: "Marimba, Lose, Fail sound effect"
+Link: https://pixabay.com/sound-effects/marimba-lose-250960/
+License: Pixabay Content License
+
+Thank you to the creators for sharing these resources.

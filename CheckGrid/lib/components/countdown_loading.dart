@@ -103,7 +103,8 @@ class _CountdownLoadingState extends State<CountdownLoading> {
       onUserEarnedReward: () {
         isRevived = true;
         widget.afterAd();
-        widget.board.saveBoard(context);
+        // Debounced save; avoid writing many times during revive flow
+        widget.board.saveBoardThrottled(context);
         Navigator.pop(context);
       },
       onAdDismissed: () {

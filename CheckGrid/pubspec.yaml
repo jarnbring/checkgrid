@@ -24,11 +24,12 @@ dependencies:
   image_picker: ^1.1.2 # Pick images from phone
   url_launcher: ^6.3.1 # Launch url's
   url_launcher_windows: ^3.1.4 # Launch url's
+  permission_handler: ^11.3.1 # Permissions (notifications/settings)
   go_router: ^16.0.0 # Navigation
   flutter_timezone: ^4.1.0 # Correct timezones
   timezone: ^0.10.1 # Correct timezones
   lottie: ^3.3.1 # Lottie animations (custom)
-  flame: ^1.29.0 # Game Engine
+  # flame: ^1.29.0 # Game Engine (not used; removing reduces app size)
   hive: ^2.2.3
   hive_flutter: ^1.1.0
   path_provider: ^2.1.5
@@ -58,20 +59,21 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
-    # Audio assets
+    # Audio assets (consider compressing/bitrate reducing if needed)
     - assets/audio/
     - assets/audio/place_piece/
     - assets/audio/pick_up/
     - assets/audio/menu/
 
-    # Image assets
-    - assets/images/
-    - assets/images/animations/
+    # Image assets (narrow to only what the app uses at runtime)
+    # Avoid bundling editor sources and native app icon sets
+    - assets/images/animations/loading.json
     - assets/images/difficulties/
     - assets/images/dialog_images/
     - assets/images/dialog_images/settings_icon.png
     - assets/images/dialog_images/difficulty_icon.png
-    # Add new skins here:
+    # Pieces used in-game
     - assets/images/pieces/white/
     - assets/images/pieces/black/
-    - assets/images/pieces/blue/
+    #- assets/images/pieces/blue/
+    - assets/images/cross.png

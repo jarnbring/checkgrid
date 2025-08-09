@@ -103,21 +103,30 @@ class SettingsProvider extends ChangeNotifier {
   }
 
   Future<void> setNotificationReminder(bool value) async {
+    // Optimistically set
     _notificationReminder = value;
     await _saveSettings();
-    
-    // Handle notification scheduling
+    notifyListeners();
+
     final notiService = NotiService();
     await notiService.initNotification();
-    
+
     if (value) {
-      // Enable notifications - setup app notifications
+      // If enabling, ensure OS permission exists
+      final allowed = await notiService.hasPermission() || await notiService.requestPermission();
+      if (!allowed) {
+        // Revert the toggle and ask user to open settings
+        _notificationReminder = false;
+        await _saveSettings();
+        notifyListeners();
+        await notiService.openSystemSettings();
+        return;
+      }
+      // With permission granted, set up notifications
       await notiService.setupAppNotifications(this);
     } else {
-      // Disable notifications - cancel all scheduled notifications
+      // Disable notifications
       await notiService.cancelAllNotifications();
     }
-    
-    notifyListeners();
   }
 }

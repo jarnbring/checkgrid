@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:checkgrid/providers/board_provider.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -95,7 +96,8 @@ class SettingsPageState extends State<SettingsPage> {
                   ),
                   const SizedBox(height: 50),
                   // Send notification now
-                  !kDebugMode ? ElevatedButton(
+                  kDebugMode ? Column(children: [
+                    ElevatedButton(
                     onPressed: () async {
                       NotiService().showNotification(
                         title: "CheckGrid",
@@ -105,9 +107,11 @@ class SettingsPageState extends State<SettingsPage> {
                       );
                     },
                     child: const Text("Send notification"),
-                  ) : const SizedBox.shrink(),
-                  ],
-              ),
+                  ) ,
+                  const SizedBox(height: 50),
+                  ],)
+                  : const SizedBox.shrink(),
+          ]),
             ),
           ],
         ),
@@ -288,14 +292,15 @@ class SettingsPageState extends State<SettingsPage> {
         Icons.arrow_forward_ios,
         color: Theme.of(context).iconTheme.color?.withAlpha(100),
       ),
-      onTap:
-          () => {
-            context.read<SettingsProvider>().doVibration(1),
-            context.pushNamed('/privacy_policy'),
-          },
+      onTap: () async {
+        context.read<SettingsProvider>().doVibration(1);
+        final uri = Uri.parse('https://sites.google.com/view/checkgrid-privacy-policy/');
+        if (await canLaunchUrl(uri)) {
+          await launchUrl(uri, mode: LaunchMode.externalApplication);
+        }
+      },
     );
   }
-
   // ignore: unused_element
   Widget _buildFeedback() {
     return ListTile(

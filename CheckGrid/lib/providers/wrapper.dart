@@ -228,7 +228,7 @@ class _HomeWrapperState extends State<HomeWrapper>
               ),
             ),
           ),
-          const Spacer(),
+          const SizedBox.shrink(),
           Positioned(
             bottom: 0,
             left: 0,

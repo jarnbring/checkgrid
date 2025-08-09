@@ -114,7 +114,8 @@ class _PieceSelectorState extends State<PieceSelector>
       showReviveDialog(context, board);
     }
 
-    board.saveBoard(context);
+    // Debounced save to avoid excessive local writes
+    board.saveBoardThrottled(context);
   }
 
   Widget _buildPieceSelector(List<PieceType> selectedPieces, Board board) {
