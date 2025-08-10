@@ -20,14 +20,14 @@ class GameBoard extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(8),
         color:
             Provider.of<SettingsProvider>(context).themeMode == ThemeMode.dark
                 ? const Color.fromARGB(255, 39, 39, 39)
                 : Colors.white,
       ),
       child: Padding(
-        padding: const EdgeInsets.all(10),
+        padding: const EdgeInsets.all(8),
         child: GridView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),

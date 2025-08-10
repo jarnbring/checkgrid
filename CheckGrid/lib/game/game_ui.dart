@@ -1,5 +1,6 @@
 // ignore_for_file: unused_element
 
+import 'package:checkgrid/ads/banner_ad.dart';
 import 'package:checkgrid/game/dialogs/settings/settings_dialog.dart';
 import 'package:checkgrid/game/game_board.dart';
 import 'package:checkgrid/game/utilities/score.dart';
@@ -63,10 +64,19 @@ class _GameState extends State<Game> {
           child: Column(
             children: [
               Consumer<Board>(builder: (context, board, _) => Score()),
-              const SizedBox(height: 10),
+              const Spacer(),
               Consumer<Board>(builder: (context, board, _) => GameBoard()),
-              const SizedBox(height: 5),
+              const Spacer(),
               Consumer<Board>(builder: (context, board, _) => PieceSelector()),
+              const Spacer(),
+              ValueListenableBuilder<double>(
+                valueListenable: BannerAdWidget.bannerHeightNotifier,
+                builder: (context, bannerHeight, child) {
+                  return SizedBox(
+                    height: bannerHeight + 92,
+                  ); // 92 for the navbar
+                },
+              ),
               // Row(
               //   children: [
               //     const Spacer(),

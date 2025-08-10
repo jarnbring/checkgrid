@@ -9,6 +9,8 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 /// Handles loading, adaptive sizing, and retry on failure.
 /// Manages its own ad state independently.
 class BannerAdWidget extends StatefulWidget {
+  static final ValueNotifier<double> bannerHeightNotifier = ValueNotifier(0);
+
   const BannerAdWidget({super.key});
 
   @override
@@ -19,6 +21,7 @@ class _BannerAdWidgetState extends State<BannerAdWidget> {
   BannerAd? _bannerAd;
   AnchoredAdaptiveBannerAdSize? _adSize;
   bool _isLoaded = false;
+  static double bannerHeight = 60;
 
   final String adUnitId =
       Platform.isAndroid
@@ -61,6 +64,8 @@ class _BannerAdWidgetState extends State<BannerAdWidget> {
           setState(() {
             _isLoaded = true;
           });
+          BannerAdWidget.bannerHeightNotifier.value =
+              _bannerAd!.size.height.toDouble();
         },
         onAdFailedToLoad: (ad, err) {
           debugPrint('BannerAd failed to load: $err');
@@ -86,11 +91,13 @@ class _BannerAdWidgetState extends State<BannerAdWidget> {
       return const SizedBox.shrink();
     }
 
+    bannerHeight = _bannerAd!.size.height.toDouble();
+
     return SafeArea(
       child: Container(
         width: double.infinity,
         alignment: Alignment.center,
-        height: _bannerAd!.size.height.toDouble(),
+        height: bannerHeight,
         child: AdWidget(ad: _bannerAd!),
       ),
     );

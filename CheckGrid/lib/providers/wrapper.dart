@@ -152,79 +152,78 @@ class _HomeWrapperState extends State<HomeWrapper>
             ),
           ),
         ),
-        Positioned(
-          bottom: 62,
-          left: 0,
-          right: 0,
-          child: GestureDetector(
-            behavior: HitTestBehavior.translucent,
-            onHorizontalDragStart: (details) {
-              _isDragging = true;
-              _dragStartX = details.globalPosition.dx;
-              _dragStartPageValue = _currentPageValue;
-            },
-            onHorizontalDragUpdate: (details) {
-              if (_isDragging) {
-                final dragDistance = details.globalPosition.dx - _dragStartX;
-                final screenWidth = MediaQuery.of(context).size.width;
+        ValueListenableBuilder<double>(
+          valueListenable: BannerAdWidget.bannerHeightNotifier,
+          builder: (context, bannerHeight, child) {
+            return Positioned(
+              bottom: bannerHeight,
+              left: 0,
+              right: 0,
+              child: GestureDetector(
+                behavior: HitTestBehavior.translucent,
+                onHorizontalDragStart: (details) {
+                  _isDragging = true;
+                  _dragStartX = details.globalPosition.dx;
+                  _dragStartPageValue = _currentPageValue;
+                },
+                onHorizontalDragUpdate: (details) {
+                  if (_isDragging) {
+                    final dragDistance =
+                        details.globalPosition.dx - _dragStartX;
+                    final screenWidth = MediaQuery.of(context).size.width;
 
-                // Öka känsligheten - dela med mindre värde för snabbare rörelse
-                final pageValueChange = dragDistance / (screenWidth / 3);
-                final newPageValue = (_dragStartPageValue + pageValueChange)
-                    .clamp(0.0, 2.0);
+                    final pageValueChange = dragDistance / (screenWidth / 3);
+                    final newPageValue = (_dragStartPageValue + pageValueChange)
+                        .clamp(0.0, 2.0);
 
-                setState(() {
-                  _currentPageValue = newPageValue;
-                });
-              }
-            },
-            onHorizontalDragEnd: (details) {
-              if (_isDragging) {
-                _isDragging = false;
+                    setState(() {
+                      _currentPageValue = newPageValue;
+                    });
+                  }
+                },
+                onHorizontalDragEnd: (details) {
+                  if (_isDragging) {
+                    _isDragging = false;
+                    final targetIndex = _currentPageValue.round().clamp(0, 2);
+                    setState(() {
+                      _currentIndex = targetIndex;
+                    });
 
-                // Snappa alltid till närmaste ikon baserat på position
-                final targetIndex = _currentPageValue.round().clamp(0, 2);
+                    final animationController = AnimationController(
+                      duration: const Duration(milliseconds: 200),
+                      vsync: this,
+                    );
 
-                // Uppdatera _currentIndex direkt för att undvika animation från fel position
-                setState(() {
-                  _currentIndex = targetIndex;
-                });
+                    final animation = Tween<double>(
+                      begin: _currentPageValue,
+                      end: targetIndex.toDouble(),
+                    ).animate(
+                      CurvedAnimation(
+                        parent: animationController,
+                        curve: Curves.easeOut,
+                      ),
+                    );
 
-                // Animera bara currentPageValue, inte hela sidan
-                final animationController = AnimationController(
-                  duration: const Duration(milliseconds: 200),
-                  vsync: this,
-                );
+                    animation.addListener(() {
+                      setState(() {
+                        _currentPageValue = animation.value;
+                      });
+                    });
 
-                final animation = Tween<double>(
-                  begin: _currentPageValue,
-                  end: targetIndex.toDouble(),
-                ).animate(
-                  CurvedAnimation(
-                    parent: animationController,
-                    curve: Curves.easeOut,
-                  ),
-                );
-
-                animation.addListener(() {
-                  setState(() {
-                    _currentPageValue = animation.value;
-                  });
-                });
-
-                animationController.forward().then((_) {
-                  // Byt sida när animationen är klar
-                  _controller.jumpToPage(targetIndex);
-                  animationController.dispose();
-                });
-              }
-            },
-            child: CustomBottomNav(
-              currentIndex: _currentIndex,
-              currentPageValue: _currentPageValue,
-              onItemTap: _onItemTapped,
-            ),
-          ),
+                    animationController.forward().then((_) {
+                      _controller.jumpToPage(targetIndex);
+                      animationController.dispose();
+                    });
+                  }
+                },
+                child: CustomBottomNav(
+                  currentIndex: _currentIndex,
+                  currentPageValue: _currentPageValue,
+                  onItemTap: _onItemTapped,
+                ),
+              ),
+            );
+          },
         ),
         const SizedBox.shrink(),
         Positioned(bottom: 0, left: 0, right: 0, child: const BannerAdWidget()),

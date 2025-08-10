@@ -39,7 +39,6 @@ To do:
     ------------------------------------------------------------
 
     Minimize the powercomsumption
-    Settingsbackground and launchscreen
     Code cleanup
     Everything around git, README etc.
     Set everything up for Appstore
