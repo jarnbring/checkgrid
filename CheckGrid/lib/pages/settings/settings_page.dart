@@ -8,7 +8,6 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:checkgrid/providers/board_provider.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -96,22 +95,26 @@ class SettingsPageState extends State<SettingsPage> {
                   ),
                   const SizedBox(height: 50),
                   // Send notification now
-                  kDebugMode ? Column(children: [
-                    ElevatedButton(
-                    onPressed: () async {
-                      NotiService().showNotification(
-                        title: "CheckGrid",
-                        body:
-                            "Delivery! New items are now availabe in the Store, check it out!",
-                        settingsProvider: SettingsProvider(),
-                      );
-                    },
-                    child: const Text("Send notification"),
-                  ) ,
-                  const SizedBox(height: 50),
-                  ],)
-                  : const SizedBox.shrink(),
-          ]),
+                  kDebugMode
+                      ? Column(
+                        children: [
+                          ElevatedButton(
+                            onPressed: () async {
+                              NotiService().showNotification(
+                                title: "CheckGrid",
+                                body:
+                                    "Delivery! New items are now availabe in the Store, check it out!",
+                                settingsProvider: SettingsProvider(),
+                              );
+                            },
+                            child: const Text("Send notification"),
+                          ),
+                          const SizedBox(height: 50),
+                        ],
+                      )
+                      : const SizedBox.shrink(),
+                ],
+              ),
             ),
           ],
         ),
@@ -294,13 +297,16 @@ class SettingsPageState extends State<SettingsPage> {
       ),
       onTap: () async {
         context.read<SettingsProvider>().doVibration(1);
-        final uri = Uri.parse('https://sites.google.com/view/checkgrid-privacy-policy/');
+        final uri = Uri.parse(
+          'https://sites.google.com/view/checkgrid-privacy-policy/',
+        );
         if (await canLaunchUrl(uri)) {
           await launchUrl(uri, mode: LaunchMode.externalApplication);
         }
       },
     );
   }
+
   // ignore: unused_element
   Widget _buildFeedback() {
     return ListTile(

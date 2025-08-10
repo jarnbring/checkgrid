@@ -224,6 +224,7 @@ class Board extends ChangeNotifier {
         notifyListeners();
       });
     }
+
     notifyListeners();
   }
 
@@ -707,8 +708,6 @@ class Board extends ChangeNotifier {
       await boardProvider.registerWrite();
 
       // Nollställ save-räknare
-      _savesSinceCompact = 0;
-      _lastCompactAt = DateTime.now();
 
       debugPrint('All board data cleared successfully');
     } catch (e) {
@@ -735,6 +734,7 @@ class Board extends ChangeNotifier {
     setNewSelectedPieces();
 
     // Spara den nya tomma boarden
+    if (!context.mounted) return;
     await saveBoard(context);
 
     notifyListeners();
@@ -774,8 +774,6 @@ class Board extends ChangeNotifier {
 
   // OPTIMERING 4: Förbättrat saving system
   Timer? _saveDebounceTimer;
-  DateTime? _lastCompactAt;
-  int _savesSinceCompact = 0;
   bool _isSaving = false;
 
   // OPTIMERING 5: Mer aggressiv throttling och cleanup
@@ -846,8 +844,6 @@ class Board extends ChangeNotifier {
 
       // Komprimera efter varje save för att hålla filen liten
       await boardBox.compact();
-      _savesSinceCompact = 0;
-      _lastCompactAt = DateTime.now();
     } catch (e) {
       debugPrint('Save error: $e');
     } finally {
@@ -972,8 +968,6 @@ class Board extends ChangeNotifier {
       await boardProvider.compactAll();
 
       // Nollställ räknare
-      _savesSinceCompact = 0;
-      _lastCompactAt = DateTime.now();
 
       debugPrint('Cleanup completed successfully');
     } catch (e) {

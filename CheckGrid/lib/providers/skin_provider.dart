@@ -180,7 +180,6 @@ class SkinProvider with ChangeNotifier {
     final adService = adProvider.rewardedAdService;
 
     adService.showAd(
-      context: context,
       onUserEarnedReward: () async {
         await incrementWatchedAds(skin);
       },

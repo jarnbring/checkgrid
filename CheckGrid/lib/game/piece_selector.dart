@@ -115,7 +115,7 @@ class _PieceSelectorState extends State<PieceSelector>
     }
 
     // Debounced save to avoid excessive local writes
-    board.saveBoardThrottled(context);
+    board.saveBoard(context); // Try with throttle if appsize increases
   }
 
   Widget _buildPieceSelector(List<PieceType> selectedPieces, Board board) {

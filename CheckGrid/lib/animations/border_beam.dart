@@ -1,15 +1,22 @@
 import 'package:flutter/material.dart';
 import 'dart:ui' as ui;
 
+/// Creates an animated border beam effect around a child widget.
+///
+/// The [duration] controls how fast the beam moves around the border in seconds.
+/// The [beamLength] determines what portion of the border is illuminated (0.0-1.0).
+/// The [gradientLength] controls the gradient transition length (0.0-1.0).
 class BorderBeam extends StatefulWidget {
   final Widget child;
-  final double duration;
+  final int duration;
   final double borderWidth;
   final Color colorFrom;
   final Color colorTo;
   final Color staticBorderColor;
   final BorderRadius borderRadius;
   final EdgeInsetsGeometry padding;
+  final double beamLength;
+  final double gradientLength;
 
   const BorderBeam({
     super.key,
@@ -20,31 +27,74 @@ class BorderBeam extends StatefulWidget {
     this.colorTo = const Color(0xFF9C40FF),
     this.staticBorderColor = const Color(0xFFCCCCCC),
     this.borderRadius = const BorderRadius.all(Radius.circular(12)),
-    this.padding = EdgeInsets.zero,
-  });
+    this.padding = const EdgeInsets.all(0),
+    this.beamLength = 0.25,
+    this.gradientLength = 0.125,
+  }) : assert(
+         beamLength >= 0.0 && beamLength <= 1.0,
+         'beamLength must be between 0.0 and 1.0',
+       ),
+       assert(
+         gradientLength >= 0.0 && gradientLength <= 1.0,
+         'gradientLength must be between 0.0 and 1.0',
+       );
 
   @override
-  BorderBeamState createState() => BorderBeamState();
+  State<BorderBeam> createState() => _BorderBeamState();
 }
 
-class BorderBeamState extends State<BorderBeam>
-    with SingleTickerProviderStateMixin {
+class _BorderBeamState extends State<BorderBeam>
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   late AnimationController _controller;
   late Animation<double> _animation;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+
     _controller = AnimationController(
-      duration: Duration(seconds: widget.duration.toInt()),
+      duration: Duration(seconds: widget.duration),
       vsync: this,
     );
     _animation = Tween<double>(begin: 0, end: 1).animate(_controller);
-    _controller.repeat();
+
+    // Start animation when widget is built
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _controller.repeat();
+    });
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    switch (state) {
+      case AppLifecycleState.paused:
+      case AppLifecycleState.inactive:
+        _controller.stop();
+        break;
+      case AppLifecycleState.resumed:
+        if (mounted) _controller.repeat();
+        break;
+      case AppLifecycleState.detached:
+        break;
+      case AppLifecycleState.hidden:
+        _controller.stop();
+        break;
+    }
+  }
+
+  @override
+  void didUpdateWidget(BorderBeam oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.duration != widget.duration) {
+      _controller.duration = Duration(seconds: widget.duration);
+    }
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _controller.dispose();
     super.dispose();
   }
@@ -62,6 +112,8 @@ class BorderBeamState extends State<BorderBeam>
             colorTo: widget.colorTo,
             staticBorderColor: widget.staticBorderColor,
             borderRadius: widget.borderRadius,
+            beamLength: widget.beamLength,
+            gradientLength: widget.gradientLength,
           ),
           child: Padding(padding: widget.padding, child: widget.child),
         );
@@ -77,6 +129,8 @@ class BorderBeamPainter extends CustomPainter {
   final Color colorTo;
   final Color staticBorderColor;
   final BorderRadius borderRadius;
+  final double beamLength;
+  final double gradientLength;
 
   BorderBeamPainter({
     required this.progress,
@@ -85,6 +139,8 @@ class BorderBeamPainter extends CustomPainter {
     required this.colorTo,
     required this.staticBorderColor,
     required this.borderRadius,
+    required this.beamLength,
+    required this.gradientLength,
   });
 
   @override
@@ -101,14 +157,14 @@ class BorderBeamPainter extends CustomPainter {
     canvas.drawRRect(rrect, staticPaint);
 
     final path = Path()..addRRect(rrect);
-
     final pathMetrics = path.computeMetrics().first;
     final pathLength = pathMetrics.length;
 
-    // Adjust the animation to prevent the jump
+    // Calculate beam position and length
     final animationProgress = progress % 1.0;
     final start = animationProgress * pathLength;
-    final end = (start + pathLength / 4) % pathLength;
+    final beamLengthInPixels = pathLength * beamLength;
+    final end = (start + beamLengthInPixels) % pathLength;
 
     Path extractPath;
     if (end > start) {
@@ -118,12 +174,13 @@ class BorderBeamPainter extends CustomPainter {
       extractPath.addPath(pathMetrics.extractPath(0, end), Offset.zero);
     }
 
-    // Calculate gradient start and end points
+    // Calculate gradient positions
+    final gradientLengthInPixels = pathLength * gradientLength;
     final gradientStart =
         pathMetrics.getTangentForOffset(start)?.position ?? Offset.zero;
     final gradientEnd =
         pathMetrics
-            .getTangentForOffset((start + pathLength / 8) % pathLength)
+            .getTangentForOffset((start + gradientLengthInPixels) % pathLength)
             ?.position ??
         Offset.zero;
 
@@ -136,7 +193,7 @@ class BorderBeamPainter extends CustomPainter {
       gradientStart,
       gradientEnd,
       [
-        colorTo.withOpacity(0.0), // Transparent color for fading effect
+        colorTo.withOpacity(0.0), // Transparent for fading effect
         colorTo,
         colorFrom,
       ],
@@ -148,6 +205,13 @@ class BorderBeamPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant BorderBeamPainter oldDelegate) {
-    return oldDelegate.progress != progress;
+    return oldDelegate.progress != progress ||
+        oldDelegate.borderWidth != borderWidth ||
+        oldDelegate.colorFrom != colorFrom ||
+        oldDelegate.colorTo != colorTo ||
+        oldDelegate.staticBorderColor != staticBorderColor ||
+        oldDelegate.borderRadius != borderRadius ||
+        oldDelegate.beamLength != beamLength ||
+        oldDelegate.gradientLength != gradientLength;
   }
 }

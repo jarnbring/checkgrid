@@ -5,7 +5,6 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class GeneralProvider with ChangeNotifier {
-  double _bannerAdHeight = 90.0;
   double fontSizeInAppbar = 20.0;
   final double pieceInSelectorSize = 75.0;
   final double dialogWidth = 300;
@@ -48,17 +47,6 @@ class GeneralProvider with ChangeNotifier {
   // ---------- STORE ----------
 
   // Currency / format
-
-  // ---------- ADS ----------
-
-  double getBannerAdHeight() {
-    return _bannerAdHeight;
-  }
-
-  void setBannerAdHeight(double height) {
-    _bannerAdHeight = height;
-    notifyListeners();
-  }
 
   // ---------- DEVICE ----------
 

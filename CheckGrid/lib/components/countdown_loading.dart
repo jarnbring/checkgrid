@@ -99,7 +99,6 @@ class _CountdownLoadingState extends State<CountdownLoading> {
     isAdBeingShown = true;
 
     adToShow.showAd(
-      context: context,
       onUserEarnedReward: () {
         isRevived = true;
         widget.afterAd();

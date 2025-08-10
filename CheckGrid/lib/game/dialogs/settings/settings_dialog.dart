@@ -2,14 +2,12 @@ import 'package:checkgrid/game/board.dart';
 import 'package:checkgrid/game/dialogs/settings/difficulty_page.dart';
 import 'package:checkgrid/game/dialogs/settings/home_page.dart';
 import 'package:checkgrid/game/dialogs/settings/skins_page.dart';
-import 'package:checkgrid/providers/audio_provider.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
 enum DialogPage { settings, difficulty, skins }
 
 void showSettingsDialog({required Board board, required BuildContext context}) {
-  final audioProvider = context.read<AudioProvider>();
+  //final audioProvider = context.read<AudioProvider>();
 
   showGeneralDialog(
     context: context,
