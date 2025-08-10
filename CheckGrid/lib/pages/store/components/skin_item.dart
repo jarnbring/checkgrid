@@ -1,10 +1,8 @@
 import 'package:checkgrid/animations/border_beam.dart';
 import 'package:checkgrid/components/outlined_text.dart';
 import 'package:checkgrid/pages/store/components/new.dart';
-import 'package:checkgrid/providers/general_provider.dart';
 import 'package:checkgrid/providers/skin_provider.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
 class SkinItem extends StatefulWidget {
   final Skin skin;
@@ -26,8 +24,6 @@ class SkinItem extends StatefulWidget {
 class _SkinItemState extends State<SkinItem> {
   @override
   Widget build(BuildContext context) {
-    final generalProvider = context.watch<GeneralProvider>();
-
     return GestureDetector(
       onTap: widget.onTap,
       child: Stack(
@@ -42,7 +38,7 @@ class _SkinItemState extends State<SkinItem> {
             borderWidth: 4,
             child: Container(
               alignment: Alignment.center,
-              width: generalProvider.screenWidth(context) / 3,
+              width: 150,
               decoration: BoxDecoration(
                 color:
                     widget.isUnlocked

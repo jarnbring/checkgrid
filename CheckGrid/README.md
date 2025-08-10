@@ -38,6 +38,7 @@ To do:
 
     ------------------------------------------------------------
 
+    Settingsbackground and launchscreen
     Code cleanup
     Everything around git, README etc.
     Set everything up for Appstore

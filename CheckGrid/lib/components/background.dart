@@ -11,13 +11,17 @@ class Background extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       constraints: const BoxConstraints.expand(),
-      child: CustomPaint(painter: _GridPainter(cellSize: cellSize), child: child),
+      child: CustomPaint(
+        painter: _GridPainter(cellSize: cellSize),
+        child: child,
+      ),
     );
   }
 }
 
 class _GridPainter extends CustomPainter {
   final double cellSize;
+
   const _GridPainter({required this.cellSize});
 
   @override
@@ -32,28 +36,25 @@ class _GridPainter extends CustomPainter {
     );
 
     final double yStep = cellSize / 2;
-
     int row = 0;
+
     // börja på första centret och loopa över centerY direkt
     for (
       double centerY = cellSize / 2;
-      centerY < size.height;
+      centerY <
+          size.height + cellSize; // Lägg till cellSize för att täcka botten
       centerY += yStep, row++
     ) {
       final bool isOddRow = row % 2 == 1;
       final double startX = isOddRow ? -cellSize / 2 : 0.0;
+
       for (double x = startX; x < size.width; x += cellSize) {
         final isAlt = row % 2 == 0;
         Color baseColor = isAlt ? firstColor : secondColor;
 
         // Ändra färg på allra översta raden
         if (row == 0) {
-          baseColor = const Color.fromARGB(
-            255,
-            57,
-            117,
-            181,
-          ); // eller den färg du vill ha
+          baseColor = const Color.fromARGB(255, 57, 117, 181);
         }
 
         final centerX = x + cellSize / 2;
@@ -100,7 +101,6 @@ class _GridPainter extends CustomPainter {
             ],
             stops: const [0.0, 0.41, 1.0],
           ).createShader(rect);
-
     canvas.drawRect(rect, gradientPaint);
   }
 

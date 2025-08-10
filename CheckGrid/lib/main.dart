@@ -111,7 +111,8 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     if (state == AppLifecycleState.inactive) {
       // Background process
     }
-    if (state == AppLifecycleState.paused || state == AppLifecycleState.detached) {
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.detached) {
       // Compact local data when app is backgrounded/closing to reduce Documents & Data size
       try {
         context.read<BoardProvider>().compactAll();

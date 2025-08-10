@@ -1,5 +1,5 @@
 import 'dart:math';
-
+import 'package:checkgrid/components/background.dart';
 import 'package:flutter/material.dart';
 
 /// AppScaler keeps your UI proportions exactly as designed by
@@ -14,12 +14,16 @@ class AppScaler extends StatelessWidget {
     this.designSize = const Size(400, 870), // iPhone 12/13/14 reference
     this.alignment = Alignment.topCenter,
     this.backgroundColor,
+    this.useCustomBackground =
+        false, // New parameter to control background type
   });
 
   final Widget? child;
   final Size designSize;
   final Alignment alignment;
   final Color? backgroundColor;
+  final bool
+  useCustomBackground; // If true, use backgroundColor; if false, use Background widget
 
   @override
   Widget build(BuildContext context) {
@@ -37,36 +41,69 @@ class AppScaler extends StatelessWidget {
         final double scaledWidth = designSize.width * scale;
         final double scaledHeight = designSize.height * scale;
 
-        final Color bg = backgroundColor ?? Theme.of(context).scaffoldBackgroundColor;
+        Widget backgroundWidget;
 
-        return ColoredBox(
-          color: bg,
-          child: Align(
-            alignment: alignment,
-            child: SizedBox(
-              width: scaledWidth,
-              height: scaledHeight,
-              child: FittedBox(
-                fit: BoxFit.contain,
-                alignment: Alignment.topCenter,
-                child: SizedBox(
-                  width: designSize.width,
-                  height: designSize.height,
-                  child: MediaQuery(
-                    // Disable dynamic text scaling to keep exact proportions
-                    data: MediaQuery.of(context).copyWith(
-                      textScaler: const TextScaler.linear(1.0),
+        if (useCustomBackground && backgroundColor != null) {
+          // Use solid color background
+          print(
+            'AppScaler: Using custom background with color: $backgroundColor',
+          ); // Debug
+          backgroundWidget = Container(
+            constraints: const BoxConstraints.expand(),
+            color: backgroundColor,
+            child: Align(
+              alignment: alignment,
+              child: SizedBox(
+                width: scaledWidth,
+                height: scaledHeight,
+                child: FittedBox(
+                  fit: BoxFit.contain,
+                  alignment: Alignment.topCenter,
+                  child: SizedBox(
+                    width: designSize.width,
+                    height: designSize.height,
+                    child: MediaQuery(
+                      // Disable dynamic text scaling to keep exact proportions
+                      data: MediaQuery.of(
+                        context,
+                      ).copyWith(textScaler: const TextScaler.linear(1.0)),
+                      child: child ?? const SizedBox.shrink(),
                     ),
-                    child: child ?? const SizedBox.shrink(),
                   ),
                 ),
               ),
             ),
-          ),
-        );
+          );
+        } else {
+          // Use diamond pattern background
+          backgroundWidget = Background(
+            child: Align(
+              alignment: alignment,
+              child: SizedBox(
+                width: scaledWidth,
+                height: scaledHeight,
+                child: FittedBox(
+                  fit: BoxFit.contain,
+                  alignment: Alignment.topCenter,
+                  child: SizedBox(
+                    width: designSize.width,
+                    height: designSize.height,
+                    child: MediaQuery(
+                      // Disable dynamic text scaling to keep exact proportions
+                      data: MediaQuery.of(
+                        context,
+                      ).copyWith(textScaler: const TextScaler.linear(1.0)),
+                      child: child ?? const SizedBox.shrink(),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          );
+        }
+
+        return backgroundWidget;
       },
     );
   }
 }
-
-

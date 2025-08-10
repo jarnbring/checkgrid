@@ -1,5 +1,4 @@
 import 'package:checkgrid/ads/banner_ad.dart';
-import 'package:checkgrid/components/background.dart';
 import 'package:checkgrid/components/custom_navigation_bar.dart';
 import 'package:checkgrid/game/game_ui.dart';
 import 'package:checkgrid/pages/statistics_page.dart';
@@ -105,138 +104,131 @@ class _HomeWrapperState extends State<HomeWrapper>
 
   @override
   Widget build(BuildContext context) {
-    return Background(
-      child: Stack(
-        children: [
-          PageView(
-            physics: const NeverScrollableScrollPhysics(),
-            controller: _controller,
-            onPageChanged: (index) {
-              if (!_isAnimating) {
+    return Stack(
+      children: [
+        PageView(
+          physics: const NeverScrollableScrollPhysics(),
+          controller: _controller,
+          onPageChanged: (index) {
+            if (!_isAnimating) {
+              setState(() {
+                _currentIndex = index;
+              });
+            }
+          },
+          children: const [StatisticsPage(), Game(), StorePage()],
+        ),
+        Align(
+          alignment: Alignment.centerLeft,
+          child: SizedBox(
+            width: 40,
+            height: double.infinity,
+            child: GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onHorizontalDragEnd: (details) {
+                if (details.primaryVelocity != null &&
+                    details.primaryVelocity! > 0) {
+                  // Känslig på vänster sida
+                  _swipeRight();
+                }
+              },
+            ),
+          ),
+        ),
+        Align(
+          alignment: Alignment.centerRight,
+          child: SizedBox(
+            width: 40,
+            height: double.infinity,
+            child: GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onHorizontalDragEnd: (details) {
+                if (details.primaryVelocity != null &&
+                    details.primaryVelocity! < 0) {
+                  // Känslig på höger sida
+                  _swipeLeft();
+                }
+              },
+            ),
+          ),
+        ),
+        Positioned(
+          bottom: 62,
+          left: 0,
+          right: 0,
+          child: GestureDetector(
+            behavior: HitTestBehavior.translucent,
+            onHorizontalDragStart: (details) {
+              _isDragging = true;
+              _dragStartX = details.globalPosition.dx;
+              _dragStartPageValue = _currentPageValue;
+            },
+            onHorizontalDragUpdate: (details) {
+              if (_isDragging) {
+                final dragDistance = details.globalPosition.dx - _dragStartX;
+                final screenWidth = MediaQuery.of(context).size.width;
+
+                // Öka känsligheten - dela med mindre värde för snabbare rörelse
+                final pageValueChange = dragDistance / (screenWidth / 3);
+                final newPageValue = (_dragStartPageValue + pageValueChange)
+                    .clamp(0.0, 2.0);
+
                 setState(() {
-                  _currentIndex = index;
+                  _currentPageValue = newPageValue;
                 });
               }
             },
-            children: const [StatisticsPage(), Game(), StorePage()],
-          ),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: SizedBox(
-              width: 40,
-              height: double.infinity,
-              child: GestureDetector(
-                behavior: HitTestBehavior.translucent,
-                onHorizontalDragEnd: (details) {
-                  if (details.primaryVelocity != null &&
-                      details.primaryVelocity! > 0) {
-                    // Känslig på vänster sida
-                    _swipeRight();
-                  }
-                },
-              ),
-            ),
-          ),
-          Align(
-            alignment: Alignment.centerRight,
-            child: SizedBox(
-              width: 40,
-              height: double.infinity,
-              child: GestureDetector(
-                behavior: HitTestBehavior.translucent,
-                onHorizontalDragEnd: (details) {
-                  if (details.primaryVelocity != null &&
-                      details.primaryVelocity! < 0) {
-                    // Känslig på höger sida
-                    _swipeLeft();
-                  }
-                },
-              ),
-            ),
-          ),
-          Positioned(
-            bottom: 62,
-            left: 0,
-            right: 0,
-            child: GestureDetector(
-              behavior: HitTestBehavior.translucent,
-              onHorizontalDragStart: (details) {
-                _isDragging = true;
-                _dragStartX = details.globalPosition.dx;
-                _dragStartPageValue = _currentPageValue;
-              },
-              onHorizontalDragUpdate: (details) {
-                if (_isDragging) {
-                  final dragDistance = details.globalPosition.dx - _dragStartX;
-                  final screenWidth = MediaQuery.of(context).size.width;
+            onHorizontalDragEnd: (details) {
+              if (_isDragging) {
+                _isDragging = false;
 
-                  // Öka känsligheten - dela med mindre värde för snabbare rörelse
-                  final pageValueChange = dragDistance / (screenWidth / 3);
-                  final newPageValue = (_dragStartPageValue + pageValueChange)
-                      .clamp(0.0, 2.0);
+                // Snappa alltid till närmaste ikon baserat på position
+                final targetIndex = _currentPageValue.round().clamp(0, 2);
 
+                // Uppdatera _currentIndex direkt för att undvika animation från fel position
+                setState(() {
+                  _currentIndex = targetIndex;
+                });
+
+                // Animera bara currentPageValue, inte hela sidan
+                final animationController = AnimationController(
+                  duration: const Duration(milliseconds: 200),
+                  vsync: this,
+                );
+
+                final animation = Tween<double>(
+                  begin: _currentPageValue,
+                  end: targetIndex.toDouble(),
+                ).animate(
+                  CurvedAnimation(
+                    parent: animationController,
+                    curve: Curves.easeOut,
+                  ),
+                );
+
+                animation.addListener(() {
                   setState(() {
-                    _currentPageValue = newPageValue;
+                    _currentPageValue = animation.value;
                   });
-                }
-              },
-              onHorizontalDragEnd: (details) {
-                if (_isDragging) {
-                  _isDragging = false;
+                });
 
-                  // Snappa alltid till närmaste ikon baserat på position
-                  final targetIndex = _currentPageValue.round().clamp(0, 2);
-
-                  // Uppdatera _currentIndex direkt för att undvika animation från fel position
-                  setState(() {
-                    _currentIndex = targetIndex;
-                  });
-
-                  // Animera bara currentPageValue, inte hela sidan
-                  final animationController = AnimationController(
-                    duration: const Duration(milliseconds: 200),
-                    vsync: this,
-                  );
-
-                  final animation = Tween<double>(
-                    begin: _currentPageValue,
-                    end: targetIndex.toDouble(),
-                  ).animate(
-                    CurvedAnimation(
-                      parent: animationController,
-                      curve: Curves.easeOut,
-                    ),
-                  );
-
-                  animation.addListener(() {
-                    setState(() {
-                      _currentPageValue = animation.value;
-                    });
-                  });
-
-                  animationController.forward().then((_) {
-                    // Byt sida när animationen är klar
-                    _controller.jumpToPage(targetIndex);
-                    animationController.dispose();
-                  });
-                }
-              },
-              child: CustomBottomNav(
-                currentIndex: _currentIndex,
-                currentPageValue: _currentPageValue,
-                onItemTap: _onItemTapped,
-              ),
+                animationController.forward().then((_) {
+                  // Byt sida när animationen är klar
+                  _controller.jumpToPage(targetIndex);
+                  animationController.dispose();
+                });
+              }
+            },
+            child: CustomBottomNav(
+              currentIndex: _currentIndex,
+              currentPageValue: _currentPageValue,
+              onItemTap: _onItemTapped,
             ),
           ),
-          const SizedBox.shrink(),
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: const BannerAdWidget(),
-          ),
-        ],
-      ),
+        ),
+        const SizedBox.shrink(),
+        Positioned(bottom: 0, left: 0, right: 0, child: const BannerAdWidget()),
+      ],
     );
   }
 }

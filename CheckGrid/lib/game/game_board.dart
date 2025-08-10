@@ -180,7 +180,7 @@ class _BoardCellState extends State<BoardCell> with TickerProviderStateMixin {
               }
 
               // Debounced save to reduce write frequency
-              board.saveBoardThrottled(context);
+              board.saveBoard(context);
               board.updatePlacedPiecesStatistic(context);
             },
             builder: (context, candidateData, rejectedData) {
