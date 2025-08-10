@@ -1,7 +1,13 @@
 name: checkgrid
 description: "An amazing mobile game."
 publish_to: 'none'
-version: 0.1.0
+
+# Build number
+# x.y.z
+# x = Major overhaul, new design, remake etc
+# y = Minor changes, new features, new screen etc
+# z = Patches, bug fixes 
+version: 1.0.0
 
 environment:
   sdk: ^3.7.2

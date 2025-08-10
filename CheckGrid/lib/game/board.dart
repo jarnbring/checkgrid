@@ -706,10 +706,6 @@ class Board extends ChangeNotifier {
 
       // Registrera att vi gjorde en write operation
       await boardProvider.registerWrite();
-
-      // Nollställ save-räknare
-
-      debugPrint('All board data cleared successfully');
     } catch (e) {
       debugPrint('Error clearing board data: $e');
     }
@@ -803,6 +799,7 @@ class Board extends ChangeNotifier {
 
       // VIKTIGT: Rensa hela boxen först för att undvika old data
       await boardBox.clear();
+      await boardBox.compact();
 
       // Skapa en enda stor save-operation med endast nödvändig data
       final saveData = <String, dynamic>{};
