@@ -43,14 +43,10 @@ class AppScaler extends StatelessWidget {
 
         Widget backgroundWidget;
 
-        if (useCustomBackground && backgroundColor != null) {
-          // Use solid color background
-          print(
-            'AppScaler: Using custom background with color: $backgroundColor',
-          ); // Debug
+        if (useCustomBackground) {
           backgroundWidget = Container(
             constraints: const BoxConstraints.expand(),
-            color: backgroundColor,
+            color: Theme.of(context).scaffoldBackgroundColor,
             child: Align(
               alignment: alignment,
               child: SizedBox(

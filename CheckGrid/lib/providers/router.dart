@@ -1,3 +1,4 @@
+import 'package:checkgrid/components/app_scaler.dart';
 import 'package:checkgrid/game/board.dart';
 import 'package:checkgrid/pages/gameover_page.dart';
 import 'package:checkgrid/game/game_ui.dart';
@@ -23,7 +24,10 @@ final GoRouter router = GoRouter(
       pageBuilder:
           (context, state) => CustomTransitionPage(
             key: state.pageKey,
-            child: const SplashScreen(),
+            child: AppScaler(
+              useCustomBackground: true,
+              child: const SplashScreen(),
+            ),
             transitionsBuilder: (
               context,
               animation,
@@ -40,7 +44,7 @@ final GoRouter router = GoRouter(
       pageBuilder:
           (context, state) => CustomTransitionPage(
             key: state.pageKey,
-            child: const TutorialPage(),
+            child: AppScaler(child: const TutorialPage()),
             transitionsBuilder: (
               context,
               animation,
@@ -57,7 +61,7 @@ final GoRouter router = GoRouter(
       pageBuilder:
           (context, state) => CustomTransitionPage(
             key: state.pageKey,
-            child: const HomeWrapper(),
+            child: AppScaler(child: const HomeWrapper()),
             transitionsBuilder: (
               context,
               animation,
@@ -68,19 +72,23 @@ final GoRouter router = GoRouter(
             },
           ),
     ),
-    // Not in use
     GoRoute(
       name: '/menu',
       path: '/menu',
       pageBuilder:
-          (context, state) =>
-              CupertinoPage(key: state.pageKey, child: GameMenu()),
+          (context, state) => CupertinoPage(
+            key: state.pageKey,
+            child: AppScaler(child: GameMenu()),
+          ),
     ),
     GoRoute(
       name: '/play',
       path: '/play',
       pageBuilder:
-          (context, state) => CupertinoPage(key: state.pageKey, child: Game()),
+          (context, state) => CupertinoPage(
+            key: state.pageKey,
+            child: AppScaler(child: Game()),
+          ),
     ),
     GoRoute(
       name: '/gameover',
@@ -88,7 +96,7 @@ final GoRouter router = GoRouter(
       pageBuilder:
           (context, state) => CustomTransitionPage(
             key: state.pageKey,
-            child: GameOverPage(board: state.extra as Board),
+            child: AppScaler(child: GameOverPage(board: state.extra as Board)),
             transitionsBuilder: (
               context,
               animation,
@@ -103,43 +111,55 @@ final GoRouter router = GoRouter(
       name: '/store',
       path: '/store',
       pageBuilder:
-          (context, state) =>
-              CupertinoPage(key: state.pageKey, child: StorePage()),
+          (context, state) => CupertinoPage(
+            key: state.pageKey,
+            child: AppScaler(child: StorePage()),
+          ),
     ),
     GoRoute(
       name: '/settings',
       path: '/settings',
       pageBuilder:
-          (context, state) =>
-              CupertinoPage(key: state.pageKey, child: SettingsPage()),
+          (context, state) => CupertinoPage(
+            key: state.pageKey,
+            child: AppScaler(useCustomBackground: true, child: SettingsPage()),
+          ),
     ),
     GoRoute(
       name: '/statistics',
       path: '/statistics',
       pageBuilder:
-          (context, state) =>
-              CupertinoPage(key: state.pageKey, child: StatisticsPage()),
+          (context, state) => CupertinoPage(
+            key: state.pageKey,
+            child: AppScaler(child: StatisticsPage()),
+          ),
     ),
     GoRoute(
       name: '/feedback',
       path: '/feedback',
       pageBuilder:
-          (context, state) =>
-              CupertinoPage(key: state.pageKey, child: FeedbackPage()),
+          (context, state) => CupertinoPage(
+            key: state.pageKey,
+            child: AppScaler(child: FeedbackPage()),
+          ),
     ),
     GoRoute(
       name: '/socials',
       path: '/socials',
       pageBuilder:
-          (context, state) =>
-              CupertinoPage(key: state.pageKey, child: SocialsPage()),
+          (context, state) => CupertinoPage(
+            key: state.pageKey,
+            child: AppScaler(child: SocialsPage()),
+          ),
     ),
     GoRoute(
       name: '/privacy_policy',
       path: '/privacy_policy',
       pageBuilder:
-          (context, state) =>
-              CupertinoPage(key: state.pageKey, child: PrivacyPolicyPage()),
+          (context, state) => CupertinoPage(
+            key: state.pageKey,
+            child: AppScaler(child: PrivacyPolicyPage()),
+          ),
     ),
   ],
 );
