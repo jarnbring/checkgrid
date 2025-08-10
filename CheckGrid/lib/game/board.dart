@@ -6,7 +6,7 @@ import 'package:checkgrid/game/utilities/piecetype.dart';
 import 'package:checkgrid/game/utilities/difficulty.dart';
 import 'package:checkgrid/game/utilities/score.dart';
 import 'package:checkgrid/providers/board_provider.dart';
-import 'package:checkgrid/providers/error_service.dart';
+import 'package:checkgrid/providers/board_storage.dart';
 import 'package:checkgrid/providers/general_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -170,7 +170,7 @@ class Board extends ChangeNotifier {
     return _fadingCells.contains(getCellId(row, col));
   }
 
-  void addScore() async {
+  Future<void> addScore() async {
     final BigInt oldScore = currentScore;
     final allTargetedCells =
         targetedCellsMap.values.expand((cells) => cells).toSet().toList();
@@ -224,7 +224,6 @@ class Board extends ChangeNotifier {
         notifyListeners();
       });
     }
-
     notifyListeners();
   }
 
@@ -302,7 +301,8 @@ class Board extends ChangeNotifier {
     return board[row][col];
   }
 
-  void placePiece(PieceType piece, int row, int col) {
+  // UPPDATERAD placePiece MED SAVE-REASONING
+  void placePiece(PieceType piece, int row, int col, {BuildContext? context}) {
     // Kontrollera om vi redan har 3 placerade pjäser
     if (selectedPiecesPositions.length >= 3) {
       return; // Tillåt inte fler än 3 pjäser
@@ -316,6 +316,11 @@ class Board extends ChangeNotifier {
       selectedPiecesPositions.add(Point(row, col));
 
       notifyListeners();
+
+      // Spara med reasoning - VIKTIGT: använd throttled för att undvika race conditions
+      if (context != null) {
+        saveBoardThrottled(context, reason: "piece_placed");
+      }
     }
   }
 
@@ -334,13 +339,10 @@ class Board extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Resets the board and all game state to start a new game.
-  // Clears all placed pieces, selected pieces, targeted cells, and resets flags.
-  // Spawns new initial active cells and selects new pieces for the player.
-  // Notifies listeners so the UI can update.
-  void restartGame(BuildContext context, bool shouldAnimate) async {
-    // VIKTIGT: Rensa ALL board-data först
-    await clearAllBoardData(context);
+  Future<void> restartGame(BuildContext context, bool shouldAnimate) async {
+    // VIKTIGT: Rensa speldata för att frigöra utrymme OMEDELBART
+    await GameStorage.clearCurrentGame();
+    await GameStorage.debugFileSize(); // Debug: visa att filen är borta
 
     resetScore();
     if (shouldAnimate) {
@@ -348,6 +350,7 @@ class Board extends ChangeNotifier {
     } else {
       clearBoard();
     }
+
     placedPieces.clear();
     selectedPieces.clear();
     targetedCellsMap.clear();
@@ -357,12 +360,14 @@ class Board extends ChangeNotifier {
     watchedAds = 0;
     clearPiecesOnBoard();
     spawnInitialActiveCells();
-    setNewSelectedPieces();
+
+    // Vänta på att nya pjäser är satta
+    await setNewSelectedPieces(context: context);
+
     if (!context.mounted) return;
 
-    // Spara den nya board-staten
-    saveBoard(context);
-
+    // Spara ny spelstatus EFTER allt är klart
+    await saveBoard(context, reason: "game_restarted");
     notifyListeners();
   }
 
@@ -538,8 +543,8 @@ class Board extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Uppdatera setNewSelectedPieces-metoden
-  void setNewSelectedPieces() async {
+  // UPPDATERAD setNewSelectedPieces MED CONTEXT-PARAMETER
+  Future<void> setNewSelectedPieces({BuildContext? context}) async {
     // Sätt animationsflaggan
     _isAnimatingNewPieces = true;
     notifyListeners();
@@ -692,26 +697,10 @@ class Board extends ChangeNotifier {
     notifyListeners();
   }
 
-  // OPTIMERING 10: Metod för att rensa ALL board-data
   Future<void> clearAllBoardData(BuildContext context) async {
-    try {
-      final boardProvider = context.read<BoardProvider>();
-      final boardBox = boardProvider.getBoardBox;
-
-      // Rensa hela board-boxen helt
-      await boardBox.clear();
-
-      // Tvinga komprimering direkt
-      await boardBox.compact();
-
-      // Registrera att vi gjorde en write operation
-      await boardProvider.registerWrite();
-    } catch (e) {
-      debugPrint('Error clearing board data: $e');
-    }
+    await GameStorage.clearCurrentGame();
   }
 
-  // OPTIMERING 11: Förbättrad createNewBoard som också rensar gammal data
   Future<void> createNewBoardWithCleanup(BuildContext context) async {
     // Rensa all gammal board-data först
     await clearAllBoardData(context);
@@ -727,217 +716,200 @@ class Board extends ChangeNotifier {
     watchedAds = 0;
     resetScore();
     spawnInitialActiveCells();
-    setNewSelectedPieces();
+
+    // Vänta på att nya pjäser är satta
+    await setNewSelectedPieces(context: context);
 
     // Spara den nya tomma boarden
     if (!context.mounted) return;
-    await saveBoard(context);
+    await saveBoard(context, reason: "new_board_created");
 
     notifyListeners();
   }
 
-  // Updates the amountOfRounds statistic
+  // Ersätt updateAmountOfRounds:
   void updateAmountOfRounds(BuildContext context) async {
-    final boardProvider = context.read<BoardProvider>();
-
-    // Amount of games
-    int amountOfRounds = boardProvider.getStatisticsBox.get(
-      'amountOfRounds',
-      defaultValue: 0,
-    );
-    boardProvider.getStatisticsBox.put('amountOfRounds', amountOfRounds + 1);
-    await boardProvider.registerWrite();
+    await GameStorage.incrementRounds();
   }
 
+  // Ersätt updatePlacedPiecesStatistic:
   void updatePlacedPiecesStatistic(BuildContext context) async {
-    final boardProvider = context.read<BoardProvider>();
-
-    int storedPlacedPieces = boardProvider.getStatisticsBox.get(
-      'placedPieces',
-      defaultValue: 0,
-    );
-    storedPlacedPieces = storedPlacedPieces + 1;
-    boardProvider.getStatisticsBox.put('placedPieces', storedPlacedPieces);
-    await boardProvider.registerWrite();
+    await GameStorage.incrementPlacedPieces();
   }
 
   void updateHighscore(BuildContext context) async {
-    final boardProvider = context.read<BoardProvider>();
-    // Highscore
-    boardProvider.getStatisticsBox.put('highScore', highScore.toString());
-    await boardProvider.registerWrite();
+    await GameStorage.saveHighScore(highScore);
   }
 
   // OPTIMERING 4: Förbättrat saving system
   Timer? _saveDebounceTimer;
   bool _isSaving = false;
 
-  // OPTIMERING 5: Mer aggressiv throttling och cleanup
+  // FÖRBÄTTRAD SAVE/LOAD MED BÄTTRE TIMING OCH DEBUGGING
+
+  DateTime? _lastSaveTime;
+
+  // FÖRBÄTTRAD THROTTLED SAVE MED DEBUGGING
   void saveBoardThrottled(
     BuildContext context, {
-    Duration debounce = const Duration(milliseconds: 2000),
+    Duration debounce = const Duration(milliseconds: 1500), // Kortare debounce
+    String? reason, // För debugging
   }) {
+    // Debug: logga varför vi sparar
+    if (reason != null) {
+      debugPrint('💾 Save requested: $reason');
+    }
+
     // Avbryt tidigare timer
     _saveDebounceTimer?.cancel();
 
     // Sätt ny timer
     _saveDebounceTimer = Timer(debounce, () async {
-      if (!_isSaving) {
-        await saveBoard(context);
+      if (!_isSaving && context.mounted) {
+        await saveBoard(context, reason: reason);
       }
     });
   }
 
-  // OPTIMERING 6: Helt omskriven saveBoard med bättre datahanterin
-  Future<void> saveBoard(BuildContext context) async {
-    if (_isSaving) return; // Förhindra samtidiga sparningar
+  // FÖRBÄTTRAD SAVE MED DEBUGGING OCH BÄTTRE ERROR HANDLING
+  Future<void> saveBoard(BuildContext context, {String? reason}) async {
+    if (_isSaving) {
+      debugPrint('⚠️ Save skipped - already saving');
+      return;
+    }
 
     try {
       _isSaving = true;
-      final boardProvider = context.read<BoardProvider>();
-      final boardBox = boardProvider.getBoardBox;
+      _lastSaveTime = DateTime.now();
 
-      // VIKTIGT: Rensa hela boxen först för att undvika old data
-      await boardBox.clear();
-      await boardBox.compact();
+      // Debug: logga vad vi sparar
+      debugPrint('💾 Saving game state: ${reason ?? "unknown reason"}');
+      debugPrint('   - Score: $currentScore');
+      debugPrint('   - Selected pieces: ${selectedPieces.length}');
+      debugPrint('   - Placed positions: ${selectedPiecesPositions.length}');
+      debugPrint('   - Game over: $isGameOver');
 
-      // Skapa en enda stor save-operation med endast nödvändig data
-      final saveData = <String, dynamic>{};
+      await GameStorage.saveCurrentGame(
+        boardData: _getBoardDataOptimized(),
+        targetedCellsMap: _getTargetedCellsMapOptimized(),
+        selectedPieces: selectedPieces.map((e) => e.name).toList(),
+        selectedPiecesPositions: selectedPiecesPositions,
+        difficulty: _difficulty.name,
+        watchedAds: watchedAds,
+        isGameOver: isGameOver,
+        isReviveShowing: isReviveShowing,
+        currentScore: currentScore.toString(),
+        currentCombo: currentCombo,
+      );
 
-      // Spara endast om det finns data att spara
-      final boardData = _getBoardDataOptimized();
-      if (boardData.isNotEmpty) {
-        saveData['board'] = boardData;
-      }
-
-      final targetedData = _getTargetedCellsMapOptimized();
-      if (targetedData.isNotEmpty) {
-        saveData['targetedCellsMap'] = targetedData;
-      }
-
-      // Grundläggande speldata
-      saveData.addAll({
-        'difficulty': _difficulty.name,
-        'selectedPieces': selectedPieces.map((e) => e.name).toList(),
-        'watchedAds': watchedAds,
-        'isGameOver': isGameOver,
-        'isReviveShowing': isReviveShowing,
-        'currentScore': currentScore.toString(),
-        'currentCombo': currentCombo,
-      });
-
-      // Spara positions endast om det finns några
-      if (selectedPiecesPositions.isNotEmpty) {
-        saveData['selectedPiecesPositions'] =
-            selectedPiecesPositions.map((p) => {'x': p.x, 'y': p.y}).toList();
-      }
-
-      // Spara allt i en batch-operation
-      if (saveData.isNotEmpty) {
-        await boardBox.putAll(saveData);
-      }
-
-      await boardProvider.registerWrite();
-
-      // Komprimera efter varje save för att hålla filen liten
-      await boardBox.compact();
-    } catch (e) {
-      debugPrint('Save error: $e');
+      debugPrint('✅ Game saved successfully');
+    } catch (e, stackTrace) {
+      debugPrint('❌ Save board error: $e');
+      debugPrint('Stack trace: $stackTrace');
     } finally {
       _isSaving = false;
     }
   }
 
-  // OPTIMERING 7: Omskriven loadBoard med förbättrad datahanterin
+  // FÖRBÄTTRAD LOAD MED BÄTTRE DEBUGGING
   Future<void> loadBoard(BuildContext context) async {
     try {
-      final boardBox = context.read<BoardProvider>().getBoardBox;
-      final statisticsBox = context.read<BoardProvider>().getStatisticsBox;
+      debugPrint('📥 Loading game state...');
 
-      // Start by looking if the game is over
-      isGameOver = boardBox.get('isGameOver') ?? false;
+      final gameData = await GameStorage.loadCurrentGame();
+
+      if (gameData == null) {
+        debugPrint('🔄 No saved game - starting fresh');
+        return;
+      }
+
+      // Debug: logga vad vi laddar
+      debugPrint('📥 Found saved game data:');
+      debugPrint('   - Timestamp: ${gameData['timestamp']}');
+      debugPrint('   - Score: ${gameData['currentScore']}');
+      debugPrint('   - Selected pieces: ${gameData['selectedPieces']}');
+      debugPrint('   - Game over: ${gameData['isGameOver']}');
+
+      // Ladda highscore från SharedPreferences
+      highScore = await GameStorage.getHighScore();
+
+      // Ladda speldata från JSON
+      isGameOver = gameData['isGameOver'] ?? false;
+
       if (isGameOver) {
+        debugPrint('🎮 Game was over - redirecting to game over screen');
         if (context.mounted) {
           context.go('/gameover', extra: this);
         }
         return;
       }
 
-      // Load selected pieces
-      final savedSelectedPieces = boardBox.get(
-        'selectedPieces',
-        defaultValue: <String>[],
-      );
-      selectedPieces =
-          (savedSelectedPieces as List)
-              .map((e) => PieceType.values.firstWhere((pt) => pt.name == e))
-              .toList();
+      // Ladda selected pieces
+      final savedSelectedPieces = gameData['selectedPieces'] as List?;
+      if (savedSelectedPieces != null) {
+        selectedPieces =
+            savedSelectedPieces
+                .map((e) => PieceType.values.firstWhere((pt) => pt.name == e))
+                .toList();
+        debugPrint('   - Loaded ${selectedPieces.length} selected pieces');
+      }
 
-      // Load score
-      final savedScore = boardBox.get('currentScore');
+      // Ladda score och combo
+      final savedScore = gameData['currentScore'];
       if (savedScore != null) {
         currentScore = BigInt.parse(savedScore);
+        lastScore = currentScore;
+        notifyListeners();
       }
+      currentCombo = gameData['currentCombo'] ?? 0;
 
-      // Load combo
-      currentCombo = boardBox.get('currentCombo') ?? 0;
-
-      // Load highscore från statistics box
-      final savedHighScore = statisticsBox.get('highScore');
-      if (savedHighScore != null) {
-        try {
-          highScore = BigInt.parse(savedHighScore);
-        } catch (e) {
-          highScore = BigInt.zero;
-        }
-      } else {
-        highScore = BigInt.zero;
-      }
-
-      // Load board cells med optimerad metod
-      final boardData = boardBox.get('board');
+      // Ladda board data
+      final boardData = gameData['board'];
       if (boardData != null) {
         _loadBoardDataOptimized(Map<String, dynamic>.from(boardData));
+        debugPrint('   - Board data loaded');
       }
 
-      // Load selected pieces positions
-      final savedPositions = boardBox.get('selectedPiecesPositions');
+      // Ladda selected pieces positions
+      final savedPositions = gameData['selectedPiecesPositions'] as List?;
       selectedPiecesPositions.clear();
       if (savedPositions != null) {
         for (final pos in savedPositions) {
           selectedPiecesPositions.add(Point<int>(pos['x'], pos['y']));
         }
-      }
-
-      // Load targeted cells map med optimerad metod
-      final targetedCellsMapData = boardBox.get('targetedCellsMap');
-      if (targetedCellsMapData != null) {
-        _loadTargetedCellsMapOptimized(
-          Map<String, dynamic>.from(targetedCellsMapData),
+        debugPrint(
+          '   - Loaded ${selectedPiecesPositions.length} piece positions',
         );
       }
 
-      // Load difficulty
-      final savedDifficulty = boardBox.get('difficulty');
-      _difficulty = Difficulty.values.firstWhere(
-        (d) => d.name == savedDifficulty,
-        orElse: () => Difficulty.medium,
-      );
+      // Ladda targeted cells map
+      final targetedData = gameData['targetedCellsMap'];
+      if (targetedData != null) {
+        _loadTargetedCellsMapOptimized(Map<String, dynamic>.from(targetedData));
+        debugPrint('   - Targeted cells map loaded');
+      }
 
-      // Load other variables
-      watchedAds = boardBox.get('watchedAds') ?? 0;
-      isReviveShowing = boardBox.get('isReviveShowing') ?? false;
+      // Ladda difficulty
+      final savedDifficulty = gameData['difficulty'];
+      if (savedDifficulty != null) {
+        _difficulty = Difficulty.values.firstWhere(
+          (d) => d.name == savedDifficulty,
+          orElse: () => Difficulty.medium,
+        );
+      }
+
+      // Ladda övrig data
+      watchedAds = gameData['watchedAds'] ?? 0;
+      isReviveShowing = gameData['isReviveShowing'] ?? false;
 
       updateColors();
       notifyListeners();
-    } catch (e, stacktrace) {
-      if (!context.mounted) return;
-      ErrorService().showError(
-        context,
-        "Something went wrong while loading the board.",
-        useTopPosition: true,
-      );
-      ErrorService().logError(e, stacktrace);
+
+      debugPrint('✅ Game state loaded successfully');
+    } catch (e, stackTrace) {
+      debugPrint('❌ Load board error: $e');
+      debugPrint('Stack trace: $stackTrace');
+      await GameStorage.clearCurrentGame();
     }
   }
 

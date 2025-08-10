@@ -90,21 +90,27 @@ class _PieceSelectorState extends State<PieceSelector>
   void _handleLastPiece(Board board) async {
     await Future.delayed(const Duration(milliseconds: 500));
     if (!mounted) return;
+
     final tutorial = context.read<TutorialController>();
     if (tutorial.tutorialStep == 4 && tutorial.isActive) {
       await tutorial.nextStep();
       board.selectedPieces = [];
     }
 
-    board.addScore();
+    // Starta addScore men vänta inte här
+    final addScoreFuture = board.addScore();
+
     board.removeTargetedCells();
     board.removePlacedPieces();
-    board.setNewSelectedPieces();
+    if (!mounted) return;
+    board.setNewSelectedPieces(context: context);
     await board.spawnActiveCells();
     board.updateColors();
 
     if (!mounted) return;
+
     board.updateHighscore(context);
+
     if (board.isGameOver && (board.watchedAds >= 3)) {
       board.resetScore();
       await board.animatedClearBoard();
@@ -114,8 +120,10 @@ class _PieceSelectorState extends State<PieceSelector>
       showReviveDialog(context, board);
     }
 
-    // Debounced save to avoid excessive local writes
-    board.saveBoard(context); // Try with throttle if appsize increases
+    // Vänta att animationen i addScore ska bli klar **innan** sparandet
+    await addScoreFuture;
+
+    await board.saveBoard(context, reason: "last_piece_complete_round");
   }
 
   Widget _buildPieceSelector(List<PieceType> selectedPieces, Board board) {

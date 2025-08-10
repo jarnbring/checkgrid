@@ -1,24 +1,16 @@
+// === lib/game/utilities/piecetype.dart ===
+// Uppdatera din befintliga piecetype.dart och ta bort Hive-delar
+
 import 'dart:ui' show Offset;
 import 'package:checkgrid/game/utilities/move_pattern.dart';
-import 'package:hive/hive.dart';
 
-part 'piecetype.g.dart';
+// TA BORT:
+// import 'package:hive/hive.dart';
+// part 'piecetype.g.dart';
+// @HiveType(typeId: 1)
+// @HiveField annotations
 
-@HiveType(typeId: 1)
-enum PieceType {
-  @HiveField(0)
-  pawn,
-  @HiveField(1)
-  knight,
-  @HiveField(2)
-  bishop,
-  @HiveField(3)
-  rook,
-  @HiveField(4)
-  queen,
-  @HiveField(5)
-  king,
-}
+enum PieceType { pawn, knight, bishop, rook, queen, king }
 
 class PlacedPiece {
   final PieceType type;
@@ -26,6 +18,19 @@ class PlacedPiece {
   final int col;
 
   PlacedPiece({required this.type, required this.row, required this.col});
+
+  // Lägg till JSON serialisering
+  Map<String, dynamic> toJson() {
+    return {'type': type.name, 'row': row, 'col': col};
+  }
+
+  static PlacedPiece fromJson(Map<String, dynamic> json) {
+    return PlacedPiece(
+      type: PieceType.values.firstWhere((e) => e.name == json['type']),
+      row: json['row'],
+      col: json['col'],
+    );
+  }
 }
 
 extension PieceProperties on PieceType {

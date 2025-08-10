@@ -1,10 +1,8 @@
 import 'package:checkgrid/game/board.dart';
-import 'package:checkgrid/game/utilities/cell.dart';
-import 'package:checkgrid/game/utilities/piecetype.dart';
 import 'package:checkgrid/pages/tutorial_page.dart';
 import 'package:checkgrid/providers/ad_provider.dart';
 import 'package:checkgrid/providers/audio_provider.dart';
-import 'package:checkgrid/providers/board_provider.dart';
+import 'package:checkgrid/providers/board_storage.dart';
 import 'package:checkgrid/providers/skin_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -15,7 +13,6 @@ import 'package:checkgrid/providers/settings_provider.dart';
 import 'package:checkgrid/providers/router.dart';
 import 'package:checkgrid/providers/noti_service.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -28,17 +25,6 @@ void main() async {
   );
   await MobileAds.instance.initialize();
 
-  // Configure Hive
-  await Hive.initFlutter();
-  Hive.registerAdapter(CellAdapter());
-  Hive.registerAdapter(PieceTypeAdapter());
-
-  // Load Hive
-  final boardProvider = BoardProvider();
-  await boardProvider.initFuture;
-  // Compact local boxes at startup to reclaim space
-  await boardProvider.compactAll();
-
   // Load settings
   final settingsProvider = SettingsProvider();
   await settingsProvider.loadSettings();
@@ -48,27 +34,25 @@ void main() async {
 
   // Init NotificationService
   final notiService = NotiService();
-
   await notiService.initNotification();
-  // Ask for notification permission once on first launch
   await notiService.promptForPermissionOnce();
-
-  // Setup app notifications
   await notiService.setupAppNotifications(settingsProvider);
 
   runApp(
     MultiProvider(
       providers: [
-        // Initialize providers
-        ChangeNotifierProvider.value(value: boardProvider),
+        // TA BORT BoardProvider:
+        // ChangeNotifierProvider.value(value: boardProvider),
+
+        // Lägg till GameStorage:
+        ChangeNotifierProvider(create: (_) => GameStorage()),
+
         ChangeNotifierProvider.value(value: audioProvider),
         ChangeNotifierProvider(create: (_) => TutorialController()),
         ChangeNotifierProvider(create: (_) => GeneralProvider()),
         ChangeNotifierProvider(create: (_) => AdProvider()),
         ChangeNotifierProvider(create: (_) => Board()),
         ChangeNotifierProvider(create: (_) => SkinProvider()),
-
-        // Use value to avoid re-creating the provider
         ChangeNotifierProvider.value(value: settingsProvider),
       ],
       child: const MyApp(),
@@ -109,13 +93,6 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.inactive) {
       // Background process
-    }
-    if (state == AppLifecycleState.paused ||
-        state == AppLifecycleState.detached) {
-      // Compact local data when app is backgrounded/closing to reduce Documents & Data size
-      try {
-        context.read<BoardProvider>().compactAll();
-      } catch (_) {}
     }
   }
 

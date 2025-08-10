@@ -1,55 +1,90 @@
+import 'dart:math';
+import 'package:checkgrid/providers/board_storage.dart';
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
-
-// Handles async methods for the board, i.e save, load
 
 class BoardProvider with ChangeNotifier {
-  late Box _boardBox;
-  late Box _statisticsBox;
+  // Behåll för kompatibilitet men delegera till GameStorage
 
-  int _writeCounter = 0;
-
-  late Future<void> initFuture;
-
-  BoardProvider() {
-    initFuture = _initHive();
+  // Statistik metoder
+  Future<void> incrementRounds() async {
+    await GameStorage.incrementRounds();
+    notifyListeners();
   }
 
-  Future<void> _initHive() async {
-    // Enable on-the-fly compaction when many tombstones accumulate
-    _boardBox = await Hive.openBox(
-      'boardBox',
-      compactionStrategy: (entries, deletedEntries) => deletedEntries > 1000,
-    );
-    _statisticsBox = await Hive.openBox(
-      'statisticsBox',
-      compactionStrategy: (entries, deletedEntries) => deletedEntries > 200,
-    );
+  Future<void> incrementPlacedPieces() async {
+    await GameStorage.incrementPlacedPieces();
+    notifyListeners();
   }
 
-  Box get getBoardBox => _boardBox;
-  Box get getStatisticsBox => _statisticsBox;
+  Future<Map<String, int>> getStatistics() async {
+    return await GameStorage.getStatistics();
+  }
 
-  // Register a logical write; periodically compact to reclaim space
+  // Highscore metoder
+  Future<void> saveHighScore(BigInt score) async {
+    await GameStorage.saveHighScore(score);
+    notifyListeners();
+  }
+
+  Future<BigInt> getHighScore() async {
+    return await GameStorage.getHighScore();
+  }
+
+  // Speldata metoder
+  Future<void> saveCurrentGame({
+    required Map<String, dynamic> boardData,
+    required Map<String, dynamic> targetedCellsMap,
+    required List<String> selectedPieces,
+    required List<Point<int>> selectedPiecesPositions,
+    required String difficulty,
+    required int watchedAds,
+    required bool isGameOver,
+    required bool isReviveShowing,
+    required String currentScore,
+    required int currentCombo,
+  }) async {
+    await GameStorage.saveCurrentGame(
+      boardData: boardData,
+      targetedCellsMap: targetedCellsMap,
+      selectedPieces: selectedPieces,
+      selectedPiecesPositions: selectedPiecesPositions,
+      difficulty: difficulty,
+      watchedAds: watchedAds,
+      isGameOver: isGameOver,
+      isReviveShowing: isReviveShowing,
+      currentScore: currentScore,
+      currentCombo: currentCombo,
+    );
+    notifyListeners();
+  }
+
+  Future<Map<String, dynamic>?> loadCurrentGame() async {
+    return await GameStorage.loadCurrentGame();
+  }
+
+  Future<void> clearCurrentGame() async {
+    await GameStorage.clearCurrentGame();
+    notifyListeners();
+  }
+
+  // Debug metoder
+  Future<void> debugFileSize() async {
+    await GameStorage.debugFileSize();
+  }
+
+  // Kompatibilitet metoder (för att inte behöva ändra för mycket kod)
   Future<void> registerWrite() async {
-    _writeCounter++;
-    if (_writeCounter % 200 == 0) {
-      await compactAll();
-    }
+    // Inte längre nödvändigt med JSON-filer, men behåll för kompatibilitet
+    debugPrint('registerWrite() called - no action needed with JSON storage');
   }
 
   Future<void> compactAll() async {
-    try {
-      await _boardBox.compact();
-      await _statisticsBox.compact();
-    } catch (_) {
-      // ignore
-    }
+    // Inte längre nödvändigt med JSON-filer, men behåll för kompatibilitet
+    debugPrint('compactAll() called - no action needed with JSON storage');
   }
 
   Future<void> clearAllLocalData() async {
-    await _boardBox.clear();
-    await _statisticsBox.clear();
-    await compactAll();
+    await GameStorage.clearCurrentGame();
+    notifyListeners();
   }
 }

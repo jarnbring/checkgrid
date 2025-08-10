@@ -1,9 +1,8 @@
 import 'package:checkgrid/components/glass_box.dart';
-import 'package:checkgrid/providers/board_provider.dart';
+import 'package:checkgrid/providers/board_storage.dart';
 import 'package:checkgrid/providers/error_service.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:provider/provider.dart';
 
 class StatisticsPage extends StatelessWidget {
   const StatisticsPage({super.key});
@@ -20,13 +19,40 @@ class StatisticsPage extends StatelessWidget {
       ),
       body: SafeArea(
         child: FutureBuilder<Map<String, dynamic>>(
-          future: _loadStatistics(context),
+          future: _loadStatistics(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator());
             }
+
+            if (snapshot.hasError) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(
+                      Icons.error_outline,
+                      size: 48,
+                      color: Colors.red,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Error loading statistics',
+                      style: const TextStyle(fontSize: 18),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      snapshot.error.toString(),
+                      style: const TextStyle(fontSize: 14, color: Colors.grey),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              );
+            }
+
             if (!snapshot.hasData) {
-              return const Center(child: Text('No data'));
+              return const Center(child: Text('No data available'));
             }
 
             final data = snapshot.data!;
@@ -54,13 +80,12 @@ class StatisticsPage extends StatelessWidget {
                         isWide: true,
                       ),
                       _buildStatistic("Rounds", amountOfRounds.toDouble()),
-                      //_buildStatistic("Time played", 0, isTime: true),
                       _buildStatistic("Pieces placed", placedPieces.toDouble()),
-                      // _buildStatistic(
-                      //  "Highest combo",
-                      //  0, //longestComboStreak.toDouble(),
-                      // ),
-                      // _buildStatistic("Revives", amountOfRounds.toDouble()),
+
+                      // Kommenterade statistiker kan läggas till senare
+                      // _buildStatistic("Time played", 0, isTime: true),
+                      // _buildStatistic("Highest combo", 0),
+                      // _buildStatistic("Revives", 0),
                     ],
                   ),
                 ),
@@ -72,42 +97,29 @@ class StatisticsPage extends StatelessWidget {
     );
   }
 
-  Future<Map<String, dynamic>> _loadStatistics(BuildContext context) async {
-    final boardProvider = context.watch<BoardProvider>();
+  /// Laddar all statistik från GameStorage (SharedPreferences)
+  Future<Map<String, dynamic>> _loadStatistics() async {
+    try {
+      // Hämta highscore och generell statistik parallellt för bättre prestanda
+      final futures = await Future.wait([
+        GameStorage.getHighScore(),
+        GameStorage.getStatistics(),
+      ]);
 
-    final highScoreRaw = boardProvider.getStatisticsBox.get('highScore');
-    final amountOfRounds =
-        boardProvider.getStatisticsBox.get('amountOfRounds') ?? 0;
-    final placedPieces =
-        boardProvider.getStatisticsBox.get('placedPieces') ?? 0;
+      final BigInt highscore = futures[0] as BigInt;
+      final Map<String, int> stats = futures[1] as Map<String, int>;
 
-    BigInt parseBigIntOrZero(dynamic value) {
-      if (value == null) return BigInt.zero;
-      if (value is BigInt) return value;
-      if (value is int) return BigInt.from(value);
-      if (value is String) {
-        try {
-          return BigInt.parse(value);
-        } catch (e) {
-          if (context.mounted) {
-            ErrorService().showError(
-              context,
-              "Something went wrong while loading score.",
-              useTopPosition: true,
-            );
-          }
-          ErrorService().logError(e, StackTrace.current);
-          return BigInt.zero;
-        }
-      }
-      return BigInt.zero;
+      return {
+        'highscore': highscore,
+        'amountOfRounds': stats['amountOfRounds'] ?? 0,
+        'placedPieces': stats['placedPieces'] ?? 0,
+      };
+    } catch (e) {
+      // Logga fel och returnera default-värden
+      ErrorService().logError(e, StackTrace.current);
+
+      return {'highscore': BigInt.zero, 'amountOfRounds': 0, 'placedPieces': 0};
     }
-
-    return {
-      'highscore': parseBigIntOrZero(highScoreRaw),
-      'amountOfRounds': amountOfRounds,
-      'placedPieces': placedPieces,
-    };
   }
 
   Widget _buildStatistic(
@@ -136,13 +148,12 @@ class StatisticsPage extends StatelessWidget {
               ),
               const Spacer(),
               Text(
-                data is String
-                    ? '$data${isTime == true ? ' h' : ''}'
-                    : '${NumberFormat('#,###').format(data.toInt())}${isTime == true ? ' h' : ''}',
+                _formatStatisticValue(data, isTime),
                 style: const TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
                 ),
+                textAlign: TextAlign.center,
               ),
               const Spacer(),
             ],
@@ -150,5 +161,21 @@ class StatisticsPage extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  /// Formaterar statistikvärden för visning
+  String _formatStatisticValue(dynamic data, bool? isTime) {
+    final String suffix = isTime == true ? ' h' : '';
+
+    if (data is String) {
+      return '$data$suffix';
+    }
+
+    if (data is double || data is int) {
+      final int value = data.toInt();
+      return '${NumberFormat('#,###').format(value)}$suffix';
+    }
+
+    return '0$suffix';
   }
 }

@@ -38,6 +38,7 @@ To do:
 
     ------------------------------------------------------------
 
+    Back button responsiveness
     Minimize the powercomsumption
     Code cleanup
     Everything around git, README etc.

@@ -1,35 +1,23 @@
 import 'dart:math';
 import 'package:checkgrid/game/utilities/piecetype.dart';
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
-part 'cell.g.dart';
 
-@HiveType(typeId: 0)
-class Cell extends HiveObject with ChangeNotifier {
-  @HiveField(0)
+// TA BORT:
+// import 'package:hive/hive.dart';
+// part 'cell.g.dart';
+// @HiveType(typeId: 0)
+// class Cell extends HiveObject with ChangeNotifier {
+
+class Cell with ChangeNotifier {
+  // TA BORT alla @HiveField annotations
   late int x;
-
-  @HiveField(1)
   late int y;
-
-  @HiveField(2)
   bool _isActive;
-
-  @HiveField(3)
   bool _isTargeted;
-
-  @HiveField(4)
   bool _hasPiece;
-
-  @HiveField(5)
   bool isPreview;
-
-  @HiveField(6)
   PieceType? _piece;
-
-  @HiveField(7)
   int colorValue;
-
   Gradient? _gradient;
 
   Cell({
@@ -114,5 +102,35 @@ class Cell extends HiveObject with ChangeNotifier {
     } else {
       return BoxDecoration(color: color);
     }
+  }
+
+  // Lägg till JSON serialisering för GameStorage
+  Map<String, dynamic> toJson() {
+    return {
+      'x': x,
+      'y': y,
+      'isActive': _isActive,
+      'isTargeted': _isTargeted,
+      'hasPiece': _hasPiece,
+      'isPreview': isPreview,
+      'piece': _piece?.name,
+      'colorValue': colorValue,
+    };
+  }
+
+  static Cell fromJson(Map<String, dynamic> json) {
+    final cell = Cell(
+      position: Point<int>(json['x'], json['y']),
+      isActive: json['isActive'] ?? false,
+      isTargeted: json['isTargeted'] ?? false,
+      hasPiece: json['hasPiece'] ?? false,
+      isPreview: json['isPreview'] ?? false,
+      piece:
+          json['piece'] != null
+              ? PieceType.values.firstWhere((e) => e.name == json['piece'])
+              : null,
+      color: Color(json['colorValue'] ?? Colors.grey.value),
+    );
+    return cell;
   }
 }
