@@ -180,7 +180,6 @@ class _BoardCellState extends State<BoardCell> with TickerProviderStateMixin {
               }
 
               if (board.selectedPieces.isNotEmpty) board.saveBoard(context);
-              print("is not empty");
               board.updatePlacedPiecesStatistic(context);
             },
             builder: (context, candidateData, rejectedData) {

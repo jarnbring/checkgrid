@@ -72,17 +72,6 @@ class BoardProvider with ChangeNotifier {
     await GameStorage.debugFileSize();
   }
 
-  // Kompatibilitet metoder (för att inte behöva ändra för mycket kod)
-  Future<void> registerWrite() async {
-    // Inte längre nödvändigt med JSON-filer, men behåll för kompatibilitet
-    debugPrint('registerWrite() called - no action needed with JSON storage');
-  }
-
-  Future<void> compactAll() async {
-    // Inte längre nödvändigt med JSON-filer, men behåll för kompatibilitet
-    debugPrint('compactAll() called - no action needed with JSON storage');
-  }
-
   Future<void> clearAllLocalData() async {
     await GameStorage.clearCurrentGame();
     notifyListeners();

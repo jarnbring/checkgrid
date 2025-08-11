@@ -46,6 +46,8 @@ class _TutorialPageState extends State<TutorialPage> {
     required int step,
     required VoidCallback onNext,
   }) {
+    bool isPressed = false;
+
     return Material(
       color: Colors.transparent,
       child: Center(
@@ -53,10 +55,7 @@ class _TutorialPageState extends State<TutorialPage> {
           child: Container(
             width: 300,
             padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              //color: const Color.fromARGB(255, 51, 51, 51),
-              borderRadius: BorderRadius.circular(16),
-            ),
+            decoration: BoxDecoration(borderRadius: BorderRadius.circular(16)),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -75,25 +74,43 @@ class _TutorialPageState extends State<TutorialPage> {
                   style: const TextStyle(fontSize: 16),
                 ),
                 const SizedBox(height: 24),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: onNext,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: CupertinoColors.systemBlue,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                StatefulBuilder(
+                  builder: (context, setState) {
+                    return GestureDetector(
+                      onTap: onNext,
+                      onTapDown: (_) => setState(() => isPressed = true),
+                      onTapUp: (_) => setState(() => isPressed = false),
+                      onTapCancel: () => setState(() => isPressed = false),
+                      child: AnimatedScale(
+                        scale: isPressed ? 0.95 : 1.0,
+                        duration: const Duration(milliseconds: 100),
+                        child: Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          decoration: BoxDecoration(
+                            color: CupertinoColors.systemBlue,
+                            borderRadius: BorderRadius.circular(8),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.8),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Text(
+                            step == 4 ? "Done" : "Next",
+                            style: const TextStyle(
+                              fontSize: 16,
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
                       ),
-                      elevation: 10,
-                      shadowColor: Colors.black.withOpacity(0.8),
-                    ),
-                    child: Text(
-                      tutorial.tutorialStep == 4 ? "Done" : "Next",
-                      style: const TextStyle(fontSize: 16),
-                    ),
-                  ),
+                    );
+                  },
                 ),
               ],
             ),

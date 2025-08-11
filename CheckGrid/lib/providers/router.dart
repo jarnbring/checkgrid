@@ -149,7 +149,7 @@ final GoRouter router = GoRouter(
       pageBuilder:
           (context, state) => CupertinoPage(
             key: state.pageKey,
-            child: AppScaler(child: SocialsPage()),
+            child: AppScaler(useCustomBackground: true, child: SocialsPage()),
           ),
     ),
     GoRoute(

@@ -2,6 +2,34 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+enum SocialLink {
+  tiktok(FontAwesomeIcons.tiktok, 'https://www.tiktok.com/', Colors.black),
+  instagram(
+    FontAwesomeIcons.instagram,
+    'https://www.instagram.com/',
+    Colors.pink,
+  ),
+  reddit(FontAwesomeIcons.reddit, 'https://www.reddit.com/', Colors.deepOrange),
+  snapchat(
+    FontAwesomeIcons.snapchat,
+    'https://www.snapchat.com/',
+    Color.fromARGB(255, 199, 180, 13),
+  ),
+  youtube(FontAwesomeIcons.youtube, 'https://www.youtube.com/', Colors.red),
+  x(FontAwesomeIcons.xTwitter, 'https://www.x.com/', Colors.black),
+  discord(
+    FontAwesomeIcons.discord,
+    'https://www.discord.com/',
+    Color.fromARGB(255, 39, 104, 194),
+  );
+
+  final IconData icon;
+  final String url;
+  final Color color;
+
+  const SocialLink(this.icon, this.url, this.color);
+}
+
 class SocialsPage extends StatelessWidget {
   const SocialsPage({super.key});
 
@@ -14,8 +42,7 @@ class SocialsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final iconSize = (screenWidth - 80) / 4; // 3 per rad, minus padding
+    final iconSize = 260 / 4;
 
     return Scaffold(
       appBar: AppBar(
@@ -39,7 +66,7 @@ class SocialsPage extends StatelessWidget {
                 ),
                 const SizedBox(height: 40),
                 Wrap(
-                  alignment: WrapAlignment.start,
+                  alignment: WrapAlignment.center,
                   spacing: 20,
                   runSpacing: 20,
                   children: _buildSocialButtons(iconSize),
@@ -53,29 +80,14 @@ class SocialsPage extends StatelessWidget {
   }
 
   List<Widget> _buildSocialButtons(double size) {
-    final socialLinks = [
-      {'icon': FontAwesomeIcons.tiktok, 'url': 'https://www.tiktok.com/'},
-      {'icon': FontAwesomeIcons.instagram, 'url': 'https://www.instagram.com/'},
-      {'icon': FontAwesomeIcons.reddit, 'url': 'https://www.reddit.com/'},
-      {'icon': FontAwesomeIcons.snapchat, 'url': 'https://www.snapchat.com/'},
-      {'icon': FontAwesomeIcons.youtube, 'url': 'https://www.youtube.com/'},
-      {'icon': FontAwesomeIcons.xTwitter, 'url': 'https://www.x.com/'},
-      {'icon': FontAwesomeIcons.discord, 'url': 'https://www.discord.com/'},
-      // Add for your website
-    ];
-
-    return socialLinks.map((link) {
+    return SocialLink.values.map((social) {
       return GestureDetector(
-        onTap: () => _launchURL(link['url'] as String),
+        onTap: () => _launchURL(social.url),
         child: Container(
           width: size,
           height: size,
           decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [Color(0xFF5AC8FA), Color(0xFF007AFF)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
+            color: social.color,
             borderRadius: BorderRadius.circular(16),
             boxShadow: const [
               BoxShadow(
@@ -86,11 +98,7 @@ class SocialsPage extends StatelessWidget {
             ],
           ),
           child: Center(
-            child: FaIcon(
-              link['icon'] as IconData,
-              size: size * 0.4,
-              color: Colors.white,
-            ),
+            child: FaIcon(social.icon, size: size * 0.4, color: Colors.white),
           ),
         ),
       );

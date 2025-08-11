@@ -22,11 +22,11 @@ class GlassBox extends StatelessWidget {
             offset: const Offset(0, -1),
           ),
         ],
-        border: Border.all(color: Colors.white.withOpacity(0.2), width: 0.5),
+        border: Border.all(color: Colors.white.withOpacity(0.4), width: 0.5),
         gradient: LinearGradient(
           colors: [
-            Colors.white.withOpacity(0.2),
-            Colors.white.withOpacity(0.05),
+            Colors.white.withOpacity(0.5),
+            Colors.white.withOpacity(0.15),
           ],
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,

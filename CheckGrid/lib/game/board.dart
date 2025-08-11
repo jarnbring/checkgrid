@@ -5,12 +5,10 @@ import 'package:checkgrid/game/utilities/cell.dart';
 import 'package:checkgrid/game/utilities/piecetype.dart';
 import 'package:checkgrid/game/utilities/difficulty.dart';
 import 'package:checkgrid/game/utilities/score.dart';
-import 'package:checkgrid/providers/board_provider.dart';
 import 'package:checkgrid/providers/board_storage.dart';
 import 'package:checkgrid/providers/general_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:provider/provider.dart';
 
 class Board extends ChangeNotifier {
   // Board vars
@@ -362,10 +360,10 @@ class Board extends ChangeNotifier {
     spawnInitialActiveCells();
 
     // Vänta på att nya pjäser är satta
+    if (!context.mounted) return;
     await setNewSelectedPieces(context: context);
 
     if (!context.mounted) return;
-
     // Spara ny spelstatus EFTER allt är klart
     await saveBoard(context, reason: "game_restarted");
     notifyListeners();
@@ -718,6 +716,7 @@ class Board extends ChangeNotifier {
     spawnInitialActiveCells();
 
     // Vänta på att nya pjäser är satta
+    if (!context.mounted) return;
     await setNewSelectedPieces(context: context);
 
     // Spara den nya tomma boarden
@@ -745,21 +744,12 @@ class Board extends ChangeNotifier {
   Timer? _saveDebounceTimer;
   bool _isSaving = false;
 
-  // FÖRBÄTTRAD SAVE/LOAD MED BÄTTRE TIMING OCH DEBUGGING
-
-  DateTime? _lastSaveTime;
-
   // FÖRBÄTTRAD THROTTLED SAVE MED DEBUGGING
   void saveBoardThrottled(
     BuildContext context, {
     Duration debounce = const Duration(milliseconds: 1500), // Kortare debounce
     String? reason, // För debugging
   }) {
-    // Debug: logga varför vi sparar
-    if (reason != null) {
-      debugPrint('💾 Save requested: $reason');
-    }
-
     // Avbryt tidigare timer
     _saveDebounceTimer?.cancel();
 
@@ -773,21 +763,8 @@ class Board extends ChangeNotifier {
 
   // FÖRBÄTTRAD SAVE MED DEBUGGING OCH BÄTTRE ERROR HANDLING
   Future<void> saveBoard(BuildContext context, {String? reason}) async {
-    if (_isSaving) {
-      debugPrint('⚠️ Save skipped - already saving');
-      return;
-    }
-
     try {
       _isSaving = true;
-      _lastSaveTime = DateTime.now();
-
-      // Debug: logga vad vi sparar
-      debugPrint('💾 Saving game state: ${reason ?? "unknown reason"}');
-      debugPrint('   - Score: $currentScore');
-      debugPrint('   - Selected pieces: ${selectedPieces.length}');
-      debugPrint('   - Placed positions: ${selectedPiecesPositions.length}');
-      debugPrint('   - Game over: $isGameOver');
 
       await GameStorage.saveCurrentGame(
         boardData: _getBoardDataOptimized(),
@@ -801,8 +778,6 @@ class Board extends ChangeNotifier {
         currentScore: currentScore.toString(),
         currentCombo: currentCombo,
       );
-
-      debugPrint('✅ Game saved successfully');
     } catch (e, stackTrace) {
       debugPrint('❌ Save board error: $e');
       debugPrint('Stack trace: $stackTrace');
@@ -814,30 +789,20 @@ class Board extends ChangeNotifier {
   // FÖRBÄTTRAD LOAD MED BÄTTRE DEBUGGING
   Future<void> loadBoard(BuildContext context) async {
     try {
-      debugPrint('📥 Loading game state...');
-
       final gameData = await GameStorage.loadCurrentGame();
 
-      if (gameData == null) {
-        debugPrint('🔄 No saved game - starting fresh');
+      if (gameData == null && context.mounted) {
+        restartGame(context, false);
         return;
       }
-
-      // Debug: logga vad vi laddar
-      debugPrint('📥 Found saved game data:');
-      debugPrint('   - Timestamp: ${gameData['timestamp']}');
-      debugPrint('   - Score: ${gameData['currentScore']}');
-      debugPrint('   - Selected pieces: ${gameData['selectedPieces']}');
-      debugPrint('   - Game over: ${gameData['isGameOver']}');
 
       // Ladda highscore från SharedPreferences
       highScore = await GameStorage.getHighScore();
 
       // Ladda speldata från JSON
-      isGameOver = gameData['isGameOver'] ?? false;
+      isGameOver = gameData!['isGameOver'] ?? false;
 
       if (isGameOver) {
-        debugPrint('🎮 Game was over - redirecting to game over screen');
         if (context.mounted) {
           context.go('/gameover', extra: this);
         }
@@ -851,7 +816,6 @@ class Board extends ChangeNotifier {
             savedSelectedPieces
                 .map((e) => PieceType.values.firstWhere((pt) => pt.name == e))
                 .toList();
-        debugPrint('   - Loaded ${selectedPieces.length} selected pieces');
       }
 
       // Ladda score och combo
@@ -867,7 +831,6 @@ class Board extends ChangeNotifier {
       final boardData = gameData['board'];
       if (boardData != null) {
         _loadBoardDataOptimized(Map<String, dynamic>.from(boardData));
-        debugPrint('   - Board data loaded');
       }
 
       // Ladda selected pieces positions
@@ -877,16 +840,12 @@ class Board extends ChangeNotifier {
         for (final pos in savedPositions) {
           selectedPiecesPositions.add(Point<int>(pos['x'], pos['y']));
         }
-        debugPrint(
-          '   - Loaded ${selectedPiecesPositions.length} piece positions',
-        );
       }
 
       // Ladda targeted cells map
       final targetedData = gameData['targetedCellsMap'];
       if (targetedData != null) {
         _loadTargetedCellsMapOptimized(Map<String, dynamic>.from(targetedData));
-        debugPrint('   - Targeted cells map loaded');
       }
 
       // Ladda difficulty
@@ -904,17 +863,11 @@ class Board extends ChangeNotifier {
 
       updateColors();
       notifyListeners();
-
-      debugPrint('✅ Game state loaded successfully');
     } catch (e, stackTrace) {
       debugPrint('❌ Load board error: $e');
       debugPrint('Stack trace: $stackTrace');
       await GameStorage.clearCurrentGame();
     }
-  }
-
-  Future<void> compactLocalData(BuildContext context) async {
-    await context.read<BoardProvider>().compactAll();
   }
 
   // Debug: Sätt game over och notifiera
@@ -926,22 +879,6 @@ class Board extends ChangeNotifier {
   void debugSetGameOver() {
     watchedAds = 4;
     isGameOver = true;
-  }
-
-  // OPTIMERING 8: Cleanup metod för att rensa onödig data
-  Future<void> cleanupOldData(BuildContext context) async {
-    try {
-      final boardProvider = context.read<BoardProvider>();
-
-      // Komprimera alla boxar
-      await boardProvider.compactAll();
-
-      // Nollställ räknare
-
-      debugPrint('Cleanup completed successfully');
-    } catch (e) {
-      debugPrint('Cleanup error: $e');
-    }
   }
 
   // OPTIMERING 9: Destroy metod för att rensa allt när objektet förstörs

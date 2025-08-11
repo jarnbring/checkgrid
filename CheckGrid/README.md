@@ -38,12 +38,11 @@ To do:
 
     ------------------------------------------------------------
 
-    Back button responsiveness
-    Minimize the powercomsumption
-    Code cleanup
+    Divisble by 4 or 8 principle
+    Code review
     Everything around git, README etc.
     Set everything up for Appstore
-    Code review
+    Create social medias
     Implement real ads
 
     ------------------------------------------------------------

@@ -108,11 +108,6 @@ class _FeedbackPageState extends State<FeedbackPage>
         // Kontrollera om email är valid
         final emailError = _validateEmail(_emailController.text);
         if (emailError == null) {
-          // Email är valid, fortsätt med submit
-          // Här kan du lägga till din API-kod
-          debugPrint("Email is valid, submitting...");
-
-          // Eventuellt återställ error state efter lyckad submit
           setState(() {
             _showEmailError = false;
           });

@@ -102,13 +102,11 @@ class _PieceSelectorState extends State<PieceSelector>
 
     board.removeTargetedCells();
     board.removePlacedPieces();
-    if (!mounted) return;
-    board.setNewSelectedPieces(context: context);
     await board.spawnActiveCells();
     board.updateColors();
 
     if (!mounted) return;
-
+    board.setNewSelectedPieces(context: context);
     board.updateHighscore(context);
 
     if (board.isGameOver && (board.watchedAds >= 3)) {
@@ -122,7 +120,7 @@ class _PieceSelectorState extends State<PieceSelector>
 
     // Vänta att animationen i addScore ska bli klar **innan** sparandet
     await addScoreFuture;
-
+    if (!mounted) return;
     await board.saveBoard(context, reason: "last_piece_complete_round");
   }
 
