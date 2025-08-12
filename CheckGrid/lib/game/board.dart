@@ -32,6 +32,7 @@ class Board extends ChangeNotifier {
   BigInt highScore = BigInt.zero;
   bool isAnimatingHighScore = false;
   BigInt lastScore = BigInt.zero;
+  bool isHighScore = false;
 
   int currentCombo = 0;
   final int comboRequirement = 6;
@@ -200,6 +201,7 @@ class Board extends ChangeNotifier {
         finalScore > BigInt.zero) {
       // Markera att vi animerar highscore
       isAnimatingHighScore = true;
+      isHighScore = true;
       notifyListeners();
       // Använd kombinerad animering med highscore-parameter
       await GameAnimations.animateScore(oldScore, finalScore, (
@@ -222,6 +224,7 @@ class Board extends ChangeNotifier {
         notifyListeners();
       });
     }
+    //currentScore = BigInt.from(999888777);
     notifyListeners();
   }
 
@@ -340,7 +343,6 @@ class Board extends ChangeNotifier {
   Future<void> restartGame(BuildContext context, bool shouldAnimate) async {
     // VIKTIGT: Rensa speldata för att frigöra utrymme OMEDELBART
     await GameStorage.clearCurrentGame();
-    await GameStorage.debugFileSize(); // Debug: visa att filen är borta
 
     resetScore();
     if (shouldAnimate) {
@@ -355,6 +357,7 @@ class Board extends ChangeNotifier {
     selectedPiecesPositions.clear();
     isGameOver = false;
     isReviveShowing = false;
+    isHighScore = false;
     watchedAds = 0;
     clearPiecesOnBoard();
     spawnInitialActiveCells();

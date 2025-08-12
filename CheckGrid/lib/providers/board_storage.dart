@@ -92,9 +92,6 @@ class GameStorage with ChangeNotifier {
 
       final file = await _getGameFile();
       await file.writeAsString(jsonEncode(gameData));
-
-      final size = await file.length();
-      debugPrint('✅ Game saved: $size bytes');
     } catch (e) {
       debugPrint('❌ Save game error: $e');
     }
@@ -120,26 +117,10 @@ class GameStorage with ChangeNotifier {
     try {
       final file = await _getGameFile();
       if (await file.exists()) {
-        final sizeBefore = await file.length();
         await file.delete();
-        debugPrint('🗑️ Game file deleted: $sizeBefore bytes freed');
       }
     } catch (e) {
       debugPrint('❌ Clear game error: $e');
-    }
-  }
-
-  static Future<void> debugFileSize() async {
-    try {
-      final file = await _getGameFile();
-      if (await file.exists()) {
-        final size = await file.length();
-        debugPrint('📊 Current game file: $size bytes');
-      } else {
-        debugPrint('📊 No game file exists');
-      }
-    } catch (e) {
-      debugPrint('❌ File size check error: $e');
     }
   }
 }

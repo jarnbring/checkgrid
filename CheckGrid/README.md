@@ -38,6 +38,8 @@ To do:
 
     ------------------------------------------------------------
 
+    Blinking animation for highscore
+    Game over UI
     Divisble by 4 or 8 principle
     Code review
     Everything around git, README etc.

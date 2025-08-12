@@ -96,7 +96,7 @@ final GoRouter router = GoRouter(
       pageBuilder:
           (context, state) => CustomTransitionPage(
             key: state.pageKey,
-            child: AppScaler(child: GameOverPage(board: state.extra as Board)),
+            child: GameOverPage(board: state.extra as Board),
             transitionsBuilder: (
               context,
               animation,

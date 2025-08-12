@@ -67,11 +67,6 @@ class BoardProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  // Debug metoder
-  Future<void> debugFileSize() async {
-    await GameStorage.debugFileSize();
-  }
-
   Future<void> clearAllLocalData() async {
     await GameStorage.clearCurrentGame();
     notifyListeners();

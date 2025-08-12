@@ -132,7 +132,13 @@ class _ScoreState extends State<Score> with TickerProviderStateMixin {
       builder: (context, constraints) {
         double fontSize = _calculateFontSize(scoreText, constraints.maxWidth);
 
-        Widget scoreWidget = OutlinedText(text: scoreText, fontSize: fontSize);
+        Widget scoreWidget = OutlinedText(
+          text: scoreText,
+          fontSize: fontSize,
+          shadows: const [
+            Shadow(color: Colors.black45, offset: Offset(3, 3), blurRadius: 10),
+          ],
+        );
 
         // Om det är highscore, lägg till animationer
         if (_isHighScore) {
@@ -217,7 +223,7 @@ class GameAnimations {
     BigInt newScore,
     void Function(BigInt, [bool?]) onUpdate, {
     int durationMs = 500,
-    int steps = 10,
+    int steps = 100,
     bool? isHighScore,
   }) async {
     final diff = newScore - oldScore;
@@ -249,8 +255,8 @@ class GameAnimations {
     void Function(BigInt, [bool?]) onUpdate, {
     bool? isHighScore,
   }) async {
-    const int durationMs = 1000; // Exakt 1 sekund
-    const int steps = 20; // Fler steg för smidigare animation
+    const int durationMs = 2500; // Exakt 1 sekund
+    const int steps = 100; // Fler steg för smidigare animation
 
     // Animera från currentScore ner till 0
     for (var i = 0; i < steps; i++) {

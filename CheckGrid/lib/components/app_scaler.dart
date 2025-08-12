@@ -2,28 +2,23 @@ import 'dart:math';
 import 'package:checkgrid/components/background.dart';
 import 'package:flutter/material.dart';
 
-/// AppScaler keeps your UI proportions exactly as designed by
-/// rendering the whole app on a fixed-size canvas and scaling it
-/// uniformly to fit the current device (portrait only).
-///
-/// Update [designSize] if your reference device differs.
 class AppScaler extends StatelessWidget {
   const AppScaler({
     super.key,
     required this.child,
-    this.designSize = const Size(400, 870), // iPhone 12/13/14 reference
+    this.designSize = const Size(400, 870),
     this.alignment = Alignment.topCenter,
     this.backgroundColor,
-    this.useCustomBackground =
-        false, // New parameter to control background type
+    this.useCustomBackground = false,
+    this.gradient,
   });
 
   final Widget? child;
   final Size designSize;
   final Alignment alignment;
   final Color? backgroundColor;
-  final bool
-  useCustomBackground; // If true, use backgroundColor; if false, use Background widget
+  final RadialGradient? gradient;
+  final bool useCustomBackground;
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +27,6 @@ class AppScaler extends StatelessWidget {
         final double screenWidth = constraints.maxWidth;
         final double screenHeight = constraints.maxHeight;
 
-        // Uniform scale to keep proportions
         final double scale = min(
           screenWidth / designSize.width,
           screenHeight / designSize.height,
@@ -42,11 +36,25 @@ class AppScaler extends StatelessWidget {
         final double scaledHeight = designSize.height * scale;
 
         Widget backgroundWidget;
-
         if (useCustomBackground) {
+          // Skapa decoration baserat på om gradient eller färg finns
+          BoxDecoration decoration;
+          if (gradient != null) {
+            // Om gradient finns, använd den
+            decoration = BoxDecoration(gradient: gradient);
+          } else if (backgroundColor != null) {
+            // Om bara färg finns, använd den
+            decoration = BoxDecoration(color: backgroundColor);
+          } else {
+            // Fallback till tema-färg
+            decoration = BoxDecoration(
+              color: Theme.of(context).scaffoldBackgroundColor,
+            );
+          }
+
           backgroundWidget = Container(
             constraints: const BoxConstraints.expand(),
-            color: Theme.of(context).scaffoldBackgroundColor,
+            decoration: decoration,
             child: Align(
               alignment: alignment,
               child: SizedBox(
@@ -59,7 +67,6 @@ class AppScaler extends StatelessWidget {
                     width: designSize.width,
                     height: designSize.height,
                     child: MediaQuery(
-                      // Disable dynamic text scaling to keep exact proportions
                       data: MediaQuery.of(
                         context,
                       ).copyWith(textScaler: const TextScaler.linear(1.0)),
@@ -71,7 +78,6 @@ class AppScaler extends StatelessWidget {
             ),
           );
         } else {
-          // Use diamond pattern background
           backgroundWidget = Background(
             child: Align(
               alignment: alignment,
@@ -85,7 +91,6 @@ class AppScaler extends StatelessWidget {
                     width: designSize.width,
                     height: designSize.height,
                     child: MediaQuery(
-                      // Disable dynamic text scaling to keep exact proportions
                       data: MediaQuery.of(
                         context,
                       ).copyWith(textScaler: const TextScaler.linear(1.0)),
@@ -97,7 +102,6 @@ class AppScaler extends StatelessWidget {
             ),
           );
         }
-
         return backgroundWidget;
       },
     );

@@ -47,7 +47,7 @@ class HomePage extends StatelessWidget {
                   const SizedBox(height: 20),
                   OptionTile(
                     title: "Restart game",
-                    icon: Icons.restart_alt_rounded,
+                    icon: FontAwesomeIcons.arrowsRotate,
                     onTap:
                         () => {
                           board.restartGame(context, true),
