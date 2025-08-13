@@ -134,6 +134,10 @@ class _GameOverPageState extends State<GameOverPage>
         await _bounceController.reverse();
       }
     }
+
+    if (!mounted) return;
+    widget.board.restartGame(context, false);
+    await widget.board.saveBoard(context); 
   }
 
   @override
@@ -255,7 +259,6 @@ class _GameOverPageState extends State<GameOverPage>
                               ),
                     ),
                   ),
-
                   const SizedBox(height: 80),
                   SlideTransition(
                     position: _textOffset,
@@ -287,10 +290,9 @@ class _GameOverPageState extends State<GameOverPage>
                       child: ScaleTransition(
                         scale: _pulse,
                         child: _button(
-                          () {
+                          () async {
                             context.read<AudioProvider>().playOpenMenu();
-                            context.read<SettingsProvider>().doVibration(1);
-                            widget.board.restartGame(context, false);
+                            context.read<SettingsProvider>().doVibration(1);                  
                             context.go('/home');
                           },
                           isPressedRestart,

@@ -1,12 +1,14 @@
 import 'package:checkgrid/ads/banner_ad.dart';
 import 'package:checkgrid/components/custom_navigation_bar.dart';
+import 'package:checkgrid/game/board.dart';
 import 'package:checkgrid/game/game_ui.dart';
 import 'package:checkgrid/pages/statistics_page.dart';
 import 'package:checkgrid/pages/store/store_page.dart';
 import 'package:flutter/material.dart';
 
 class HomeWrapper extends StatefulWidget {
-  const HomeWrapper({super.key});
+  final Board? board;
+  const HomeWrapper({super.key, this.board});
 
   @override
   State<HomeWrapper> createState() => _HomeWrapperState();

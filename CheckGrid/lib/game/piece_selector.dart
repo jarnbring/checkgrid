@@ -121,7 +121,7 @@ class _PieceSelectorState extends State<PieceSelector>
     // Vänta att animationen i addScore ska bli klar **innan** sparandet
     await addScoreFuture;
     if (!mounted) return;
-    await board.saveBoard(context, reason: "last_piece_complete_round");
+    await board.saveBoard(context);
   }
 
   Widget _buildPieceSelector(List<PieceType> selectedPieces, Board board) {

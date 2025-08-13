@@ -341,9 +341,6 @@ class Board extends ChangeNotifier {
   }
 
   Future<void> restartGame(BuildContext context, bool shouldAnimate) async {
-    // VIKTIGT: Rensa speldata för att frigöra utrymme OMEDELBART
-    await GameStorage.clearCurrentGame();
-
     resetScore();
     if (shouldAnimate) {
       await animatedClearBoard();
@@ -368,7 +365,8 @@ class Board extends ChangeNotifier {
 
     if (!context.mounted) return;
     // Spara ny spelstatus EFTER allt är klart
-    await saveBoard(context, reason: "game_restarted");
+    await saveBoard(context);
+    
     notifyListeners();
   }
 
@@ -724,7 +722,7 @@ class Board extends ChangeNotifier {
 
     // Spara den nya tomma boarden
     if (!context.mounted) return;
-    await saveBoard(context, reason: "new_board_created");
+    await saveBoard(context);
 
     notifyListeners();
   }
@@ -759,13 +757,13 @@ class Board extends ChangeNotifier {
     // Sätt ny timer
     _saveDebounceTimer = Timer(debounce, () async {
       if (!_isSaving && context.mounted) {
-        await saveBoard(context, reason: reason);
+        await saveBoard(context);
       }
     });
   }
 
   // FÖRBÄTTRAD SAVE MED DEBUGGING OCH BÄTTRE ERROR HANDLING
-  Future<void> saveBoard(BuildContext context, {String? reason}) async {
+  Future<void> saveBoard(BuildContext context) async {
     try {
       _isSaving = true;
 
