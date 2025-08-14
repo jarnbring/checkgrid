@@ -24,6 +24,7 @@ class _GameOverPageState extends State<GameOverPage>
   late AnimationController _controller;
   late AnimationController _pulseController;
   late AnimationController _bounceController;
+  late AnimationController _buttonController; // Separat controller för knappen
   late Animation<Offset> _textOffset;
   late Animation<double> _textOpacity;
   late Animation<Offset> _buttonOffset;
@@ -58,6 +59,11 @@ class _GameOverPageState extends State<GameOverPage>
       duration: const Duration(milliseconds: 800),
     );
 
+    _buttonController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    );
+
     _textOffset = Tween<Offset>(
       begin: const Offset(0, -0.4),
       end: Offset.zero,
@@ -80,15 +86,15 @@ class _GameOverPageState extends State<GameOverPage>
       end: Offset.zero,
     ).animate(
       CurvedAnimation(
-        parent: _controller,
-        curve: const Interval(0.5, 1.0, curve: Curves.easeOut),
+        parent: _buttonController, // Använd den separata controllern
+        curve: Curves.easeOut,
       ),
     );
 
     _buttonOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
-        parent: _controller,
-        curve: const Interval(0.5, 1.0, curve: Curves.easeIn),
+        parent: _buttonController, // Använd den separata controllern
+        curve: Curves.easeIn,
       ),
     );
 
@@ -126,7 +132,7 @@ class _GameOverPageState extends State<GameOverPage>
         }
       },
       steps: 100,
-      durationMs: 2500,
+      durationMs: 1500,
     );
 
     // När score-animationen är klar, starta bounce-animationen
@@ -134,6 +140,11 @@ class _GameOverPageState extends State<GameOverPage>
       await _bounceController.forward();
       if (mounted) {
         await _bounceController.reverse();
+      }
+      
+      // Starta knappens animation efter att bounce-animationen är klar
+      if (mounted) {
+        _buttonController.forward();
       }
     }
 
@@ -147,6 +158,7 @@ class _GameOverPageState extends State<GameOverPage>
     _controller.dispose();
     _pulseController.dispose();
     _bounceController.dispose();
+    _buttonController.dispose(); // Glöm inte att dispose den nya controllern
     super.dispose();
   }
 
@@ -179,31 +191,16 @@ class _GameOverPageState extends State<GameOverPage>
     );
   }
 
-  RadialGradient gameOverGradient() {
-    return RadialGradient(
-      center: Alignment(0.0, -0.3),
-      radius: 1.2,
+  LinearGradient newHighScoreGradient() {
+    return LinearGradient(
+      begin: Alignment.bottomCenter,
+      end: Alignment.topCenter,
       colors: [
-        Color(0xFF90C8FF), // mjuk ljusblå
-        Color(0xFF3A8DFF), // klar blå
-        Color(0xFF1E4FA1), // djup blå
-        Color.fromARGB(255, 24, 50, 101), // nästan svartblå
+        Colors.blueAccent,
+        Colors.lightBlue,
+        Colors.lightBlueAccent
       ],
-      stops: [0.0, 0.35, 0.7, 1.0],
-    );
-  }
-
-  RadialGradient newHighScoreGradient() {
-    return RadialGradient(
-      center: Alignment(0.0, -0.3),
-      radius: 1.2,
-      colors: [
-        Color(0xFFFFF59D), // ljus gul
-        Color(0xFFFFC107), // varm guld
-        Color(0xFFFF4081), // klar magenta/rosa
-        Color(0xFF7C4DFF), // lila
-      ],
-      stops: [0.0, 0.35, 0.55, 1.0],
+      stops: [0.0, 0.35, 1.0],
     );
   }
 
@@ -213,7 +210,7 @@ class _GameOverPageState extends State<GameOverPage>
       gradient:
           wasHighScore
               ? newHighScoreGradient()
-              : gameOverGradient(),
+              : null,
       useCustomBackground: true,
       child: Scaffold(
         body: Container(
@@ -221,7 +218,7 @@ class _GameOverPageState extends State<GameOverPage>
             gradient:
                 wasHighScore
                     ? newHighScoreGradient()
-                    : gameOverGradient(),
+                    : null,
           ),
           child: Center(
             child: Padding(
@@ -287,6 +284,7 @@ class _GameOverPageState extends State<GameOverPage>
                     ),
                   ),
                   const Spacer(),
+                  // Knappen med sin egen animation som startas efter bounce
                   SlideTransition(
                     position: _buttonOffset,
                     child: FadeTransition(

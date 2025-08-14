@@ -358,13 +358,7 @@ class Board extends ChangeNotifier {
     watchedAds = 0;
     clearPiecesOnBoard();
     spawnInitialActiveCells();
-    print("PÅBÖRJAR SKAPA NYA PJÄSER");
-    // Vänta på att nya pjäser är satta
-
     await setNewSelectedPieces(context: context);
-
-    print("KLAR MED NYA PJÄSER");
-    print(context.mounted);
     if (!context.mounted) return;
     // Spara ny spelstatus EFTER allt är klart
     await saveBoard(context);

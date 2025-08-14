@@ -78,8 +78,8 @@ class _PieceSelectorState extends State<PieceSelector>
             Color.fromARGB(255, 111, 192, 215),
           ],
           stops: [0.0, 0.5, 1.0],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
         ),
         borderRadius: BorderRadius.circular(30),
       ),
@@ -234,7 +234,7 @@ class _PieceSelectorState extends State<PieceSelector>
         // Fake a shadow
         Positioned.fill(
           child: ImageFiltered(
-            imageFilter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
+            imageFilter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
             child: generalProvider.pieceImage(size, pieceType, null, context),
           ),
         ),

@@ -17,7 +17,7 @@ class AppScaler extends StatelessWidget {
   final Size designSize;
   final Alignment alignment;
   final Color? backgroundColor;
-  final RadialGradient? gradient;
+  final LinearGradient? gradient;
   final bool useCustomBackground;
 
   @override
@@ -41,7 +41,7 @@ class AppScaler extends StatelessWidget {
           BoxDecoration decoration;
           if (gradient != null) {
             // Om gradient finns, använd den
-            decoration = BoxDecoration(gradient: gradient);
+            decoration = BoxDecoration(gradient: gradient, );
           } else if (backgroundColor != null) {
             // Om bara färg finns, använd den
             decoration = BoxDecoration(color: backgroundColor);

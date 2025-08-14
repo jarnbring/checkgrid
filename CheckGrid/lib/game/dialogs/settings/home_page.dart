@@ -51,7 +51,6 @@ class HomePage extends StatelessWidget {
                     onTap: () async {
                       Navigator.pop(context);
                       await board.restartGame(context, true);
-                      print("DONE");
                       //context.read<AudioProvider>().playCloseMenu();
                     },
                   ),

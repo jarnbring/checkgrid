@@ -15,7 +15,6 @@ class _ScoreState extends State<Score> with TickerProviderStateMixin {
   late AnimationController _pulseController;
   late AnimationController _glowController;
   late Animation<double> _pulseAnimation;
-  late Animation<double> _glowAnimation;
 
   bool _isHighScore = false;
   bool _hasCheckedInitial = false;
@@ -37,9 +36,6 @@ class _ScoreState extends State<Score> with TickerProviderStateMixin {
     _glowController = AnimationController(
       duration: const Duration(milliseconds: 1500),
       vsync: this,
-    );
-    _glowAnimation = Tween<double>(begin: 0.3, end: 1.0).animate(
-      CurvedAnimation(parent: _glowController, curve: Curves.easeInOut),
     );
 
     // Kontrollera highscore-status när widgeten initialiseras
@@ -147,37 +143,7 @@ class _ScoreState extends State<Score> with TickerProviderStateMixin {
             builder: (context, child) {
               return Transform.scale(
                 scale: _pulseAnimation.value,
-                child: Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(32),
-                    boxShadow: [
-                      // Gul glöd-effekt
-                      BoxShadow(
-                        color: Colors.yellow.withOpacity(
-                          _glowAnimation.value * 0.8,
-                        ),
-                        blurRadius: 20 * _glowAnimation.value,
-                        spreadRadius: 10 * _glowAnimation.value,
-                      ),
-                      // Gul inre glöd
-                      BoxShadow(
-                        color: Colors.amber.withOpacity(
-                          _glowAnimation.value * 0.6,
-                        ),
-                        blurRadius: 10 * _glowAnimation.value,
-                        spreadRadius: 7 * _glowAnimation.value,
-                      ),
-                      // Vit kärna för extra lyskraft
-                      BoxShadow(
-                        color: Colors.white.withOpacity(
-                          _glowAnimation.value * 0.4,
-                        ),
-                        blurRadius: 5 * _glowAnimation.value,
-                        spreadRadius: 5 * _glowAnimation.value,
-                      ),
-                    ],
-                  ),
-                  child: ShaderMask(
+                child: ShaderMask(
                     shaderCallback:
                         (bounds) => RadialGradient(
                           center: Alignment.center,
@@ -195,12 +161,10 @@ class _ScoreState extends State<Score> with TickerProviderStateMixin {
                         ).createShader(bounds),
                     child: scoreWidget,
                   ),
-                ),
               );
             },
           );
         }
-
         return scoreWidget;
       },
     );
