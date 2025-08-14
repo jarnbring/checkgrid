@@ -224,7 +224,7 @@ class Board extends ChangeNotifier {
         notifyListeners();
       });
     }
-    //currentScore = BigInt.from(999888777);
+    //currentScore = BigInt.from(2223372036854775803);
     notifyListeners();
   }
 
@@ -358,11 +358,13 @@ class Board extends ChangeNotifier {
     watchedAds = 0;
     clearPiecesOnBoard();
     spawnInitialActiveCells();
-
+    print("PÅBÖRJAR SKAPA NYA PJÄSER");
     // Vänta på att nya pjäser är satta
-    if (!context.mounted) return;
+
     await setNewSelectedPieces(context: context);
 
+    print("KLAR MED NYA PJÄSER");
+    print(context.mounted);
     if (!context.mounted) return;
     // Spara ny spelstatus EFTER allt är klart
     await saveBoard(context);

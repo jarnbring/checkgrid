@@ -39,7 +39,7 @@ To do:
     ------------------------------------------------------------
 
     Blinking animation for highscore
-    Game over UI
+    Game over UI (highscore!, gameover looks good)
     Divisble by 4 or 8 principle
     Code review
     Everything around git, README etc.

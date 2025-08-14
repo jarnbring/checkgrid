@@ -48,12 +48,12 @@ class HomePage extends StatelessWidget {
                   OptionTile(
                     title: "Restart game",
                     icon: FontAwesomeIcons.arrowsRotate,
-                    onTap:
-                        () => {
-                          board.restartGame(context, true),
-                          //context.read<AudioProvider>().playCloseMenu(),
-                          Navigator.pop(context),
-                        },
+                    onTap: () async {
+                      Navigator.pop(context);
+                      await board.restartGame(context, true);
+                      print("DONE");
+                      //context.read<AudioProvider>().playCloseMenu();
+                    },
                   ),
                   // OptionTile(
                   //   title: "Difficulty",

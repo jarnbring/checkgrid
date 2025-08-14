@@ -33,6 +33,7 @@ class _GameOverPageState extends State<GameOverPage>
 
   late final BigInt finalScore;
   BigInt currentScore = BigInt.zero; // Håller nuvarande animerade score
+  bool wasHighScore = false;
 
   @override
   void initState() {
@@ -40,6 +41,7 @@ class _GameOverPageState extends State<GameOverPage>
     context.read<AudioProvider>().playGameOver();
     widget.board.updateAmountOfRounds(context);
     finalScore = widget.board.lastScore;
+    wasHighScore = widget.board.isHighScore;
 
     _controller = AnimationController(
       vsync: this,
@@ -94,7 +96,7 @@ class _GameOverPageState extends State<GameOverPage>
       CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
     );
 
-    _bounce = Tween<double>(begin: 1.0, end: 1.15).animate(
+    _bounce = Tween<double>(begin: 1.0, end: 1.55).animate(
       CurvedAnimation(parent: _bounceController, curve: Curves.easeInOutBack),
     );
 
@@ -209,7 +211,7 @@ class _GameOverPageState extends State<GameOverPage>
   Widget build(BuildContext context) {
     return AppScaler(
       gradient:
-          widget.board.isHighScore
+          wasHighScore
               ? newHighScoreGradient()
               : gameOverGradient(),
       useCustomBackground: true,
@@ -217,7 +219,7 @@ class _GameOverPageState extends State<GameOverPage>
         body: Container(
           decoration: BoxDecoration(
             gradient:
-                widget.board.isHighScore
+                wasHighScore
                     ? newHighScoreGradient()
                     : gameOverGradient(),
           ),
@@ -234,7 +236,7 @@ class _GameOverPageState extends State<GameOverPage>
                     child: FadeTransition(
                       opacity: _textOpacity,
                       child:
-                          widget.board.isHighScore
+                          wasHighScore
                               ? OutlinedText(
                                 text: "New Highscore!",
                                 fontSize: 34,
@@ -268,9 +270,11 @@ class _GameOverPageState extends State<GameOverPage>
                         scale: _bounce,
                         child: OutlinedText(
                           fontSize: 36,
-                          text: NumberFormat(
-                            '#,###',
-                          ).format(currentScore.toInt()),
+                          text: 
+                                  currentScore >= BigInt.from(9223372036854775807)
+            ? "MAX"
+            : NumberFormat("#,###").format(currentScore.toInt()),
+            textAlign: TextAlign.center,
                           shadows: const [
                             Shadow(
                               color: Colors.black45,
@@ -290,7 +294,7 @@ class _GameOverPageState extends State<GameOverPage>
                       child: ScaleTransition(
                         scale: _pulse,
                         child: _button(
-                          () async {
+                          () {
                             context.read<AudioProvider>().playOpenMenu();
                             context.read<SettingsProvider>().doVibration(1);                  
                             context.go('/home');
