@@ -106,7 +106,7 @@ class _PieceSelectorState extends State<PieceSelector>
     board.updateColors();
 
     if (!mounted) return;
-    board.setNewSelectedPieces(context: context);
+    board.setNewSelectedPieces();
     board.updateHighscore(context);
 
     if (board.isGameOver && (board.watchedAds >= 3)) {

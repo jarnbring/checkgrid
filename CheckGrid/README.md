@@ -33,12 +33,12 @@ To do:
     DONE: Privacy policy, terms of service not needed
     DONE: Credits for sounds and images?
     DONE: Weekly notifications, you can add more
+    DONE: Blinking animation for highscore
     
     ALMOST DONE: App Size, NEEDS TESTING
 
     ------------------------------------------------------------
 
-    Blinking animation for highscore
     Divisble by 4 or 8 principle
     Code review
     Everything around git, README etc.

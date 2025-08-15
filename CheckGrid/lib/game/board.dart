@@ -358,11 +358,11 @@ class Board extends ChangeNotifier {
     watchedAds = 0;
     clearPiecesOnBoard();
     spawnInitialActiveCells();
-    await setNewSelectedPieces(context: context);
+    await setNewSelectedPieces();
     if (!context.mounted) return;
     // Spara ny spelstatus EFTER allt är klart
     await saveBoard(context);
-    
+
     notifyListeners();
   }
 
@@ -539,13 +539,18 @@ class Board extends ChangeNotifier {
   }
 
   // UPPDATERAD setNewSelectedPieces MED CONTEXT-PARAMETER
-  Future<void> setNewSelectedPieces({BuildContext? context}) async {
+  Future<void> setNewSelectedPieces() async {
     // Sätt animationsflaggan
     _isAnimatingNewPieces = true;
     notifyListeners();
 
-    final shuffled = List.of(PieceType.values)..shuffle(rng);
-    selectedPieces = shuffled.take(3).toList();
+    selectedPieces = <PieceType>[];
+    final availablePieces = List.of(PieceType.values);
+
+    for (int i = 0; i < 3; i++) {
+      final piece = availablePieces[rng.nextInt(availablePieces.length)];
+      selectedPieces.add(piece);
+    }
     notifyListeners();
 
     // Vänta 500ms för animationen
@@ -714,7 +719,7 @@ class Board extends ChangeNotifier {
 
     // Vänta på att nya pjäser är satta
     if (!context.mounted) return;
-    await setNewSelectedPieces(context: context);
+    await setNewSelectedPieces();
 
     // Spara den nya tomma boarden
     if (!context.mounted) return;
